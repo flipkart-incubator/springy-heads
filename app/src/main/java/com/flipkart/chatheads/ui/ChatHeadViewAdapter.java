@@ -1,7 +1,7 @@
 package com.flipkart.chatheads.ui;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
 
 /**

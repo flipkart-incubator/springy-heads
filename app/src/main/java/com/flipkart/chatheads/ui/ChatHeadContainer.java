@@ -14,6 +14,7 @@ import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,41 +23,24 @@ import java.util.Set;
 /**
  * Created by kirankumar on 10/02/15.
  */
-public class ChatHeadContainer<T> extends FrameLayout implements SpringListener {
+public class ChatHeadContainer<T> extends FrameLayout {
 
     private Spring scaleSpring;
-    private float downX = -1;
-    private float downY = -1;
-    private VelocityTracker velocityTracker;
     private int maxWidth;
     private int maxHeight;
-
-    private boolean isDragging;
-    private float downTranslationX;
-    private float downTranslationY;
     private ChatHeadCloseButton closeButton;
-    private final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private ChatHeadSpringsHolder springsHolder;
-    private ChatHead<T> activeChatHead;
-    private float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
+    //private ChatHead<T> activeChatHead;
     private Runnable closeButtonDisplayer;
     private MinimizedArrangement minimizedArrangement;
     private MaximizedArrangement maximizedArrangement;
     private ChatHeadArrangement activeArrangement;
-    private int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
-
-    public Map<T, ChatHead> getChatHeads() {
-        return chatHeads;
-    }
-
     private Map<T,ChatHead> chatHeads = new LinkedHashMap<>();
-
     public ChatHeadContainer(Context context) {
         super(context);
         init();
 
     }
-
     public ChatHeadContainer(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -67,6 +51,22 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
         super(context, attrs, defStyleAttr);
         init();
 
+    }
+
+    public int getMaxWidth() {
+        return maxWidth;
+    }
+
+    public int getMaxHeight() {
+        return maxHeight;
+    }
+
+    public ChatHeadArrangement getActiveArrangement() {
+        return activeArrangement;
+    }
+
+    public Map<T, ChatHead> getChatHeads() {
+        return chatHeads;
     }
 
     @Override
@@ -80,92 +80,24 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
         boolean handled = super.dispatchTouchEvent(event); // only true if the child chathead has been touched
 
         if (handled) {
-            //Chathead view will set the correct active springs on touch
-            Spring activeHorizontalSpring = springsHolder.getActiveHorizontalSpring();
-            Spring activeVerticalSpring = springsHolder.getActiveVerticalSpring();
 
-            int action = event.getAction();
-            float rawX = event.getX();
-            float rawY = event.getY();
-            float offsetX = rawX - downX;
-            float offsetY = rawY - downY;
-
-
-            if (velocityTracker == null) {
-                velocityTracker = VelocityTracker.obtain();
-            }
-
-            if (action == MotionEvent.ACTION_DOWN) {
-                activeChatHead.setState(ChatHead.State.FREE);
-                downX = rawX;
-                downY = rawY;
-                downTranslationX = (float) activeHorizontalSpring.getCurrentValue();
-                downTranslationY = (float) activeVerticalSpring.getCurrentValue();
-                scaleSpring.setEndValue(1.2f);
-                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
-                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
-                velocityTracker.addMovement(event);
-                closeButton.setShouldNotDismissOnRest(true);
-                postDelayed(closeButtonDisplayer, 500);
-
-            } else if (action == MotionEvent.ACTION_MOVE) {
-                if(Math.hypot(offsetX,offsetY)>touchSlop)
-                {
-                    isDragging = true;
-                }
-                if (isDragging) {
-                    closeButton.pointTo(rawX, rawY);
-                    double distanceCloseButtonFromHead = getDistanceCloseButtonFromHead(rawX, rawY);
-                    if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD) {
-                        activeChatHead.setState(ChatHead.State.CAPTURED);
-                        int[] coords = getChatHeadCoordsForCloseButton();
-                        activeHorizontalSpring.setEndValue(coords[0]);
-                        activeVerticalSpring.setEndValue(coords[1]);
-                        closeButton.capture();
-
-                    } else {
-                        activeChatHead.setState(ChatHead.State.FREE);
-                        activeHorizontalSpring.setEndValue(downTranslationX + offsetX);
-                        activeVerticalSpring.setEndValue(downTranslationY + offsetY);
-                        velocityTracker.addMovement(event);
-                        closeButton.release();
-                    }
-                }
-
-            } else {
-                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                    boolean wasDragging = isDragging;
-                    isDragging = false;
-
-                    removeCallbacks(closeButtonDisplayer);
-                    closeButton.disappear(true);
-                    scaleSpring.setEndValue(1);
-                    velocityTracker.addMovement(event);
-                    velocityTracker.computeCurrentVelocity(1000);
-                    int xVelocity = (int) velocityTracker.getXVelocity();
-                    int yVelocity = (int) velocityTracker.getYVelocity();
-                    boolean touchUpHandled = activeArrangement.handleTouchUp(activeChatHead, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
-                    if(!touchUpHandled)
-                    {
-                        activeArrangement.onDeactivate(activeChatHead, maxWidth, maxHeight, activeHorizontalSpring, activeVerticalSpring);
-                        toggleArrangement(activeChatHead);
-                    }
-
-
-                }
-            }
         }
         return handled;
     }
 
-    public void selectChatHead(ChatHead chatHead) {
-        activeChatHead = chatHead;
-        if (activeArrangement instanceof MaximizedArrangement) {
-            springsHolder.selectSpring(chatHead);
-            activeChatHead.bringToFront();
-        }
+    void selectSpring(ChatHead chatHead) {
+        springsHolder.selectSpring(chatHead);
+        chatHead.bringToFront();
     }
 
+    /**
+     * Selects the chat head. Very similar to performing touch up on it.
+     * @param chatHead
+     */
+    public void selectChatHead(ChatHead chatHead)
+    {
+        activeArrangement.selectChatHead(chatHead);
+    }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -174,7 +106,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
 
         if(activeArrangement == null)
         {
-            setArrangement(minimizedArrangement, activeChatHead);
+            setArrangement(minimizedArrangement);
         }
 
     }
@@ -190,11 +122,16 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
         chatHead.setKey(key);
         chatHeads.put(key, chatHead);
         addView(chatHead);
-        springsHolder.addChatHead(chatHead, this);
-        activeChatHead = chatHead;
+        springsHolder.addChatHead(chatHead, chatHead);
+        if(springsHolder.getHorizontalSpringChain().getAllSprings().size() >5) {
+            ModifiedSpringChain.SpringData oldestSpring = springsHolder.getOldestSpring(springsHolder.getHorizontalSpringChain());
+            ChatHead<T> chatHeadToRemove = (ChatHead) oldestSpring.getKey();
+            removeChatHead(chatHeadToRemove.getKey());
+        }
         if(activeArrangement!=null)
         activeArrangement.onChatHeadAdded(chatHead, springsHolder);
-        springsHolder.selectSpring(activeChatHead);
+        springsHolder.selectSpring(chatHead);
+
         return chatHead;
     }
 
@@ -221,10 +158,11 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
                 super.onSpringUpdate(spring);
                 double currentValue = spring.getCurrentValue();
                 float valueFromRangeToRange = (float) currentValue;
-                activeChatHead.setScaleX(valueFromRangeToRange);
-                activeChatHead.setScaleY(valueFromRangeToRange);
+                //activeChatHead.setScaleX(valueFromRangeToRange);
+                //activeChatHead.setScaleY(valueFromRangeToRange);
             }
         });
+
 
 
         closeButton = new ChatHeadCloseButton(getContext());
@@ -241,10 +179,11 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
         };
         minimizedArrangement = new MinimizedArrangement();
         maximizedArrangement = new MaximizedArrangement();
+
     }
 
 
-    private double getDistanceCloseButtonFromHead(float touchX, float touchY) {
+    double getDistanceCloseButtonFromHead(float touchX, float touchY) {
         int left = closeButton.getLeft();
         int top = closeButton.getTop();
         double xDiff = touchX - left - closeButton.getTranslationX() - closeButton.getMeasuredWidth() / 2;
@@ -254,45 +193,8 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
 
     }
 
-    @Override
-    public void onSpringUpdate(Spring spring) {
-        Spring activeHorizontalSpring = springsHolder.getActiveHorizontalSpring();
-        Spring activeVerticalSpring = springsHolder.getActiveVerticalSpring();
-        float deltaX = (float) (DELTA * ((float) maxWidth / 2f - (activeHorizontalSpring.getCurrentValue() + activeChatHead.getMeasuredWidth() / 2)) / ((float) maxWidth / 2f));
-        springsHolder.setChainDelta(deltaX, 0);
-        double distanceCloseButtonFromHead = getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + activeChatHead.getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + activeChatHead.getMeasuredHeight() / 2);
-        int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
-        activeArrangement.onSpringUpdate(activeChatHead, isDragging, maxWidth, maxHeight, spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
-        if (!isDragging) {
-
-
-            /** Capturing check **/
-
-            if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && totalVelocity < 1000) {
-
-                int[] coords = getChatHeadCoordsForCloseButton();
-                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
-                activeHorizontalSpring.setEndValue(coords[0]);
-                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
-                activeVerticalSpring.setEndValue(coords[1]);
-                closeButton.appear(false);
-                if (activeHorizontalSpring.currentValueIsApproximately(coords[0]) && activeVerticalSpring.currentValueIsApproximately(coords[0])) {
-                    activeHorizontalSpring.setAtRest();
-                    activeVerticalSpring.setAtRest();
-                    activeChatHead.setState(ChatHead.State.CAPTURED);
-                }
-
-            }
-            if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
-                scaleSpring.setEndValue(0);
-                closeButton.disappear(true);
-                captureChatHeads();
-            }
-        }
-    }
-
-    private void captureChatHeads() {
-        activeArrangement.onCapture(this,activeChatHead);
+    private void captureChatHeads(ChatHead causingChatHead) {
+        activeArrangement.onCapture(this,causingChatHead);
     }
 
     public void removeAllChatHeads() {
@@ -303,41 +205,26 @@ public class ChatHeadContainer<T> extends FrameLayout implements SpringListener 
 
     }
 
-    private void setArrangement(ChatHeadArrangement arrangement, ChatHead activeChatHead) {
+    private void setArrangement(ChatHeadArrangement arrangement) {
         activeArrangement = arrangement;
-        activeArrangement.onActivate(this, activeChatHead, springsHolder, maxWidth, maxHeight);
+        activeArrangement.onActivate(this, springsHolder, maxWidth, maxHeight);
     }
 
     public void toggleArrangement(ChatHead activeChatHead) {
         if (activeArrangement == maximizedArrangement) {
-            setArrangement(minimizedArrangement,activeChatHead);
+            setArrangement(minimizedArrangement);
         } else {
-            setArrangement(maximizedArrangement,activeChatHead);
+            setArrangement(maximizedArrangement);
         }
     }
 
-    private int[] getChatHeadCoordsForCloseButton() {
+    public int[] getChatHeadCoordsForCloseButton(ChatHead chatHead) {
         int[] coords = new int[2];
-        int x = (int) (closeButton.getLeft() + closeButton.getTranslationX() + closeButton.getMeasuredWidth() / 2 - activeChatHead.getMeasuredWidth() / 2);
-        int y = (int) (closeButton.getTop() + closeButton.getTranslationY() + closeButton.getMeasuredHeight() / 2 - activeChatHead.getMeasuredHeight() / 2);
+        int x = (int) (closeButton.getLeft() + closeButton.getTranslationX() + closeButton.getMeasuredWidth() / 2 - chatHead.getMeasuredWidth() / 2);
+        int y = (int) (closeButton.getTop() + closeButton.getTranslationY() + closeButton.getMeasuredHeight() / 2 - chatHead.getMeasuredHeight() / 2);
         coords[0] = x;
         coords[1] = y;
         return coords;
-    }
-
-    @Override
-    public void onSpringAtRest(Spring spring) {
-
-    }
-
-    @Override
-    public void onSpringActivate(Spring spring) {
-
-    }
-
-    @Override
-    public void onSpringEndStateChange(Spring spring) {
-
     }
 
     public void setViewAdapter(ChatHeadViewAdapter chatHeadViewAdapter) {

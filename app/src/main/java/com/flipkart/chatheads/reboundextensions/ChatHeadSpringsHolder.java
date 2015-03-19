@@ -44,7 +44,27 @@ public class ChatHeadSpringsHolder {
         Spring verSpring = mVerticalSpringChain.addSpring(chatHead,chatHead.getVerticalPositionListener());
         horSpring.addListener(commonListener);
         verSpring.addListener(commonListener);
+
     }
+
+    public  ModifiedSpringChain.SpringData getOldestSpring(ModifiedSpringChain springChain) {
+        List<ModifiedSpringChain.SpringData> allSprings = springChain.getAllSprings();
+            int minIndex = Integer.MAX_VALUE;
+            int arrayIndex = 0;
+            for (int i = 0; i<allSprings.size(); i++)
+            {
+                ModifiedSpringChain.SpringData allSpring = allSprings.get(i);
+                int index = allSpring.getIndex();
+                if(index<minIndex) {
+                    minIndex = index;
+                    arrayIndex = i;
+                }
+            }
+            ModifiedSpringChain.SpringData springData = allSprings.get(arrayIndex);
+            return springData;
+
+        }
+
 
     public void removeChatHead(ChatHead chatHead)
     {

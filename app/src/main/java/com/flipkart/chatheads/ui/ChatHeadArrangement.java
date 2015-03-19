@@ -7,7 +7,7 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
  * Created by kirankumar on 13/02/15.
  */
 public abstract class ChatHeadArrangement {
-    public abstract void onActivate(ChatHeadContainer container, ChatHead activeChatHead, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight);
+    public abstract void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight);
 
     public abstract void onDeactivate(ChatHead activeChatHead, int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring);
 
@@ -22,4 +22,6 @@ public abstract class ChatHeadArrangement {
     public abstract void onChatHeadRemoved(ChatHead removed, ChatHeadSpringsHolder springsHolder);
 
     public abstract void onCapture(ChatHeadContainer container, ChatHead activeChatHead);
+
+    public abstract void selectChatHead(ChatHead chatHead);
 }

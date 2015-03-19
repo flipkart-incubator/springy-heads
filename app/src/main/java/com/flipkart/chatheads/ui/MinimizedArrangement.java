@@ -15,7 +15,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     private ChatHeadContainer container;
 
     @Override
-    public void onActivate(ChatHeadContainer container, ChatHead activeChatHead, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;
         if (springsHolder.getActiveHorizontalSpring() != null)
             springsHolder.getActiveHorizontalSpring().setEndValue(currentX);
@@ -30,18 +30,23 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead, ChatHeadSpringsHolder springsHolder) {
-        onActivate(container, chatHead, springsHolder, maxWidth, maxHeight);
+        onActivate(container, springsHolder, maxWidth, maxHeight);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed, ChatHeadSpringsHolder springsHolder) {
-        onActivate(container, null, springsHolder, maxWidth, maxHeight);
+        onActivate(container, springsHolder, maxWidth, maxHeight);
     }
 
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
         // we dont care about the active ones
         container.removeAllChatHeads();
+    }
+
+    @Override
+    public void selectChatHead(ChatHead chatHead) {
+
     }
 
     @Override
@@ -91,7 +96,6 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         /** Bounds Check **/
         if (spring == activeHorizontalSpring) {
             double xPosition = activeHorizontalSpring.getCurrentValue();
-            //currentX = (int) xPosition;
             if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth && !isDragging && spring.getSpringConfig() == SpringConfigsHolder.COASTING) {
                 int newPos = maxWidth - activeChatHead.getMeasuredWidth();
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
@@ -103,14 +107,15 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             }
         } else if (spring == activeVerticalSpring) {
             double yPosition = activeVerticalSpring.getCurrentValue();
-            //currentY = (int) yPosition;
-            if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && !isDragging && spring.getSpringConfig() == SpringConfigsHolder.COASTING) {
+            if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && !isDragging) {
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
                 activeVerticalSpring.setEndValue(maxHeight - activeChatHead.getMeasuredHeight());
+                System.out.println("yPosition = " + yPosition);
             }
-            if (yPosition < 0 && !isDragging && spring.getSpringConfig() == SpringConfigsHolder.COASTING) {
+            if (yPosition < 0 && !isDragging) {
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
                 activeVerticalSpring.setEndValue(0);
+                System.out.println("yPosition = " + yPosition);
             }
 
         }

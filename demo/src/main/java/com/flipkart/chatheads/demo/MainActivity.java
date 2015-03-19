@@ -1,13 +1,15 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.demo;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.Button;
 
-import com.flipkart.chatheads.R;
+import com.flipkart.chatheads.ui.ChatHead;
+import com.flipkart.chatheads.ui.ChatHeadContainer;
+import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 
 import java.util.Set;
 
@@ -26,7 +28,7 @@ public class MainActivity extends ActionBarActivity{
 
             @Override
             public FragmentManager getFragmentManager() {
-                return MainActivity.this.getFragmentManager();
+                return MainActivity.this.getSupportFragmentManager();
             }
 
             @Override

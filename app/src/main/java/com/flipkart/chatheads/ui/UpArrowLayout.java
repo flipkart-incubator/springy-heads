@@ -38,7 +38,6 @@ public class UpArrowLayout extends ViewGroup {
     }
 
     private void init() {
-        setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT));
         Drawable drawable = getResources().getDrawable(R.drawable.up_arrow);
         ImageView imageView = new ImageView(getContext());
         imageView.setImageDrawable(drawable);
@@ -52,6 +51,16 @@ public class UpArrowLayout extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec,heightMeasureSpec);
         int count = getChildCount();
+        int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        arrowView.measure(measureSpec,measureSpec);
+        int arrowViewMeasuredHeight = arrowView.getMeasuredHeight();
+        int size = MeasureSpec.getSize(heightMeasureSpec);
+        if(size>arrowViewMeasuredHeight)
+        {
+            size-=arrowViewMeasuredHeight;
+            heightMeasureSpec = MeasureSpec.makeMeasureSpec(size,MeasureSpec.getMode(heightMeasureSpec));
+        }
+
 
         final boolean measureMatchParentChildren =
                 MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.EXACTLY ||
@@ -63,6 +72,7 @@ public class UpArrowLayout extends ViewGroup {
 
         for (int i = 0; i < count; i++) {
             final View child = getChildAt(i);
+            if(child == arrowView) continue;
             if (child.getVisibility() != GONE) {
                 measureChildWithMargins(child, widthMeasureSpec, 0, heightMeasureSpec, 0);
                 final LayoutParams lp = (LayoutParams) child.getLayoutParams();
@@ -128,9 +138,7 @@ public class UpArrowLayout extends ViewGroup {
 
 
 
-        int measureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-        arrowView.measure(measureSpec,measureSpec);
-        int arrowViewMeasuredHeight = arrowView.getMeasuredHeight();
+
         setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight() + arrowViewMeasuredHeight);
         updatePointer();
 
@@ -156,7 +164,13 @@ public class UpArrowLayout extends ViewGroup {
         {
             updatePointer();
         }
+        super.setTranslationY(pointTo.y);
 
+    }
+
+    @Override
+    public void setTranslationY(float translationY) {
+        super.setTranslationY(pointTo.y + translationY);
     }
 
     private void updatePointer() {
@@ -164,10 +178,8 @@ public class UpArrowLayout extends ViewGroup {
         if(x!=arrowView.getTranslationX()) {
             arrowView.setTranslationX(x);
         }
-        if(pointTo.y!=getTranslationY())
-        {
-            setTranslationY(pointTo.y);
-        }
+
+
     }
 
     @Override
@@ -176,7 +188,7 @@ public class UpArrowLayout extends ViewGroup {
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
                 if(child == arrowView) continue;;
-                child.layout(left + 10, top + arrowView.getMeasuredHeight(), right - 10, bottom - 10-arrowView.getMeasuredHeight());
+                child.layout(left, top + arrowView.getMeasuredHeight(), right, bottom);
             }
 
     }

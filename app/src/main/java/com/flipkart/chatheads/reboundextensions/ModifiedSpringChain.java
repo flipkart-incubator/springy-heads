@@ -18,6 +18,8 @@ import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -40,13 +42,38 @@ public class ModifiedSpringChain implements SpringListener {
     private static final int DEFAULT_ATTACHMENT_TENSION = 190;
     private static final int DEFAULT_ATTACHMENT_FRICTION = 20;
     private static int id = 0;
-
-    public void setDelta(double delta) {
-        this.delta = delta;
+    private final SpringSystem mSpringSystem = SpringSystem.create();
+    private final List<SpringData> mSprings = new ArrayList<SpringData>();
+    private final Map<Object, SpringData> mKeyMapping = new ArrayMap<Object, SpringData>();
+    private final Map<Spring, SpringData> mSpringMapping = new ArrayMap<Spring, SpringData>();
+    // The main spring config defines the tension and friction for the control spring. Keeping these
+    // values separate allows the behavior of the trailing springs to be different than that of the
+    // control point.
+    private final SpringConfig mMainSpringConfig;
+    // The attachment spring config defines the tension and friction for the rest of the springs in
+    // the chain.
+    private final SpringConfig mAttachmentSpringConfig;
+    private double delta;
+    private int mControlSpringIndex = -1;
+    private ModifiedSpringChain() {
+        this(
+                DEFAULT_MAIN_TENSION,
+                DEFAULT_MAIN_FRICTION,
+                DEFAULT_ATTACHMENT_TENSION,
+                DEFAULT_ATTACHMENT_FRICTION);
     }
 
-    private double delta;
-
+    private ModifiedSpringChain(
+            int mainTension,
+            int mainFriction,
+            int attachmentTension,
+            int attachmentFriction) {
+        mMainSpringConfig = SpringConfig.fromOrigamiTensionAndFriction(mainTension, mainFriction);
+        mAttachmentSpringConfig =
+                SpringConfig.fromOrigamiTensionAndFriction(attachmentTension, attachmentFriction);
+        registry.addSpringConfig(mMainSpringConfig, "main spring " + id++);
+        registry.addSpringConfig(mAttachmentSpringConfig, "attachment spring " + id++);
+    }
 
     /**
      * Factory method for creating a new SpringChain with default SpringConfig.
@@ -74,39 +101,8 @@ public class ModifiedSpringChain implements SpringListener {
         return new ModifiedSpringChain(mainTension, mainFriction, attachmentTension, attachmentFriction);
     }
 
-    private final SpringSystem mSpringSystem = SpringSystem.create();
-    private final List<SpringData> mSprings = new ArrayList<SpringData>();
-    private final Map<Object, SpringData> mKeyMapping = new ArrayMap<Object, SpringData>();
-    private final Map<Spring, SpringData> mSpringMapping = new ArrayMap<Spring, SpringData>();
-    private int mControlSpringIndex = -1;
-
-    // The main spring config defines the tension and friction for the control spring. Keeping these
-    // values separate allows the behavior of the trailing springs to be different than that of the
-    // control point.
-    private final SpringConfig mMainSpringConfig;
-
-    // The attachment spring config defines the tension and friction for the rest of the springs in
-    // the chain.
-    private final SpringConfig mAttachmentSpringConfig;
-
-    private ModifiedSpringChain() {
-        this(
-                DEFAULT_MAIN_TENSION,
-                DEFAULT_MAIN_FRICTION,
-                DEFAULT_ATTACHMENT_TENSION,
-                DEFAULT_ATTACHMENT_FRICTION);
-    }
-
-    private ModifiedSpringChain(
-            int mainTension,
-            int mainFriction,
-            int attachmentTension,
-            int attachmentFriction) {
-        mMainSpringConfig = SpringConfig.fromOrigamiTensionAndFriction(mainTension, mainFriction);
-        mAttachmentSpringConfig =
-                SpringConfig.fromOrigamiTensionAndFriction(attachmentTension, attachmentFriction);
-        registry.addSpringConfig(mMainSpringConfig, "main spring " + id++);
-        registry.addSpringConfig(mAttachmentSpringConfig, "attachment spring " + id++);
+    public void setDelta(double delta) {
+        this.delta = delta;
     }
 
     public SpringConfig getMainSpringConfig() {
@@ -131,8 +127,9 @@ public class ModifiedSpringChain implements SpringListener {
                 .createSpring()
                 .addListener(this)
                 .setSpringConfig(mAttachmentSpringConfig);
-        spring.setRestDisplacementThreshold(5);
-        SpringData data = new SpringData(key, spring, listener);
+        //spring.setRestDisplacementThreshold(5);
+        int nextIndex = mSprings.size();
+        SpringData data = new SpringData(nextIndex, key, spring, listener);
         mSprings.add(data);
         mKeyMapping.put(key, data);
         mSpringMapping.put(spring, data);
@@ -141,7 +138,7 @@ public class ModifiedSpringChain implements SpringListener {
 
     public Spring removeSpring(final Object key) {
         SpringData data = mKeyMapping.get(key);
-        if(data!=null) {
+        if (data != null) {
             int i = mSprings.indexOf(data);
             mSprings.remove(data);
             mKeyMapping.remove(key);
@@ -149,29 +146,22 @@ public class ModifiedSpringChain implements SpringListener {
             if (i == mControlSpringIndex) {
                 mControlSpringIndex = mSprings.size() - 1;
             }
+            Collections.sort(mSprings, new Comparator<SpringData>() {
+                @Override
+                public int compare(SpringData lhs, SpringData rhs) {
+                    return lhs.getIndex() - rhs.getIndex();
+                }
+            });
+            int index = 0;
+            for (SpringData mSpring : mSprings) {
+                mSpring.setIndex(index);
+                index++;
+            }
+
             return data.getSpring();
         }
+
         return null;
-    }
-
-    /**
-     * Set the control spring. This spring will drive the positions of all the springs
-     * before and after it in the list when moved.
-     */
-    public ModifiedSpringChain setControlSpring(Object key) {
-
-        SpringData data = mKeyMapping.get(key);
-        mControlSpringIndex = mSprings.indexOf(data);
-        if (data == null)
-            return this;
-
-
-        for (Spring spring : mSpringSystem.getAllSprings()) {
-            spring.setSpringConfig(mAttachmentSpringConfig);
-        }
-        getControlSpring().setSpringConfig(mMainSpringConfig);
-
-        return this;
     }
 
     public void activateFollowControlSpring() {
@@ -204,6 +194,26 @@ public class ModifiedSpringChain implements SpringListener {
             return mSprings.get(mControlSpringIndex).getSpring();
         }
         return null;
+    }
+
+    /**
+     * Set the control spring. This spring will drive the positions of all the springs
+     * before and after it in the list when moved.
+     */
+    public ModifiedSpringChain setControlSpring(Object key) {
+
+        SpringData data = mKeyMapping.get(key);
+        mControlSpringIndex = mSprings.indexOf(data);
+        if (data == null)
+            return this;
+
+
+        for (Spring spring : mSpringSystem.getAllSprings()) {
+            spring.setSpringConfig(mAttachmentSpringConfig);
+        }
+        getControlSpring().setSpringConfig(mMainSpringConfig);
+
+        return this;
     }
 
     /**
@@ -266,6 +276,18 @@ public class ModifiedSpringChain implements SpringListener {
     }
 
     public class SpringData {
+
+        private Spring mSpring;
+        private Object mKey;
+        private int mIndex;
+        private SpringListener mListener;
+        public SpringData(int index, Object key, Spring spring, SpringListener listener) {
+            mKey = key;
+            mIndex = index;
+            mSpring = spring;
+            mListener = listener;
+        }
+
         public Spring getSpring() {
             return mSpring;
         }
@@ -278,14 +300,12 @@ public class ModifiedSpringChain implements SpringListener {
             return mListener;
         }
 
-        Spring mSpring;
-        Object mKey;
-        SpringListener mListener;
+        public int getIndex() {
+            return mIndex;
+        }
 
-        public SpringData(Object key, Spring spring, SpringListener listener) {
-            mKey = key;
-            mSpring = spring;
-            mListener = listener;
+        public void setIndex(int index) {
+            mIndex = index;
         }
 
         @Override
