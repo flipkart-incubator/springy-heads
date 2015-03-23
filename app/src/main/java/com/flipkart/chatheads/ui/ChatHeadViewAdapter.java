@@ -1,5 +1,6 @@
 package com.flipkart.chatheads.ui;
 
+import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
@@ -25,5 +26,5 @@ public interface ChatHeadViewAdapter<T> {
      * @param key
      * @return
      */
-    public View getChatHeadView(T key);
+    public Drawable getChatHeadDrawable(T key);
 }

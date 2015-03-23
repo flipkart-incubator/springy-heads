@@ -3,9 +3,6 @@ package com.flipkart.chatheads.ui;
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 
-/**
- * Created by kirankumar on 13/02/15.
- */
 public class MinimizedArrangement extends ChatHeadArrangement {
 
     private int currentX = 0;
@@ -24,8 +21,6 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
         springsHolder.setChaining(true);
-
-
     }
 
     @Override
@@ -46,7 +41,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void selectChatHead(ChatHead chatHead) {
-
+        container.toggleArrangement(chatHead);
     }
 
     @Override
@@ -110,12 +105,10 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && !isDragging) {
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
                 activeVerticalSpring.setEndValue(maxHeight - activeChatHead.getMeasuredHeight());
-                System.out.println("yPosition = " + yPosition);
             }
             if (yPosition < 0 && !isDragging) {
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
                 activeVerticalSpring.setEndValue(0);
-                System.out.println("yPosition = " + yPosition);
             }
 
         }
