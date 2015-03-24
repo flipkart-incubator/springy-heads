@@ -120,13 +120,17 @@ public class ChatHeadContainer<T> extends FrameLayout {
             ChatHead<T> chatHeadToRemove = (ChatHead) oldestSpring.getKey();
             removeChatHead(chatHeadToRemove.getKey());
         }
-        chatHead.setImageDrawable(viewAdapter.getChatHeadDrawable(key));
+        reloadDrawable(key);
         springsHolder.selectSpring(chatHead);
 
         if (activeArrangement != null)
             activeArrangement.onChatHeadAdded(chatHead, springsHolder);
 
         return chatHead;
+    }
+
+    public void reloadDrawable(T key) {
+        chatHeads.get(key).setImageDrawable(viewAdapter.getChatHeadDrawable(key));
     }
 
 
