@@ -62,7 +62,6 @@ public class ModifiedSpringChain implements SpringListener {
                 DEFAULT_ATTACHMENT_TENSION,
                 DEFAULT_ATTACHMENT_FRICTION);
     }
-
     private ModifiedSpringChain(
             int mainTension,
             int mainFriction,
@@ -101,6 +100,10 @@ public class ModifiedSpringChain implements SpringListener {
         return new ModifiedSpringChain(mainTension, mainFriction, attachmentTension, attachmentFriction);
     }
 
+    public SpringSystem getSpringSystem() {
+        return mSpringSystem;
+    }
+
     public void setDelta(double delta) {
         this.delta = delta;
     }
@@ -120,7 +123,7 @@ public class ModifiedSpringChain implements SpringListener {
      * @param listener the listener to notify for this Spring in the chain
      * @return this SpringChain for chaining
      */
-    public Spring addSpring(final Object key, final SpringListener listener) {
+    public Spring addSpring(final Object key, final SpringListener listener, boolean isSticky) {
         // We listen to each spring added to the SpringChain and dynamically chain the springs together
         // whenever the control spring state is modified.
         Spring spring = mSpringSystem
@@ -129,7 +132,7 @@ public class ModifiedSpringChain implements SpringListener {
                 .setSpringConfig(mAttachmentSpringConfig);
         //spring.setRestDisplacementThreshold(5);
         int nextIndex = mSprings.size();
-        SpringData data = new SpringData(nextIndex, key, spring, listener);
+        SpringData data = new SpringData(nextIndex, key, spring, listener, isSticky);
         mSprings.add(data);
         mKeyMapping.put(key, data);
         mSpringMapping.put(spring, data);
@@ -275,17 +278,27 @@ public class ModifiedSpringChain implements SpringListener {
             data.getListener().onSpringEndStateChange(spring);
     }
 
+    public SpringData getSpring(Object key) {
+        return mKeyMapping.get(key);
+    }
+
     public class SpringData {
 
+        private final boolean mSticky;
         private Spring mSpring;
         private Object mKey;
         private int mIndex;
         private SpringListener mListener;
-        public SpringData(int index, Object key, Spring spring, SpringListener listener) {
+        public SpringData(int index, Object key, Spring spring, SpringListener listener, boolean isSticky) {
             mKey = key;
             mIndex = index;
             mSpring = spring;
             mListener = listener;
+            mSticky = isSticky;
+        }
+
+        public boolean isSticky() {
+            return mSticky;
         }
 
         public Spring getSpring() {

@@ -1,6 +1,8 @@
 package com.flipkart.chatheads.ui;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -11,32 +13,92 @@ import android.widget.ImageView;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringListener;
+import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
-import com.flipkart.chatheads.R;
 
 /**
  * Created by kirankumar on 10/02/15.
  */
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHead<T> extends ImageView implements SpringListener {
 
     private static final int radius = 75;
+    private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+    private final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
+    private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
+    private boolean isSticky = false;
     private ChatHeadContainer container;
     private ChatHeadSpringsHolder springsHolder;
     private State state;
     private T key;
-
     private float downX = -1;
     private float downY = -1;
     private VelocityTracker velocityTracker;
     private boolean isDragging;
     private float downTranslationX;
     private float downTranslationY;
-    private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
-    private final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
-    private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
+    private int unreadCount = 0;
+    private SpringListener xPositionListener;
+    private SpringListener yPositionListener;
+    private Spring scaleSpring;
+    public ChatHead(Context context) {
+        super(context);
+        init();
+    }
 
+    public ChatHead(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init();
+    }
 
+    public ChatHead(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    public ChatHead(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, Context context, boolean isSticky) {
+        super(context);
+        this.container = container;
+        this.springsHolder = springsHolder;
+        this.isSticky = isSticky;
+        init();
+    }
+
+    public boolean isSticky() {
+        return isSticky;
+    }
+
+    private void init() {
+        int radiusInDp = ChatHeadUtils.dpToPx(getContext(), radius);
+        setLayoutParams(new ViewGroup.LayoutParams(radiusInDp, radiusInDp));
+
+        xPositionListener = new SimpleSpringListener() {
+            @Override
+            public void onSpringUpdate(Spring spring) {
+                super.onSpringUpdate(spring);
+                setTranslationX((float) spring.getCurrentValue());
+            }
+        };
+        yPositionListener = new SimpleSpringListener() {
+            @Override
+            public void onSpringUpdate(Spring spring) {
+                super.onSpringUpdate(spring);
+                setTranslationY((float) spring.getCurrentValue());
+            }
+        };
+        SpringSystem horizontalSpringSystem = springsHolder.getHorizontalSpringSystem();
+        scaleSpring = horizontalSpringSystem.createSpring();
+        scaleSpring.addListener(new SimpleSpringListener() {
+            @Override
+            public void onSpringUpdate(Spring spring) {
+                super.onSpringUpdate(spring);
+                double currentValue = spring.getCurrentValue();
+                setScaleX((float) currentValue);
+                setScaleY((float) currentValue);
+            }
+        });
+    }
 
     public int getUnreadCount() {
         return unreadCount;
@@ -45,8 +107,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     public void setUnreadCount(int unreadCount) {
         this.unreadCount = unreadCount;
     }
-
-    private int unreadCount = 0;
 
     public State getState() {
         return state;
@@ -93,10 +153,10 @@ public class ChatHead<T> extends ImageView implements SpringListener {
                 }
 
             }
-            if (getState() == ChatHead.State.CAPTURED) {
-                //scaleSpring.setEndValue(0);
-                //closeButton.disappear(true);
-                //captureChatHeads();
+            if (getState() == ChatHead.State.CAPTURED && !isSticky) {
+                scaleSpring.setEndValue(0);
+                container.getCloseButton().disappear(false, true);
+                container.captureChatHeads(this);
             }
         }
     }
@@ -116,56 +176,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
 
     }
 
-    public enum State {
-        FREE, CAPTURED;
-    }
-
-    public ChatHead(Context context) {
-        super(context);
-        init();
-    }
-
-    public ChatHead(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public ChatHead(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-
-    private SpringListener xPositionListener;
-    private SpringListener yPositionListener;
-
-    public ChatHead(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, Context context) {
-        super(context);
-        init();
-        this.container = container;
-        this.springsHolder = springsHolder;
-    }
-
-    private void init() {
-        int radiusInDp = ChatHeadUtils.dpToPx(getContext(), radius);
-        setLayoutParams(new ViewGroup.LayoutParams(radiusInDp, radiusInDp));
-        setImageResource(R.drawable.chathead);
-        xPositionListener = new SimpleSpringListener() {
-            @Override
-            public void onSpringUpdate(Spring spring) {
-                super.onSpringUpdate(spring);
-                setTranslationX((float) spring.getCurrentValue());
-            }
-        };
-        yPositionListener = new SimpleSpringListener() {
-            @Override
-            public void onSpringUpdate(Spring spring) {
-                super.onSpringUpdate(spring);
-                setTranslationY((float) spring.getCurrentValue());
-            }
-        };
-    }
-
     public SpringListener getHorizontalPositionListener() {
         return xPositionListener;
     }
@@ -173,7 +183,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     public SpringListener getVerticalPositionListener() {
         return yPositionListener;
     }
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -203,34 +212,33 @@ public class ChatHead<T> extends ImageView implements SpringListener {
             downY = rawY;
             downTranslationX = (float) activeHorizontalSpring.getCurrentValue();
             downTranslationY = (float) activeVerticalSpring.getCurrentValue();
-            //scaleSpring.setEndValue(1.2f);
+            scaleSpring.setEndValue(.8f);
             activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
             activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
             velocityTracker.addMovement(event);
-            //closeButton.setShouldNotDismissOnRest(true);
-            //postDelayed(closeButtonDisplayer, 500);
 
         } else if (action == MotionEvent.ACTION_MOVE) {
             if(Math.hypot(offsetX,offsetY)>touchSlop)
             {
                 isDragging = true;
+                container.getCloseButton().appear(false,true);
             }
             if (isDragging) {
-                //closeButton.pointTo(rawX, rawY);
+                container.getCloseButton().pointTo(rawX,rawY);
                 double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
-                if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD) {
+                if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && !isSticky) {
                     setState(ChatHead.State.CAPTURED);
                     int[] coords = container.getChatHeadCoordsForCloseButton(this);
                     activeHorizontalSpring.setEndValue(coords[0]);
                     activeVerticalSpring.setEndValue(coords[1]);
-                    //closeButton.capture();
+                    container.getCloseButton().onCapture();
 
                 } else {
                     setState(ChatHead.State.FREE);
                     activeHorizontalSpring.setEndValue(downTranslationX + offsetX);
                     activeVerticalSpring.setEndValue(downTranslationY + offsetY);
                     velocityTracker.addMovement(event);
-                    //closeButton.release();
+                    container.getCloseButton().onRelease();
                 }
             }
 
@@ -238,10 +246,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 boolean wasDragging = isDragging;
                 isDragging = false;
-
-                //removeCallbacks(closeButtonDisplayer);
-                //closeButton.disappear(true);
-                //scaleSpring.setEndValue(1);
+                scaleSpring.setEndValue(1);
                 velocityTracker.addMovement(event);
                 velocityTracker.computeCurrentVelocity(1000);
                 int xVelocity = (int) velocityTracker.getXVelocity();
@@ -252,12 +257,18 @@ public class ChatHead<T> extends ImageView implements SpringListener {
                     container.getActiveArrangement().onDeactivate(this, container.getMaxWidth(), container.getMaxHeight(), activeHorizontalSpring, activeVerticalSpring);
                     container.toggleArrangement(this);
                 }
-
-
+                if(wasDragging) {
+                    container.getCloseButton().disappear(true, true);
+                }
             }
         }
 
         return true;
+    }
+
+
+    public enum State {
+        FREE, CAPTURED;
     }
 
 

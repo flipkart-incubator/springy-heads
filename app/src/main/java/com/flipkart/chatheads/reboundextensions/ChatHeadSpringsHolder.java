@@ -2,6 +2,7 @@ package com.flipkart.chatheads.reboundextensions;
 
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringListener;
+import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.ui.ChatHead;
 
 import java.util.List;
@@ -38,16 +39,33 @@ public class ChatHeadSpringsHolder {
         mVerticalSpringChain = ModifiedSpringChain.create();
     }
 
-    public void addChatHead(ChatHead chatHead,SpringListener commonListener)
+    public void addChatHead(ChatHead chatHead,SpringListener commonListener, boolean isSticky)
     {
-        Spring horSpring = mHorizontalSpringChain.addSpring(chatHead,chatHead.getHorizontalPositionListener());
-        Spring verSpring = mVerticalSpringChain.addSpring(chatHead,chatHead.getVerticalPositionListener());
+        Spring horSpring = mHorizontalSpringChain.addSpring(chatHead,chatHead.getHorizontalPositionListener(),isSticky);
+        Spring verSpring = mVerticalSpringChain.addSpring(chatHead,chatHead.getVerticalPositionListener(), isSticky);
         horSpring.addListener(commonListener);
         verSpring.addListener(commonListener);
-
     }
 
-    public  ModifiedSpringChain.SpringData getOldestSpring(ModifiedSpringChain springChain) {
+    public ModifiedSpringChain.SpringData getHorizontalSpring(ChatHead chatHead)
+    {
+        return mHorizontalSpringChain.getSpring(chatHead);
+    }
+    public ModifiedSpringChain.SpringData getVerticalSpring(ChatHead chatHead)
+    {
+        return mVerticalSpringChain.getSpring(chatHead);
+    }
+
+    public SpringSystem getHorizontalSpringSystem()
+    {
+        return mHorizontalSpringChain.getSpringSystem();
+    }
+    public SpringSystem getVerticalSpringSystem()
+    {
+        return mVerticalSpringChain.getSpringSystem();
+    }
+
+    public  ModifiedSpringChain.SpringData getOldestSpring(ModifiedSpringChain springChain, boolean avoidSticky) {
         List<ModifiedSpringChain.SpringData> allSprings = springChain.getAllSprings();
             int minIndex = Integer.MAX_VALUE;
             int arrayIndex = 0;
@@ -56,6 +74,10 @@ public class ChatHeadSpringsHolder {
                 ModifiedSpringChain.SpringData allSpring = allSprings.get(i);
                 int index = allSpring.getIndex();
                 if(index<minIndex) {
+                    if(allSpring.isSticky() && avoidSticky)
+                    {
+                        continue;
+                    }
                     minIndex = index;
                     arrayIndex = i;
                 }
