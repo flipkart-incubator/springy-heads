@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
@@ -75,6 +76,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
     void selectSpring(ChatHead chatHead) {
         springsHolder.selectSpring(chatHead);
         chatHead.bringToFront();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return super.onKeyDown(keyCode, event);
     }
 
     /**
@@ -181,21 +187,25 @@ public class ChatHeadContainer<T> extends FrameLayout {
         }
     }
 
-    private void setArrangement(ChatHeadArrangement arrangement) {
+    private void setArrangement(final ChatHeadArrangement arrangement) {
+        if(activeArrangement!=null && arrangement!=activeArrangement)
+        {
+            activeArrangement.onDeactivate(maxWidth,maxHeight,springsHolder.getActiveHorizontalSpring(),springsHolder.getActiveVerticalSpring());
+        }
         activeArrangement = arrangement;
         if (getMeasuredHeight() > 0 || getMeasuredWidth() > 0) {
-            activeArrangement.onActivate(this, springsHolder, maxWidth, maxHeight);
+            arrangement.onActivate(this, springsHolder, maxWidth, maxHeight);
         } else {
             post(new Runnable() {
                 @Override
                 public void run() {
-                    activeArrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
+                    arrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
                 }
             });
         }
     }
 
-    public void toggleArrangement(ChatHead activeChatHead) {
+    public void toggleArrangement() {
         if (activeArrangement == maximizedArrangement) {
             setArrangement(minimizedArrangement);
         } else {

@@ -70,8 +70,8 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
-    public void onDeactivate(ChatHead activeChatHead, int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
-        hideView(activeChatHead);
+    public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
+        hideView();
     }
 
     @Override
@@ -145,7 +145,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
                     if (distanceFromOriginal < maxDistanceFromOriginal) {
                         showView(activeChatHead, dx, dy, distanceFromOriginal);
                     } else {
-                        hideView(activeChatHead);
+                        hideView();
                     }
                 }
             }
@@ -162,7 +162,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         return arrowLayout;
     }
 
-    private void hideView(ChatHead activeChatHead) {
+    private void hideView() {
         UpArrowLayout arrowLayout = getArrowLayout();
         arrowLayout.setVisibility(View.GONE);
     }
@@ -224,7 +224,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             if (nextBestChatHead != null)
                 selectTab(nextBestChatHead);
             else
-                container.toggleArrangement(null);
+                container.toggleArrangement();
         }
     }
 
