@@ -41,7 +41,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void selectChatHead(ChatHead chatHead) {
-        container.toggleArrangement(chatHead);
+        container.toggleArrangement();
     }
 
     @Override
@@ -50,7 +50,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     }
 
     @Override
-    public void onDeactivate(ChatHead activeChatHead, int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
+    public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
         currentX = (int) activeHorizontalSpring.getCurrentValue();
         currentY = (int) activeVerticalSpring.getCurrentValue();
     }

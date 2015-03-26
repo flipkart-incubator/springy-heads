@@ -9,7 +9,7 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 public abstract class ChatHeadArrangement {
     public abstract void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight);
 
-    public abstract void onDeactivate(ChatHead activeChatHead, int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring);
+    public abstract void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring);
 
     public abstract void onSpringUpdate(ChatHead activeChatHead, boolean isDragging, int maxWidth, int maxHeight, Spring spring, Spring activeHorizontalSpring, Spring activeVerticalSpring, int totalVelocity);
 
