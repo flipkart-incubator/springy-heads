@@ -45,7 +45,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         List<ModifiedSpringChain.SpringData> verticalSprings = springsHolder.getVerticalSpringChain().getAllSprings();
         maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 50);
 
-        int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), 75);
+        int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER);
         ChatHead<T> lastChatHead = null;
         int leftIndent = maxWidth - (horizontalSprings.size() * widthPerHead);
         for (int i = 0; i < horizontalSprings.size(); i++) {

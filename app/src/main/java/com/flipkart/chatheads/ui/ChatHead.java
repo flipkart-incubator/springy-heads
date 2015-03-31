@@ -23,7 +23,7 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHead<T> extends ImageView implements SpringListener {
 
-    private static final int radius = 75;
+    public static final int DIAMETER = 56;
     private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     private final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
@@ -70,7 +70,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     }
 
     private void init() {
-        int radiusInDp = ChatHeadUtils.dpToPx(getContext(), radius);
+        int radiusInDp = ChatHeadUtils.dpToPx(getContext(), DIAMETER);
         setLayoutParams(new ViewGroup.LayoutParams(radiusInDp, radiusInDp));
 
         xPositionListener = new SimpleSpringListener() {

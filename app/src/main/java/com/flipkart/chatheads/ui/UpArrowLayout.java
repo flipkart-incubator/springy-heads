@@ -38,7 +38,7 @@ public class UpArrowLayout extends ViewGroup {
     }
 
     private void init() {
-        Drawable drawable = getResources().getDrawable(R.drawable.up_arrow);
+        Drawable drawable = getResources().getDrawable(R.drawable.chat_top_arrow);
         ImageView imageView = new ImageView(getContext());
         imageView.setImageDrawable(drawable);
         arrowView = imageView;
