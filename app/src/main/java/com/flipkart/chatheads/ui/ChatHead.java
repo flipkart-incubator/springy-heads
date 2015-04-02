@@ -212,7 +212,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
             downY = rawY;
             downTranslationX = (float) activeHorizontalSpring.getCurrentValue();
             downTranslationY = (float) activeVerticalSpring.getCurrentValue();
-            scaleSpring.setEndValue(.8f);
+            scaleSpring.setEndValue(.9f);
             activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
             activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
             velocityTracker.addMovement(event);
