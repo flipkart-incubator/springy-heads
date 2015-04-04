@@ -102,9 +102,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         maxWidth = getMeasuredWidth();
         maxHeight = getMeasuredHeight();
-        if (activeArrangement == null) {
-            setArrangement(maximizedArrangement);
-        }
+
     }
 
 
@@ -116,7 +114,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
      * @return
      */
     public ChatHead<T> addChatHead(T key, boolean isSticky) {
-        ChatHead<T> chatHead = new ChatHead(this, springsHolder, getContext(), isSticky);
+        final ChatHead<T> chatHead = new ChatHead(this, springsHolder, getContext(), isSticky);
         chatHead.setKey(key);
         chatHeads.put(key, chatHead);
         addView(chatHead);
@@ -128,7 +126,6 @@ public class ChatHeadContainer<T> extends FrameLayout {
         }
         reloadDrawable(key);
         springsHolder.selectSpring(chatHead);
-
         if (activeArrangement != null)
             activeArrangement.onChatHeadAdded(chatHead, springsHolder);
 
@@ -167,9 +164,21 @@ public class ChatHeadContainer<T> extends FrameLayout {
         addView(closeButton);
         minimizedArrangement = new MinimizedArrangement();
         maximizedArrangement = new MaximizedArrangement();
+        setupOverlay(context);
+        post(new Runnable() {
+            @Override
+            public void run() {
+                setArrangement(maximizedArrangement);
+            }
+        });
+
+    }
+
+    private void setupOverlay(Context context) {
         overlayView = new View(context);
-        addView(overlayView, 0);
         overlayView.setBackgroundResource(R.drawable.overlay_transition);
+
+        addView(overlayView, 0);
     }
 
 
@@ -200,28 +209,29 @@ public class ChatHeadContainer<T> extends FrameLayout {
         }
         activeArrangement = arrangement;
 
-        post(new Runnable() {
-            @Override
-            public void run() {
-                arrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
-                if (arrangement == maximizedArrangement) {
-                    showOverlayView();
-                } else {
-                    hideOverlayView();
-                }
-            }
-        });
-
+        arrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
+        if (arrangement == maximizedArrangement) {
+            showOverlayView();
+        } else {
+            hideOverlayView();
+        }
     }
 
     private void hideOverlayView() {
         TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
         drawable.reverseTransition(200);
+        overlayView.setOnClickListener(null);
     }
 
     private void showOverlayView() {
         TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
         drawable.startTransition(200);
+        overlayView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleArrangement();
+            }
+        });
     }
 
     public void toggleArrangement() {
