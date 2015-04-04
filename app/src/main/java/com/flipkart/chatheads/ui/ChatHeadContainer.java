@@ -177,7 +177,12 @@ public class ChatHeadContainer<T> extends FrameLayout {
     private void setupOverlay(Context context) {
         overlayView = new View(context);
         overlayView.setBackgroundResource(R.drawable.overlay_transition);
-
+        overlayView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleArrangement();
+            }
+        });
         addView(overlayView, 0);
     }
 
@@ -220,18 +225,14 @@ public class ChatHeadContainer<T> extends FrameLayout {
     private void hideOverlayView() {
         TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
         drawable.reverseTransition(200);
-        overlayView.setOnClickListener(null);
+        overlayView.setClickable(false);
     }
 
     private void showOverlayView() {
         TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
         drawable.startTransition(200);
-        overlayView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleArrangement();
-            }
-        });
+        overlayView.setClickable(true);
+
     }
 
     public void toggleArrangement() {
