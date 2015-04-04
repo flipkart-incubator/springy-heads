@@ -1,20 +1,19 @@
 package com.flipkart.chatheads.ui;
 
+import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.VelocityTracker;
-import android.view.ViewConfiguration;
+import android.view.View;
+import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
 
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringListener;
-import com.facebook.rebound.SpringSystem;
+import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
@@ -37,20 +36,21 @@ public class ChatHeadContainer<T> extends FrameLayout {
     private ChatHeadArrangement activeArrangement;
     private Map<T, ChatHead> chatHeads = new LinkedHashMap<>();
     private ChatHeadViewAdapter viewAdapter;
+    private View overlayView;
 
     public ChatHeadContainer(Context context) {
         super(context);
-        init();
+        init(context);
     }
 
     public ChatHeadContainer(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context);
     }
 
     public ChatHeadContainer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(context);
     }
 
     public ChatHeadCloseButton getCloseButton() {
@@ -153,7 +153,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
         return false;
     }
 
-    private void init() {
+    protected View getOverlayView() {
+        return overlayView;
+    }
+
+    private void init(Context context) {
         springsHolder = new ChatHeadSpringsHolder();
         closeButton = new ChatHeadCloseButton(getContext());
         LayoutParams layoutParams = new LayoutParams(ChatHeadUtils.dpToPx(getContext(), 100), ChatHeadUtils.dpToPx(getContext(), 100));
@@ -163,6 +167,9 @@ public class ChatHeadContainer<T> extends FrameLayout {
         addView(closeButton);
         minimizedArrangement = new MinimizedArrangement();
         maximizedArrangement = new MaximizedArrangement();
+        overlayView = new View(context);
+        addView(overlayView, 0);
+        overlayView.setBackgroundResource(R.drawable.overlay_transition);
     }
 
 
@@ -188,21 +195,33 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     private void setArrangement(final ChatHeadArrangement arrangement) {
-        if(activeArrangement!=null && arrangement!=activeArrangement)
-        {
-            activeArrangement.onDeactivate(maxWidth,maxHeight,springsHolder.getActiveHorizontalSpring(),springsHolder.getActiveVerticalSpring());
+        if (activeArrangement != null && arrangement != activeArrangement) {
+            activeArrangement.onDeactivate(maxWidth, maxHeight, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring());
         }
         activeArrangement = arrangement;
-        if (getMeasuredHeight() > 0 || getMeasuredWidth() > 0) {
-            arrangement.onActivate(this, springsHolder, maxWidth, maxHeight);
-        } else {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    arrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
+
+        post(new Runnable() {
+            @Override
+            public void run() {
+                arrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
+                if (arrangement == maximizedArrangement) {
+                    showOverlayView();
+                } else {
+                    hideOverlayView();
                 }
-            });
-        }
+            }
+        });
+
+    }
+
+    private void hideOverlayView() {
+        TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
+        drawable.reverseTransition(200);
+    }
+
+    private void showOverlayView() {
+        TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
+        drawable.startTransition(200);
     }
 
     public void toggleArrangement() {
