@@ -4,14 +4,17 @@ import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 
@@ -19,6 +22,7 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
+import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
@@ -143,7 +147,10 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     public void reloadDrawable(T key) {
-        chatHeads.get(key).setImageDrawable(viewAdapter.getChatHeadDrawable(key));
+        Drawable chatHeadDrawable = viewAdapter.getChatHeadDrawable(key);
+        if(chatHeadDrawable!=null) {
+            chatHeads.get(key).setImageDrawable(viewAdapter.getChatHeadDrawable(key));
+        }
     }
 
 
