@@ -186,13 +186,20 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         }
     }
 
-    private void replaceInnerView(ChatHead<T> activeChatHead) {
-        FragmentManager manager = getFragmentManager();
+    Fragment getFragment(ChatHead<T> activeChatHead)
+    {
         Fragment fragment = fragments.get(activeChatHead.getKey());
         if (fragment == null) {
             fragment = adapter.getFragment(activeChatHead.getKey(), activeChatHead);
             fragments.put(activeChatHead.getKey(), fragment);
         }
+        return fragment;
+    }
+
+    private void replaceInnerView(ChatHead<T> activeChatHead) {
+
+        FragmentManager manager = getFragmentManager();
+        Fragment fragment = getFragment(activeChatHead);
         fragment.setMenuVisibility(false);
         fragment.setUserVisibleHint(false);
         FragmentTransaction transaction = manager.beginTransaction();

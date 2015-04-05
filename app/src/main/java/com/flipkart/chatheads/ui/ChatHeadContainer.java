@@ -6,15 +6,19 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
+import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewPropertyAnimator;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
+import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 
-import com.flipkart.chatheads.R;
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringListener;
+import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
@@ -98,6 +102,10 @@ public class ChatHeadContainer<T> extends FrameLayout {
         selectChatHead(chatHead);
     }
 
+    public Fragment getFragment(T key) {
+        return maximizedArrangement.getFragment(chatHeads.get(key));
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -127,6 +135,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
         }
         reloadDrawable(key);
         springsHolder.selectSpring(chatHead);
+
         if (activeArrangement != null)
             activeArrangement.onChatHeadAdded(chatHead, springsHolder);
 
@@ -144,8 +153,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
             removeView(chatHead);
             chatHeads.remove(key);
             springsHolder.removeChatHead(chatHead);
-            if (activeArrangement != null)
-                activeArrangement.onChatHeadRemoved(chatHead, springsHolder);
+            if (activeArrangement != null) activeArrangement.onChatHeadRemoved(chatHead, springsHolder);
             return true;
         }
         return false;
