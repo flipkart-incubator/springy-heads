@@ -156,9 +156,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private UpArrowLayout getArrowLayout() {
         if (arrowLayout == null) {
-            LayoutInflater inflater = (LayoutInflater) container.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(R.layout.arrow_layout, container, true);
-            arrowLayout = (UpArrowLayout) view.findViewById(R.id.arrow_layout);
+            arrowLayout = (UpArrowLayout) container.findViewById(R.id.arrow_layout);
 
         }
         return arrowLayout;
@@ -183,7 +181,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         Point point = positions.get(activeChatHead);
         if (point != null) {
             int padding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-            arrowLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, container.getMeasuredHeight() - point.y - activeChatHead.getMeasuredHeight()-padding));
+            //arrowLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, container.getMeasuredHeight() - point.y - activeChatHead.getMeasuredHeight()-padding));
             arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight()+padding);
         }
     }

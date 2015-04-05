@@ -9,6 +9,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
@@ -155,6 +156,9 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     private void init(Context context) {
+        LayoutInflater.from(context).inflate(R.layout.arrow_layout,this,true);
+        UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
+        arrowLayout.setVisibility(View.GONE);
         springsHolder = new ChatHeadSpringsHolder();
         closeButton = new ChatHeadCloseButton(getContext());
         LayoutParams layoutParams = new LayoutParams(ChatHeadUtils.dpToPx(getContext(), 100), ChatHeadUtils.dpToPx(getContext(), 100));
@@ -256,5 +260,10 @@ public class ChatHeadContainer<T> extends FrameLayout {
         minimizedArrangement.setViewAdapter(chatHeadViewAdapter);
         maximizedArrangement.setViewAdapter(chatHeadViewAdapter);
         this.viewAdapter = chatHeadViewAdapter;
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
     }
 }
