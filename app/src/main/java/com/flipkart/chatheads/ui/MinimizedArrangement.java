@@ -6,7 +6,7 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 public class MinimizedArrangement extends ChatHeadArrangement {
 
     private int currentX = 0;
-    private int currentY = 200;
+    private int currentY = -Integer.MAX_VALUE;
     private int maxWidth;
     private int maxHeight;
     private ChatHeadContainer container;
@@ -14,6 +14,10 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;
+        if(currentY<0)
+        {
+            currentY = (int) (maxHeight * 0.8);
+        }
         if (springsHolder.getActiveHorizontalSpring() != null)
             springsHolder.getActiveHorizontalSpring().setEndValue(currentX);
         if (springsHolder.getActiveVerticalSpring() != null)

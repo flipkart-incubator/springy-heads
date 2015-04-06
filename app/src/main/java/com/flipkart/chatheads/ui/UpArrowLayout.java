@@ -38,7 +38,7 @@ public class UpArrowLayout extends ViewGroup {
     }
 
     private void init() {
-        Drawable drawable = getResources().getDrawable(R.drawable.up_arrow);
+        Drawable drawable = getResources().getDrawable(R.drawable.chat_top_arrow);
         ImageView imageView = new ImageView(getContext());
         imageView.setImageDrawable(drawable);
         arrowView = imageView;
@@ -57,7 +57,7 @@ public class UpArrowLayout extends ViewGroup {
         int size = MeasureSpec.getSize(heightMeasureSpec);
         if(size>arrowViewMeasuredHeight)
         {
-            size-=arrowViewMeasuredHeight;
+            size-=arrowViewMeasuredHeight+pointTo.y;
             heightMeasureSpec = MeasureSpec.makeMeasureSpec(size,MeasureSpec.getMode(heightMeasureSpec));
         }
 
@@ -139,7 +139,7 @@ public class UpArrowLayout extends ViewGroup {
 
 
 
-        setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight() + arrowViewMeasuredHeight);
+        setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight() + arrowViewMeasuredHeight+pointTo.y);
         updatePointer();
 
     }
@@ -164,21 +164,20 @@ public class UpArrowLayout extends ViewGroup {
         {
             updatePointer();
         }
-        super.setTranslationY(pointTo.y);
+        invalidate();
 
     }
 
-    @Override
-    public void setTranslationY(float translationY) {
-        super.setTranslationY(pointTo.y + translationY);
-    }
 
     private void updatePointer() {
         int x = (int) (pointTo.x - arrowView.getMeasuredWidth() / 2);
+        int y = pointTo.y;
         if(x!=arrowView.getTranslationX()) {
             arrowView.setTranslationX(x);
         }
-
+        if(y!=arrowView.getTranslationY()) {
+            arrowView.setTranslationY(y);
+        }
 
     }
 
@@ -188,10 +187,14 @@ public class UpArrowLayout extends ViewGroup {
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
                 if(child == arrowView) continue;;
-                child.layout(left, top + arrowView.getMeasuredHeight(), right, bottom);
+                child.layout(left, top + arrowView.getMeasuredHeight()+pointTo.y, right, bottom);
             }
 
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+    }
 }
 

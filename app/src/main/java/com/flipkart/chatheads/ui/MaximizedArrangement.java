@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class MaximizedArrangement<T> extends ChatHeadArrangement {
+public class    MaximizedArrangement<T> extends ChatHeadArrangement {
     private final Map<ChatHead, Point> positions = new ArrayMap<>();
     private ChatHeadViewAdapter<T> adapter;
     private ChatHeadContainer<T> container;
@@ -34,6 +34,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private FragmentManager fragmentManager;
     private final Map<T, Fragment> fragments = new ArrayMap<T, Fragment>();
     private int maxDistanceFromOriginal;
+    private int topPadding;
 
     @Override
     public void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
@@ -43,9 +44,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         springsHolder.setChaining(false);
         List<ModifiedSpringChain.SpringData> horizontalSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
         List<ModifiedSpringChain.SpringData> verticalSprings = springsHolder.getVerticalSpringChain().getAllSprings();
-        maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 50);
+        maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
-        int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), 75);
+        int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), (int) (1.1*ChatHead.DIAMETER));
+        topPadding = ChatHeadUtils.dpToPx(container.getContext(),5);
         ChatHead<T> lastChatHead = null;
         int leftIndent = maxWidth - (horizontalSprings.size() * widthPerHead);
         for (int i = 0; i < horizontalSprings.size(); i++) {
@@ -55,14 +57,14 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.CONVERGING);
             horizontalSpring.getSpring().setEndValue(xPos);
             ChatHead chatHead = (ChatHead) horizontalSpring.getKey();
-            positions.put(chatHead, new Point(xPos, 0));
+            positions.put(chatHead, new Point(xPos, topPadding));
             lastChatHead = chatHead;
         }
         for (int i = 0; i < verticalSprings.size(); i++) {
             ModifiedSpringChain.SpringData verticalSpring = verticalSprings.get(i);
             verticalSpring.getSpring().setAtRest();
             verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.CONVERGING);
-            verticalSpring.getSpring().setEndValue(0);
+            verticalSpring.getSpring().setEndValue(topPadding);
         }
         if (lastChatHead != null) {
             selectTab(lastChatHead);
@@ -154,9 +156,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private UpArrowLayout getArrowLayout() {
         if (arrowLayout == null) {
-            LayoutInflater inflater = (LayoutInflater) container.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(R.layout.arrow_layout, container, true);
-            arrowLayout = (UpArrowLayout) view.findViewById(R.id.arrow_layout);
+            arrowLayout = (UpArrowLayout) container.findViewById(R.id.arrow_layout);
 
         }
         return arrowLayout;
@@ -172,7 +172,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         arrowLayout.setVisibility(View.VISIBLE);
         arrowLayout.setTranslationX((float) dx);
         arrowLayout.setTranslationY((float) dy);
-        arrowLayout.setAlpha(1f - ((float) distanceFromOriginal / (float) maxDistanceFromOriginal));
+        //arrowLayout.setAlpha(1f - ((float) distanceFromOriginal / (float) maxDistanceFromOriginal));
     }
 
     private void pointTo(ChatHead<T> activeChatHead) {
@@ -180,18 +180,26 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         replaceInnerView(activeChatHead);
         Point point = positions.get(activeChatHead);
         if (point != null) {
-            arrowLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, container.getMeasuredHeight() - point.y - activeChatHead.getMeasuredHeight()));
-            arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight());
+            int padding = ChatHeadUtils.dpToPx(container.getContext(), 5);
+            //arrowLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, container.getMeasuredHeight() - point.y - activeChatHead.getMeasuredHeight()-padding));
+            arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight()+padding);
         }
     }
 
-    private void replaceInnerView(ChatHead<T> activeChatHead) {
-        FragmentManager manager = getFragmentManager();
+    Fragment getFragment(ChatHead<T> activeChatHead)
+    {
         Fragment fragment = fragments.get(activeChatHead.getKey());
         if (fragment == null) {
             fragment = adapter.getFragment(activeChatHead.getKey(), activeChatHead);
             fragments.put(activeChatHead.getKey(), fragment);
         }
+        return fragment;
+    }
+
+    private void replaceInnerView(ChatHead<T> activeChatHead) {
+
+        FragmentManager manager = getFragmentManager();
+        Fragment fragment = getFragment(activeChatHead);
         fragment.setMenuVisibility(false);
         fragment.setUserVisibleHint(false);
         FragmentTransaction transaction = manager.beginTransaction();
@@ -207,6 +215,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         ModifiedSpringChain.SpringData horizontalSpring = springsHolder.getHorizontalSpring(chatHead);
         Spring spring = horizontalSpring.getSpring();
         spring.setCurrentValue(maxWidth).setAtRest();
+        ModifiedSpringChain.SpringData verticalSpring = springsHolder.getVerticalSpring(chatHead);
+        spring = verticalSpring.getSpring();
+        spring.setCurrentValue(topPadding).setAtRest();
+
         container.post(new Runnable() {
             @Override
             public void run() {
