@@ -27,8 +27,10 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -176,10 +178,6 @@ public class ChatHeadContainer<T> extends FrameLayout {
         arrowLayout.setVisibility(View.GONE);
         springsHolder = new ChatHeadSpringsHolder();
         closeButton = new ChatHeadCloseButton(getContext());
-        LayoutParams layoutParams = new LayoutParams(ChatHeadUtils.dpToPx(getContext(), 100), ChatHeadUtils.dpToPx(getContext(), 100));
-        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-        layoutParams.bottomMargin = ChatHeadUtils.dpToPx(getContext(), 50);
-        closeButton.setLayoutParams(layoutParams);
         addView(closeButton);
         minimizedArrangement = new MinimizedArrangement();
         maximizedArrangement = new MaximizedArrangement();
@@ -222,8 +220,16 @@ public class ChatHeadContainer<T> extends FrameLayout {
     public void removeAllChatHeads() {
         Set<Map.Entry<T, ChatHead>> entries = chatHeads.entrySet();
         Iterator<Map.Entry<T, ChatHead>> iterator = entries.iterator();
+        List<ChatHead<T>> temp = new ArrayList<>();
         while (iterator.hasNext()) {
-            removeChatHead(iterator.next().getKey());
+            Map.Entry<T, ChatHead> next = iterator.next();
+            if(!next.getValue().isSticky()) {
+                temp.add(next.getValue());
+                iterator.remove();
+            }
+        }
+        for (int i = 0; i < temp.size(); i++) {
+            removeChatHead(temp.get(i).getKey());
         }
     }
 
@@ -236,8 +242,10 @@ public class ChatHeadContainer<T> extends FrameLayout {
         arrangement.onActivate(ChatHeadContainer.this, springsHolder, maxWidth, maxHeight);
         if (arrangement == maximizedArrangement) {
             showOverlayView();
+            closeButton.setEnabled(true);
         } else {
             hideOverlayView();
+            closeButton.setEnabled(false);
         }
     }
 
