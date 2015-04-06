@@ -4,8 +4,10 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -13,18 +15,21 @@ import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringSystem;
 import com.facebook.rebound.SpringUtil;
 import com.flipkart.chatheads.R;
+import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadCloseButton extends ImageView {
 
     private static final long DELAY = 500;
-    private Runnable displayDelayer;
-    private Runnable hideDelayer;
     private int mParentWidth;
     private int mParentHeight;
     private static final float PERC_PARENT_WIDTH = 0.1f; //perc of parent to be covered during drag
-    private static final float PERC_PARENT_HEIGHT = 0.1f; //perc of parent to be covered during drag
+    private static final float PERC_PARENT_HEIGHT = 0.3f; //perc of parent to be covered during drag
     private Spring scaleSpring;
+    private Spring xSpring;
+    private Spring ySpring;
+    private boolean disappeared;
+    private boolean captured = false;
 
     public ChatHeadCloseButton(Context context) {
         super(context);
@@ -43,21 +48,31 @@ public class ChatHeadCloseButton extends ImageView {
 
     private void init() {
         setImageResource(R.drawable.chat_head_close_ic);
-        disappear(true,false);
-        displayDelayer = new Runnable() {
-            @Override
-            public void run() {
-                appear(true,true);
-            }
-        };
-        hideDelayer = new Runnable() {
-            @Override
-            public void run() {
-                disappear(true,true);
-            }
-        };
 
-        scaleSpring = SpringSystem.create().createSpring();
+        int myDiameter = (int) (ChatHead.DIAMETER * 1.2);
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ChatHeadUtils.dpToPx(getContext(), myDiameter), ChatHeadUtils.dpToPx(getContext(), myDiameter));
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
+        layoutParams.bottomMargin = ChatHeadUtils.dpToPx(getContext(), 50);
+        setLayoutParams(layoutParams);
+
+        SpringSystem springSystem = SpringSystem.create();
+        xSpring = springSystem.createSpring();
+        xSpring.addListener(new SimpleSpringListener() {
+            @Override
+            public void onSpringUpdate(Spring spring) {
+                super.onSpringUpdate(spring);
+                setTranslationX((float) spring.getCurrentValue());
+            }
+        });
+        ySpring = springSystem.createSpring();
+        ySpring.addListener(new SimpleSpringListener() {
+            @Override
+            public void onSpringUpdate(Spring spring) {
+                super.onSpringUpdate(spring);
+                setTranslationY((float) spring.getCurrentValue());
+            }
+        });
+        scaleSpring = springSystem.createSpring();
         scaleSpring.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
@@ -66,60 +81,38 @@ public class ChatHeadCloseButton extends ImageView {
                 setScaleY((float) currentValue);
             }
         });
-        onRelease();
+
     }
 
     public void appear(boolean immediate, boolean animate) {
-        removeCallbacks(hideDelayer);
-        removeCallbacks(displayDelayer);
-        if(immediate) {
+        if(isEnabled()) {
+            ySpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+            xSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
             bringToFront();
-            AlphaAnimation alphaAnimation = new AlphaAnimation(0f, 1f);
-            alphaAnimation.setDuration(500);
-            alphaAnimation.setFillEnabled(true);
-            alphaAnimation.setFillBefore(true);
-            alphaAnimation.setFillAfter(true);
-            if (animate) {
-                setAlpha(1f);
-                startAnimation(alphaAnimation);
-            } else {
-                setAlpha(1f);
-            }
-        }
-        else
-        {
-            postDelayed(displayDelayer,DELAY);
+            disappeared = false;
         }
     }
 
     public void onCapture() {
+        captured = true;
         scaleSpring.setEndValue(1);
     }
 
     public void onRelease() {
-        scaleSpring.setEndValue(0.5);
+        captured = false;
+        scaleSpring.setEndValue(0.8);
     }
 
     public void disappear(boolean immediate, boolean animate) {
-        removeCallbacks(displayDelayer);
-        removeCallbacks(hideDelayer);
-        if(immediate) {
-            AlphaAnimation alphaAnimation = new AlphaAnimation(1f, 0f);
-            alphaAnimation.setDuration(500);
-            alphaAnimation.setFillEnabled(true);
-            alphaAnimation.setFillAfter(true);
-            alphaAnimation.setFillBefore(false);
+        ySpring.setEndValue(mParentHeight);
+        ySpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+        xSpring.setEndValue(0);
+        if (!animate) {
+            ySpring.setCurrentValue(mParentHeight, true);
+            xSpring.setCurrentValue(0, true);
+        }
+        disappeared = true;
 
-            if (animate) {
-                startAnimation(alphaAnimation);
-            } else {
-                setAlpha(0.1f);
-            }
-        }
-        else
-        {
-            postDelayed(hideDelayer,DELAY);
-        }
     }
 
     @Override
@@ -132,13 +125,19 @@ public class ChatHeadCloseButton extends ImageView {
         super.onSizeChanged(w, h, oldw, oldh);
         mParentWidth = ((View) getParent()).getMeasuredWidth();
         mParentHeight = ((View) getParent()).getMeasuredHeight();
+        disappear(true, false);
     }
 
     public void pointTo(float x, float y) {
-        double translationX = getTranslationFromSpring(x, PERC_PARENT_WIDTH, mParentWidth);
-        double translationY = getTranslationFromSpring(y, PERC_PARENT_HEIGHT, mParentHeight);
-        setTranslationX((float) translationX);
-        setTranslationY((float) translationY);
+        if(isEnabled()) {
+            double translationX = getTranslationFromSpring(x, PERC_PARENT_WIDTH, mParentWidth);
+            double translationY = getTranslationFromSpring(y, PERC_PARENT_HEIGHT, mParentHeight);
+            if (!disappeared) {
+                xSpring.setEndValue(translationX);
+                ySpring.setEndValue(-translationY);
+
+            }
+        }
     }
 
     private double getTranslationFromSpring(double springValue, float percent, int fullValue) {
@@ -147,5 +146,18 @@ public class ChatHeadCloseButton extends ImageView {
         return translation;
     }
 
+    @Override
+    public void setTranslationX(float translationX) {
+        super.setTranslationX(translationX);
+    }
 
+    @Override
+    public void setTranslationY(float translationY) {
+        super.setTranslationY(translationY);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+    }
 }

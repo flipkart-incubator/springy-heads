@@ -221,7 +221,9 @@ public class ChatHead<T> extends ImageView implements SpringListener {
             if(Math.hypot(offsetX,offsetY)>touchSlop)
             {
                 isDragging = true;
-                container.getCloseButton().appear(false,true);
+                if(!isSticky) {
+                    container.getCloseButton().appear(false, true);
+                }
             }
             if (isDragging) {
                 container.getCloseButton().pointTo(rawX,rawY);

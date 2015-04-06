@@ -96,6 +96,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
             @Override
             public void run() {
                 pointTo(activeChatHead);
+                showView(activeChatHead,0,0,0);
             }
         });
     }
@@ -181,7 +182,6 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         Point point = positions.get(activeChatHead);
         if (point != null) {
             int padding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-            //arrowLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, container.getMeasuredHeight() - point.y - activeChatHead.getMeasuredHeight()-padding));
             arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight()+padding);
         }
     }
@@ -229,7 +229,6 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onChatHeadRemoved(ChatHead removed, ChatHeadSpringsHolder springsHolder) {
-        onActivate(container, springsHolder, maxWidth, maxHeight);
         fragments.remove(removed.getKey());
         if (currentTab == removed) {
             ChatHead nextBestChatHead = getNextBestChatHead();
@@ -238,6 +237,8 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
             else
                 container.toggleArrangement();
         }
+        onActivate(container, springsHolder, maxWidth, maxHeight);
+
     }
 
     @Override
