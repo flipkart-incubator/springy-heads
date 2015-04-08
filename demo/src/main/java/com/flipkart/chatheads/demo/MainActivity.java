@@ -37,7 +37,7 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public Fragment getFragment(Object key, ChatHead chatHead) {
-                return new Fragment();
+                return TestFragment.newInstance();
             }
 
             @Override

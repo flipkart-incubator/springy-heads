@@ -117,8 +117,9 @@ public class ChatHeadContainer<T> extends FrameLayout {
         selectChatHead(chatHead);
     }
 
-    public void getFragment(T key) {
-        //return maximizedArrangement.getFragment(chatHeads.get(key));
+    public Fragment getFragment(T key) {
+        MaximizedArrangement chatHeadArrangement = (MaximizedArrangement) arrangements.get(MaximizedArrangement.class);
+        return chatHeadArrangement.getFragment(getChatHeads().get(key));
     }
 
     @Override

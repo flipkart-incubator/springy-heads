@@ -35,7 +35,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private ChatHead currentTab = null;
     private UpArrowLayout arrowLayout;
     private FragmentManager fragmentManager;
-    private final Map<T, Fragment> fragments = new ArrayMap<T, Fragment>();
     private int maxDistanceFromOriginal;
     private int topPadding;
     private Fragment currentFragment;
@@ -87,6 +86,16 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
         hideView();
+        if(currentFragment!=null)
+        {
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            if(!currentFragment.isDetached()) {
+                fragmentTransaction.detach(currentFragment);
+            }
+            fragmentTransaction.commitAllowingStateLoss();
+        }
+
     }
 
     @Override
@@ -186,6 +195,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private void hideView() {
         UpArrowLayout arrowLayout = getArrowLayout();
         arrowLayout.setVisibility(View.GONE);
+
     }
 
     private void showView(ChatHead activeChatHead, double dx, double dy, double distanceFromOriginal) {
@@ -208,7 +218,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     public Fragment getFragment(ChatHead<T> activeChatHead)
     {
-        Fragment fragment = fragments.get(activeChatHead.getKey());
+        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
         return fragment;
     }
 
@@ -220,7 +230,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         if (fragment == null) {
             //we dont have it in our cache. So we create it and add it
             fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
-            fragments.put(activeChatHead.getKey(), fragment);
             transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
         }
         else
@@ -248,7 +257,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         {
             //we have added it already sometime earlier. So re-attach it.
             transaction.remove(fragment);
-            fragments.remove(removed.getKey());
 
         }
         if(currentFragment == fragment) currentFragment = null;
