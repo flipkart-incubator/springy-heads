@@ -117,9 +117,15 @@ public class ChatHeadContainer<T> extends FrameLayout {
         selectChatHead(chatHead);
     }
 
-    public Fragment getFragment(T key) {
+    /**
+     * Returns the fragment for the key if its already present. If createIfRequired is set to true, it will create and return it.
+     * @param key
+     * @param createIfRequired
+     * @return
+     */
+    public Fragment getFragment(T key, boolean createIfRequired) {
         MaximizedArrangement chatHeadArrangement = (MaximizedArrangement) arrangements.get(MaximizedArrangement.class);
-        return chatHeadArrangement.getFragment(getChatHeads().get(key));
+        return chatHeadArrangement.getFragment(getChatHeads().get(key), createIfRequired);
     }
 
     @Override
