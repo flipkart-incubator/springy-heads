@@ -10,35 +10,41 @@ In this example I have attached a <String> object to each chat head using generi
 This object will be passed in all callbacks.
 
         final ChatHeadContainer chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
-        chatContainer.setViewAdapter(new ChatHeadViewAdapter<String>(){
-
+        chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
             @Override
             public FragmentManager getFragmentManager() {
-                return MainActivity.this.getFragmentManager();
+                return getSupportFragmentManager();
             }
 
             @Override
-            public Fragment getFragment(String key, ChatHead<String> chatHead) {
-                TestFragment testFragment = TestFragment.newInstance("test", key);
-                return testFragment;
+            public Fragment getFragment(Object key, ChatHead chatHead) {
+                return new Fragment();
             }
-
 
             @Override
-            public View getChatHeadView(String key) {
-                return null;
+            public Drawable getChatHeadDrawable(Object key) {
+                return getResources().getDrawable(R.drawable.circular_view);
             }
-
-
         });
-        chatContainer.addChatHead("head0");
-        chatContainer.addChatHead("head1");
+        chatContainer.setOnItemSelectedListener(new ChatHeadContainer.OnItemSelectedListener() {
+            @Override
+            public boolean onChatHeadSelected(Object key, ChatHead chatHead) {
+                if (chatContainer.getArrangementType() == CircularArrangement.class) {
+                    System.out.println("Clicked on " + key + " " +
+                            "when arrangement was circular");
+                }
+                chatContainer.setArrangement(MaximizedArrangement.class, null);
+                return true;
+            }
+        });
+        chatContainer.addChatHead("head0", false);
+        chatContainer.addChatHead("head1", false);
         Button addButton = (Button) findViewById(R.id.add);
         Button removeButton = (Button) findViewById(R.id.remove);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chatContainer.addChatHead("head" + Math.random());
+                chatContainer.addChatHead("head" + Math.random(), false);
             }
         });
         removeButton.setOnClickListener(new View.OnClickListener() {
@@ -46,8 +52,7 @@ This object will be passed in all callbacks.
             public void onClick(View v) {
                 Set<Object> keys = chatContainer.getChatHeads().keySet();
                 Object[] objects = keys.toArray();
-                if(objects.length>0)
-                {
+                if (objects.length > 0) {
                     Object object = objects[objects.length - 1];
                     chatContainer.removeChatHead(object);
                 }
