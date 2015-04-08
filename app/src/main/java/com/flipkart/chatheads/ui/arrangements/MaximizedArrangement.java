@@ -86,6 +86,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
         hideView();
+        container.hideOverlayView();
         if(currentFragment!=null)
         {
             FragmentManager fragmentManager = getFragmentManager();
@@ -329,7 +330,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private void deactivate()
     {
-        container.hideOverlayView();
         container.setArrangement(MinimizedArrangement.class,null);
     }
 
