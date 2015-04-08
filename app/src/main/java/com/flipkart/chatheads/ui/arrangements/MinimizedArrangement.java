@@ -1,7 +1,15 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.ui.arrangements;
+
+import android.os.Bundle;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
+import com.flipkart.chatheads.ui.ChatHead;
+import com.flipkart.chatheads.ui.ChatHeadArrangement;
+import com.flipkart.chatheads.ui.ChatHeadCloseButton;
+import com.flipkart.chatheads.ui.ChatHeadContainer;
+import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
+import com.flipkart.chatheads.ui.SpringConfigsHolder;
 
 public class MinimizedArrangement extends ChatHeadArrangement {
 
@@ -12,7 +20,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     private ChatHeadContainer container;
 
     @Override
-    public void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, Bundle extras,  ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;
         if(currentY<0)
         {
@@ -25,16 +33,17 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
         springsHolder.setChaining(true);
+        container.getCloseButton().setEnabled(false);
     }
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead, ChatHeadSpringsHolder springsHolder) {
-        onActivate(container, springsHolder, maxWidth, maxHeight);
+        onActivate(container, null, springsHolder, maxWidth, maxHeight);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed, ChatHeadSpringsHolder springsHolder) {
-        onActivate(container, springsHolder, maxWidth, maxHeight);
+        onActivate(container, null, springsHolder, maxWidth, maxHeight);
     }
 
     @Override
@@ -45,12 +54,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void selectChatHead(ChatHead chatHead) {
-        container.toggleArrangement();
-    }
-
-    @Override
-    public void setViewAdapter(ChatHeadViewAdapter chatHeadViewAdapter) {
-
+        //container.toggleArrangement();
     }
 
     @Override
@@ -85,9 +89,17 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             }
         }
         if (!wasDragging) {
-            return false;
+            boolean handled = container.onItemSelected(activeChatHead);
+            if(!handled) {
+                deactivate();
+                return false;
+            }
         }
         return true;
+    }
+
+    private void deactivate() {
+        container.setArrangement(MaximizedArrangement.class,null);
     }
 
     @Override
