@@ -19,6 +19,15 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     private int maxHeight;
     private ChatHeadContainer container;
 
+    public MinimizedArrangement(ChatHeadContainer container) {
+        this.container = container;
+    }
+
+    @Override
+    public void setContainer(ChatHeadContainer container) {
+        this.container = container;
+    }
+
     @Override
     public void onActivate(ChatHeadContainer container, Bundle extras,  ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;

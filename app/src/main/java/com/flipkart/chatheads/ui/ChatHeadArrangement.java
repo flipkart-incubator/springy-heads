@@ -9,6 +9,8 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
  * Created by kirankumar on 13/02/15.
  */
 public abstract class ChatHeadArrangement {
+    public abstract void setContainer(ChatHeadContainer container);
+
     public abstract void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight);
 
     public abstract void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring);
