@@ -17,7 +17,6 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
-import com.flipkart.chatheads.ui.ChatHeadCloseButton;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.SpringConfigsHolder;
@@ -86,6 +85,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
         hideView();
+        container.hideOverlayView();
         if(currentFragment!=null)
         {
             FragmentManager fragmentManager = getFragmentManager();
@@ -216,9 +216,13 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         }
     }
 
-    public Fragment getFragment(ChatHead<T> activeChatHead)
+    public Fragment getFragment(ChatHead<T> activeChatHead, boolean createIfRequired)
     {
         Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
+        if(fragment == null && createIfRequired)
+        {
+            fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
+        }
         return fragment;
     }
 
@@ -226,17 +230,17 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        Fragment fragment = getFragment(activeChatHead);
-        if (fragment == null) {
-            //we dont have it in our cache. So we create it and add it
-            fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
-            transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
-        }
-        else
+        Fragment fragment = getFragment(activeChatHead, true);
+
+        if(fragment.isAdded() && fragment.isDetached())
         {
-            //we have added it already sometime earlier. So re-attach it.
             transaction.attach(fragment);
         }
+        else if(!fragment.isDetached())
+        {
+            transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
+        }
+
         if(currentFragment!=fragment && currentFragment!=null)
         {
             transaction.detach(currentFragment);
@@ -249,7 +253,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private void removeInnerView(ChatHead removed) {
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        Fragment fragment = getFragment(removed);
+        Fragment fragment = getFragment(removed, false);
         if (fragment == null) {
             //we dont have it in our cache. So we create it and add it
         }
@@ -329,7 +333,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private void deactivate()
     {
-        container.hideOverlayView();
         container.setArrangement(MinimizedArrangement.class,null);
     }
 

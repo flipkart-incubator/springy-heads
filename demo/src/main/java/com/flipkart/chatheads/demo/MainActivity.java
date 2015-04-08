@@ -53,6 +53,8 @@ public class MainActivity extends ActionBarActivity {
                             "when arrangement was circular");
                 }
                 chatContainer.setArrangement(MaximizedArrangement.class, null);
+                Fragment fragment = chatContainer.getFragment(key,true);
+                System.out.println("fragment = " + fragment);
                 return true;
             }
         });
