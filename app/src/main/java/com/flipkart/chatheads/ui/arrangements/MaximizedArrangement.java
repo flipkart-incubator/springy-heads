@@ -38,6 +38,16 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private int topPadding;
     private Fragment currentFragment;
 
+
+    public MaximizedArrangement(ChatHeadContainer<T> container) {
+        this.container = container;
+    }
+
+    @Override
+    public void setContainer(ChatHeadContainer container) {
+        this.container = container;
+    }
+
     @Override
     public void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;
@@ -232,11 +242,11 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         FragmentTransaction transaction = manager.beginTransaction();
         Fragment fragment = getFragment(activeChatHead, true);
 
-        if(fragment.isAdded() && fragment.isDetached())
+        if(fragment.isDetached())
         {
             transaction.attach(fragment);
         }
-        else if(!fragment.isDetached())
+        else
         {
             transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
         }

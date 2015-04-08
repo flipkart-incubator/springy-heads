@@ -194,9 +194,9 @@ public class ChatHeadContainer<T> extends FrameLayout {
         springsHolder = new ChatHeadSpringsHolder();
         closeButton = new ChatHeadCloseButton(getContext());
         addView(closeButton);
-        arrangements.put(MinimizedArrangement.class, new MinimizedArrangement());
-        arrangements.put(MaximizedArrangement.class, new MaximizedArrangement());
-        arrangements.put(CircularArrangement.class, new CircularArrangement());
+        arrangements.put(MinimizedArrangement.class, new MinimizedArrangement(this));
+        arrangements.put(MaximizedArrangement.class, new MaximizedArrangement(this));
+        arrangements.put(CircularArrangement.class, new CircularArrangement(this));
         setupOverlay(context);
         post(new Runnable() {
             @Override

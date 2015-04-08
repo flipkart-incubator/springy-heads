@@ -29,6 +29,15 @@ public class CircularArrangement extends ChatHeadArrangement {
     private boolean isActive = false;
     private ChatHeadContainer container;
 
+    public CircularArrangement(ChatHeadContainer container) {
+        this.container = container;
+    }
+
+    @Override
+    public void setContainer(ChatHeadContainer container) {
+        this.container = container;
+    }
+
     @Override
     public void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         springsHolder.setChaining(false);

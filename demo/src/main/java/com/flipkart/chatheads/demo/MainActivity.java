@@ -54,6 +54,7 @@ public class MainActivity extends ActionBarActivity {
                 }
                 chatContainer.setArrangement(MaximizedArrangement.class, null);
                 Fragment fragment = chatContainer.getFragment(key,true);
+                fragment.setArguments(new Bundle());
                 System.out.println("fragment = " + fragment);
                 return true;
             }
