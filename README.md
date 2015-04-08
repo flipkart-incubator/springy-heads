@@ -6,8 +6,8 @@ A facebook like chat heads library for android apps. This includes all the UI ph
 # Integration
 
 The view adapter is invoked when someone selects a chat head.
-In this example I have attached a <String> object to each chat head using generics. You can attach any object, for e.g <Conversation> object to denote each chat head.
-This object will be passed in all callbacks.
+In this example I have attached a (String) object to each chat head using generics. You can attach any object, for e.g (Conversation) object to denote each chat head.
+This object will be passed in all callbacks as the parameter (T key).
 
         final ChatHeadContainer chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
         chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
