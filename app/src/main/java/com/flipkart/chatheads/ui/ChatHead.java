@@ -254,11 +254,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
                 int xVelocity = (int) velocityTracker.getXVelocity();
                 int yVelocity = (int) velocityTracker.getYVelocity();
                 boolean touchUpHandled = container.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
-                if(!touchUpHandled)
-                {
-                    container.getActiveArrangement().onDeactivate(container.getMaxWidth(), container.getMaxHeight(), activeHorizontalSpring, activeVerticalSpring);
-                    container.toggleArrangement();
-                }
                 if(wasDragging) {
                     container.getCloseButton().disappear(true, true);
                 }

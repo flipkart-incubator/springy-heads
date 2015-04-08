@@ -1,31 +1,34 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.ui.arrangements;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.graphics.Point;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.ArrayMap;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
+import com.flipkart.chatheads.ui.ChatHead;
+import com.flipkart.chatheads.ui.ChatHeadArrangement;
+import com.flipkart.chatheads.ui.ChatHeadCloseButton;
+import com.flipkart.chatheads.ui.ChatHeadContainer;
+import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
+import com.flipkart.chatheads.ui.SpringConfigsHolder;
+import com.flipkart.chatheads.ui.UpArrowLayout;
 
 import java.util.List;
 import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class    MaximizedArrangement<T> extends ChatHeadArrangement {
+public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private final Map<ChatHead, Point> positions = new ArrayMap<>();
-    private ChatHeadViewAdapter<T> adapter;
     private ChatHeadContainer<T> container;
     private int maxWidth;
     private int maxHeight;
@@ -38,7 +41,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
     private Fragment currentFragment;
 
     @Override
-    public void onActivate(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -70,6 +73,15 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         if (lastChatHead != null) {
             selectTab(lastChatHead);
         }
+
+        container.getCloseButton().setEnabled(true);
+        container.getOverlayView().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deactivate();
+            }
+        });
+        container.showOverlayView();
     }
 
     @Override
@@ -84,10 +96,17 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
             return true;
         } else {
             if (activeChatHead != currentTab) {
-                selectTab(activeChatHead);
-                return true;
+                boolean handled = container.onItemSelected(activeChatHead);
+                if(!handled) {
+                    selectTab(activeChatHead);
+                    return true;
+                }
             }
-            return false;
+            boolean handled = container.onItemSelected(activeChatHead);
+            if(!handled) {
+                deactivate();
+            }
+            return handled;
         }
     }
 
@@ -187,7 +206,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         }
     }
 
-    Fragment getFragment(ChatHead<T> activeChatHead)
+    public Fragment getFragment(ChatHead<T> activeChatHead)
     {
         Fragment fragment = fragments.get(activeChatHead.getKey());
         return fragment;
@@ -200,7 +219,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         Fragment fragment = getFragment(activeChatHead);
         if (fragment == null) {
             //we dont have it in our cache. So we create it and add it
-            fragment = adapter.getFragment(activeChatHead.getKey(), activeChatHead);
+            fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
             fragments.put(activeChatHead.getKey(), fragment);
             transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
         }
@@ -252,7 +271,7 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         container.post(new Runnable() {
             @Override
             public void run() {
-                onActivate(container, springsHolder, maxWidth, maxHeight);
+                onActivate(container, null, springsHolder, maxWidth, maxHeight);
             }
         });
     }
@@ -262,12 +281,14 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         removeInnerView(removed);
         if (currentTab == removed) {
             ChatHead nextBestChatHead = getNextBestChatHead();
-            if (nextBestChatHead != null)
+            if (nextBestChatHead != null) {
                 selectTab(nextBestChatHead);
-            else
-                container.toggleArrangement();
+            }
+            else {
+                //container.toggleArrangement();
+            }
         }
-        onActivate(container, springsHolder, maxWidth, maxHeight);
+        onActivate(container, null, springsHolder, maxWidth, maxHeight);
 
     }
 
@@ -282,10 +303,6 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
         selectTab(chatHead);
     }
 
-    @Override
-    public void setViewAdapter(ChatHeadViewAdapter chatHeadViewAdapter) {
-        this.adapter = chatHeadViewAdapter;
-    }
 
 
     public ChatHead getNextBestChatHead() {
@@ -302,9 +319,18 @@ public class    MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
 
+    private void deactivate()
+    {
+        container.hideOverlayView();
+        container.setArrangement(MinimizedArrangement.class,null);
+    }
+
+
     public FragmentManager getFragmentManager() {
         if (fragmentManager == null) {
-            fragmentManager = adapter.getFragmentManager();
+            if(container.getViewAdapter() == null)
+                throw new IllegalStateException(ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
+            fragmentManager = container.getViewAdapter().getFragmentManager();
             if (fragmentManager == null)
                 throw new IllegalStateException(FragmentManager.class.getSimpleName() + " returned from " + ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
         }
