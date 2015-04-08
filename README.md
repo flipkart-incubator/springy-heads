@@ -58,3 +58,17 @@ This object will be passed in all callbacks.
                 }
             }
         });
+
+# Showing circular arrangement
+                <any view>.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (event.getAction() == MotionEvent.ACTION_UP) {
+                            Bundle bundle = new Bundle();
+                            bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
+                            bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
+                            chatContainer.setArrangement(CircularArrangement.class, bundle);
+                        }
+                        return true;
+                    }
+                });
