@@ -145,14 +145,22 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     private void positionToOriginal(ChatHead activeChatHead, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
-        Point point = positions.get(activeChatHead);
-        if (point != null) {
-            activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            activeHorizontalSpring.setVelocity(0);
-            activeHorizontalSpring.setEndValue(point.x);
-            activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            activeVerticalSpring.setVelocity(0);
-            activeVerticalSpring.setEndValue(point.y);
+        if(activeChatHead.isSticky())
+        {
+            deactivate();
+        }
+        else {
+            if(activeChatHead.getState() == ChatHead.State.FREE) {
+                Point point = positions.get(activeChatHead);
+                if (point != null) {
+                    activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                    activeHorizontalSpring.setVelocity(0);
+                    activeHorizontalSpring.setEndValue(point.x);
+                    activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                    activeVerticalSpring.setVelocity(0);
+                    activeVerticalSpring.setEndValue(point.y);
+                }
+            }
         }
     }
 
@@ -178,15 +186,11 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
 
         }
-        System.out.println("totalVelocity = " + totalVelocity);
 
         /** position it back **/
         if (!isDragging && totalVelocity < ChatHeadUtils.dpToPx(container.getContext(), 50) && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
-            if (!activeChatHead.isSticky()) {
                 positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
-            } else {
-                deactivate();
-            }
+
         }
 
 

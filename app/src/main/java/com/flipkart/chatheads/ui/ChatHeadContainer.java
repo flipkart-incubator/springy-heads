@@ -2,6 +2,7 @@ package com.flipkart.chatheads.ui;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
@@ -17,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.FrameLayout;
 
 import com.facebook.rebound.SpringConfigRegistry;
+import com.facebook.rebound.SpringSystem;
 import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
@@ -37,18 +39,17 @@ import java.util.Set;
 public class ChatHeadContainer<T> extends FrameLayout {
 
     private static final int MAX_CHAT_HEADS = 5;
+    private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
+    private final Map<T, ChatHead<T>> chatHeads = new LinkedHashMap<>(5);
     private int maxWidth;
     private int maxHeight;
     private ChatHeadCloseButton closeButton;
     private ChatHeadSpringsHolder springsHolder;
-    private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
     private ChatHeadArrangement activeArrangement;
-    private final Map<T, ChatHead<T>> chatHeads = new LinkedHashMap<>(5);
     private ChatHeadViewAdapter<T> viewAdapter;
-    private View overlayView;
+    private ChatHeadOverlayView overlayView;
     private OnItemSelectedListener<T> itemSelectedListener;
     private boolean overlayVisible;
-
     public ChatHeadContainer(Context context) {
         super(context);
         init(context);
@@ -62,6 +63,10 @@ public class ChatHeadContainer<T> extends FrameLayout {
     public ChatHeadContainer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
+    }
+
+    public ChatHeadSpringsHolder getSpringsHolder() {
+        return springsHolder;
     }
 
     public ChatHeadViewAdapter getViewAdapter() {
@@ -139,6 +144,12 @@ public class ChatHeadContainer<T> extends FrameLayout {
 
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        activeArrangement.handleRawTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
     /**
      * Adds and returns the created chat head
      *
@@ -186,7 +197,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
         return false;
     }
 
-    public View getOverlayView() {
+    public ChatHeadOverlayView getOverlayView() {
         return overlayView;
     }
 
@@ -214,7 +225,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     private void setupOverlay(Context context) {
-        overlayView = new View(context);
+        overlayView = new ChatHeadOverlayView(context);
         overlayView.setBackgroundResource(R.drawable.overlay_transition);
 
         addView(overlayView, 0);
@@ -296,6 +307,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
 
+
     public interface OnItemSelectedListener<T> {
         /**
          * Will be called whenever a chat head is clicked.
@@ -307,5 +319,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
          * @return true if you want to take control. false if you dont care.
          */
         boolean onChatHeadSelected(T key, ChatHead chatHead);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        activeArrangement.onDraw(canvas);
     }
 }

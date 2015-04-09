@@ -45,6 +45,11 @@ public class MainActivity extends ActionBarActivity {
             public Drawable getChatHeadDrawable(Object key) {
                 return getResources().getDrawable(R.drawable.circular_view);
             }
+
+            @Override
+            public Drawable getPointerDrawable() {
+                return getResources().getDrawable(R.drawable.circular_ring);
+            }
         });
         chatContainer.setOnItemSelectedListener(new ChatHeadContainer.OnItemSelectedListener() {
             @Override
@@ -84,19 +89,31 @@ public class MainActivity extends ActionBarActivity {
 
 
         circularClickArea.setOnTouchListener(new View.OnTouchListener() {
+
+            Bundle bundle = new Bundle();
+            Runnable longPressCallback = new Runnable() {
+                @Override
+                public void run() {
+                    chatContainer.setArrangement(CircularArrangement.class, bundle);
+                }
+            };
+
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                    Bundle bundle = new Bundle();
+                chatContainer.dispatchTouchEvent(event);
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    circularClickArea.removeCallbacks(longPressCallback);
                     bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
                     bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
-                    chatContainer.setArrangement(CircularArrangement.class, bundle);
+                    circularClickArea.postDelayed(longPressCallback, 1000);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    circularClickArea.removeCallbacks(longPressCallback);
                 }
                 return true;
             }
         });
         SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
-        chatContainer.addView(configuratorView,0);
+        chatContainer.addView(configuratorView, 0);
 
     }
 
