@@ -11,10 +11,13 @@ import android.support.v4.util.ArrayMap;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 
+import com.facebook.rebound.SpringConfigRegistry;
+import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
@@ -38,10 +41,10 @@ public class ChatHeadContainer<T> extends FrameLayout {
     private int maxHeight;
     private ChatHeadCloseButton closeButton;
     private ChatHeadSpringsHolder springsHolder;
-    private Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
+    private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
     private ChatHeadArrangement activeArrangement;
-    private Map<T, ChatHead> chatHeads = new LinkedHashMap<>();
-    private ChatHeadViewAdapter viewAdapter;
+    private final Map<T, ChatHead<T>> chatHeads = new LinkedHashMap<>(5);
+    private ChatHeadViewAdapter<T> viewAdapter;
     private View overlayView;
     private OnItemSelectedListener<T> itemSelectedListener;
     private boolean overlayVisible;
@@ -89,7 +92,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
         return activeArrangement;
     }
 
-    public Map<T, ChatHead> getChatHeads() {
+    public Map<T, ChatHead<T>> getChatHeads() {
         return chatHeads;
     }
 
@@ -99,8 +102,8 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return super.onKeyDown(keyCode, event);
+    public boolean onTouchEvent(MotionEvent event) {
+        return super.onTouchEvent(event);
     }
 
     /**
@@ -124,7 +127,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
      * @return
      */
     public Fragment getFragment(T key, boolean createIfRequired) {
-        MaximizedArrangement chatHeadArrangement = (MaximizedArrangement) arrangements.get(MaximizedArrangement.class);
+        MaximizedArrangement<T> chatHeadArrangement = (MaximizedArrangement) arrangements.get(MaximizedArrangement.class);
         return chatHeadArrangement.getFragment(getChatHeads().get(key), createIfRequired);
     }
 
@@ -144,14 +147,14 @@ public class ChatHeadContainer<T> extends FrameLayout {
      * @return
      */
     public ChatHead<T> addChatHead(T key, boolean isSticky) {
-        final ChatHead<T> chatHead = new ChatHead(this, springsHolder, getContext(), isSticky);
+        final ChatHead<T> chatHead = new ChatHead<T>(this, springsHolder, getContext(), isSticky);
         chatHead.setKey(key);
         chatHeads.put(key, chatHead);
         addView(chatHead);
         springsHolder.addChatHead(chatHead, chatHead, isSticky);
         if (springsHolder.getHorizontalSpringChain().getAllSprings().size() > MAX_CHAT_HEADS) {
             ModifiedSpringChain.SpringData oldestSpring = springsHolder.getOldestSpring(springsHolder.getHorizontalSpringChain(), true);
-            ChatHead<T> chatHeadToRemove = (ChatHead) oldestSpring.getKey();
+            ChatHead<T> chatHeadToRemove = (ChatHead<T>) oldestSpring.getKey();
             removeChatHead(chatHeadToRemove.getKey());
         }
         reloadDrawable(key);
@@ -188,6 +191,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     private void init(Context context) {
+        setLayerType(LAYER_TYPE_HARDWARE, null);
         LayoutInflater.from(context).inflate(R.layout.arrow_layout, this, true);
         UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
         arrowLayout.setVisibility(View.GONE);
@@ -195,7 +199,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
         closeButton = new ChatHeadCloseButton(getContext());
         addView(closeButton);
         arrangements.put(MinimizedArrangement.class, new MinimizedArrangement(this));
-        arrangements.put(MaximizedArrangement.class, new MaximizedArrangement(this));
+        arrangements.put(MaximizedArrangement.class, new MaximizedArrangement<T>(this));
         arrangements.put(CircularArrangement.class, new CircularArrangement(this));
         setupOverlay(context);
         post(new Runnable() {
@@ -204,6 +208,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
                 setArrangement(MinimizedArrangement.class, null);
             }
         });
+        SpringConfiguratorView configuratorView = new SpringConfiguratorView(getContext());
+        addView(configuratorView);
+        SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.DRAGGING, "dragging mode");
+        SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.NOT_DRAGGING,"not dragging mode");
+        configuratorView.refreshSpringConfigurations();
 
     }
 
@@ -228,11 +237,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     public void removeAllChatHeads() {
-        Set<Map.Entry<T, ChatHead>> entries = chatHeads.entrySet();
-        Iterator<Map.Entry<T, ChatHead>> iterator = entries.iterator();
+        Set<Map.Entry<T, ChatHead<T>>> entries = chatHeads.entrySet();
+        Iterator<Map.Entry<T, ChatHead<T>>> iterator = entries.iterator();
         List<ChatHead<T>> temp = new ArrayList<>();
         while (iterator.hasNext()) {
-            Map.Entry<T, ChatHead> next = iterator.next();
+            Map.Entry<T, ChatHead<T>> next = iterator.next();
             if (!next.getValue().isSticky()) {
                 temp.add(next.getValue());
                 iterator.remove();
@@ -286,14 +295,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
     }
 
     public boolean onItemSelected(ChatHead<T> chatHead) {
-        if (itemSelectedListener != null) {
-            return itemSelectedListener.onChatHeadSelected(chatHead.getKey(), chatHead);
-        }
-        return false;
+        return itemSelectedListener != null && itemSelectedListener.onChatHeadSelected(chatHead.getKey(), chatHead);
     }
 
 
-    public static interface OnItemSelectedListener<T> {
+    public interface OnItemSelectedListener<T> {
         /**
          * Will be called whenever a chat head is clicked.
          * If you return false from here, the arrangement will continue whatever its supposed to do.
@@ -303,6 +309,6 @@ public class ChatHeadContainer<T> extends FrameLayout {
          * @param chatHead
          * @return true if you want to take control. false if you dont care.
          */
-        public boolean onChatHeadSelected(T key, ChatHead chatHead);
+        boolean onChatHeadSelected(T key, ChatHead chatHead);
     }
 }

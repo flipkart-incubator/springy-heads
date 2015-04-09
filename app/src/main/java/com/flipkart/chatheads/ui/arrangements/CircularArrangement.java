@@ -12,9 +12,7 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
-import com.flipkart.chatheads.ui.ChatHeadCloseButton;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
-import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.SpringConfigsHolder;
 
 import java.util.List;
@@ -23,9 +21,8 @@ import java.util.List;
  * Created by kiran.kumar on 07/04/15.
  */
 public class CircularArrangement extends ChatHeadArrangement {
-    public static String BUNDLE_KEY_X = "X";
-    public static String BUNDLE_KEY_Y = "Y";
-    private Point pointTo;
+    public static final String BUNDLE_KEY_X = "X";
+    public static final String BUNDLE_KEY_Y = "Y";
     private boolean isActive = false;
     private ChatHeadContainer container;
 
@@ -43,20 +40,20 @@ public class CircularArrangement extends ChatHeadArrangement {
         springsHolder.setChaining(false);
         List<ModifiedSpringChain.SpringData> horizontalSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
         List<ModifiedSpringChain.SpringData> verticalSprings = springsHolder.getVerticalSpringChain().getAllSprings();
-        pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
+        Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
         float radius = ChatHeadUtils.dpToPx(container.getContext(), 100);
         int chatHeadDiameter = ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER);
         Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius*1.2), 0, 0, maxWidth, maxHeight);
         for (int i = 0; i < horizontalSprings.size(); i++) {
             ModifiedSpringChain.SpringData horizontalSpring = horizontalSprings.get(i);
-            horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.CONVERGING);
+            horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             double xValue = pointTo.x + radius * Math.cos(angles.first + ((float) Math.abs(angles.second - angles.first) * (float) i / (float) horizontalSprings.size()));
             xValue -= chatHeadDiameter / 2;
             horizontalSpring.getSpring().setEndValue(xValue);
         }
         for (int i = 0; i < verticalSprings.size(); i++) {
             ModifiedSpringChain.SpringData verticalSpring = verticalSprings.get(i);
-            verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.CONVERGING);
+            verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             double yValue = pointTo.y + radius * Math.sin(angles.first + ((float) (angles.second - angles.first) * (float) i / (float) verticalSprings.size()));
             yValue -= chatHeadDiameter / 2;
             verticalSpring.getSpring().setEndValue(yValue);

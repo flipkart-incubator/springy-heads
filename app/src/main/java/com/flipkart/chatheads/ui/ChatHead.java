@@ -3,6 +3,7 @@ package com.flipkart.chatheads.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -42,6 +43,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     private SpringListener xPositionListener;
     private SpringListener yPositionListener;
     private Spring scaleSpring;
+
     public ChatHead(Context context) {
         super(context);
         init();
@@ -88,6 +90,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
             }
         };
         SpringSystem horizontalSpringSystem = springsHolder.getHorizontalSpringSystem();
+
         scaleSpring = horizontalSpringSystem.createSpring();
         scaleSpring.addListener(new SimpleSpringListener() {
             @Override
@@ -108,11 +111,11 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         this.unreadCount = unreadCount;
     }
 
-    public State getState() {
+    private State getState() {
         return state;
     }
 
-    public void setState(State state) {
+    private void setState(State state) {
         this.state = state;
     }
 
@@ -135,15 +138,17 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
         if (!isDragging) {
 
+            if(true)
+            return;
 
             /** Capturing check **/
 
             if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && totalVelocity < 1000) {
 
                 int[] coords = container.getChatHeadCoordsForCloseButton(this);
-                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeHorizontalSpring.setEndValue(coords[0]);
-                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeVerticalSpring.setEndValue(coords[1]);
                 //closeButton.appear(false);
                 if (activeHorizontalSpring.currentValueIsApproximately(coords[0]) && activeVerticalSpring.currentValueIsApproximately(coords[0])) {
@@ -185,7 +190,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(@NonNull MotionEvent event) {
         super.onTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             container.selectSpring(this);
@@ -201,32 +206,38 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         float offsetX = rawX - downX;
         float offsetY = rawY - downY;
 
-
-        if (velocityTracker == null) {
-            velocityTracker = VelocityTracker.obtain();
-        }
-
+        event.offsetLocation(getTranslationX(),getTranslationY());
         if (action == MotionEvent.ACTION_DOWN) {
+            if (velocityTracker == null) {
+                velocityTracker = VelocityTracker.obtain();
+            } else {
+                velocityTracker.clear();
+
+            }
+            activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
+            activeVerticalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
             setState(ChatHead.State.FREE);
             downX = rawX;
             downY = rawY;
             downTranslationX = (float) activeHorizontalSpring.getCurrentValue();
             downTranslationY = (float) activeVerticalSpring.getCurrentValue();
             scaleSpring.setEndValue(.9f);
-            activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
-            activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+            activeHorizontalSpring.setAtRest();
+            activeVerticalSpring.setAtRest();
             velocityTracker.addMovement(event);
 
+
         } else if (action == MotionEvent.ACTION_MOVE) {
-            if(Math.hypot(offsetX,offsetY)>touchSlop)
-            {
+            if (Math.hypot(offsetX, offsetY) > touchSlop) {
                 isDragging = true;
-                if(!isSticky) {
-                    container.getCloseButton().appear(false, true);
+                if (!isSticky) {
+                    container.getCloseButton().appear();
                 }
             }
+            velocityTracker.addMovement(event);
+
             if (isDragging) {
-                container.getCloseButton().pointTo(rawX,rawY);
+                container.getCloseButton().pointTo(rawX, rawY);
                 double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
                 if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && !isSticky) {
                     setState(ChatHead.State.CAPTURED);
@@ -237,25 +248,30 @@ public class ChatHead<T> extends ImageView implements SpringListener {
 
                 } else {
                     setState(ChatHead.State.FREE);
-                    activeHorizontalSpring.setEndValue(downTranslationX + offsetX);
-                    activeVerticalSpring.setEndValue(downTranslationY + offsetY);
-                    velocityTracker.addMovement(event);
+                    //activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
+                    //activeVerticalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
+                    activeHorizontalSpring.setCurrentValue(downTranslationX + offsetX).setAtRest();
+                    activeVerticalSpring.setCurrentValue(downTranslationY + offsetY).setAtRest();
                     container.getCloseButton().onRelease();
                 }
+                velocityTracker.computeCurrentVelocity(1000);
+
             }
 
         } else {
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 boolean wasDragging = isDragging;
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
                 isDragging = false;
                 scaleSpring.setEndValue(1);
-                velocityTracker.addMovement(event);
-                velocityTracker.computeCurrentVelocity(1000);
                 int xVelocity = (int) velocityTracker.getXVelocity();
                 int yVelocity = (int) velocityTracker.getYVelocity();
+                velocityTracker.recycle();
+                velocityTracker = null;
                 boolean touchUpHandled = container.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
-                if(wasDragging) {
-                    container.getCloseButton().disappear(true, true);
+                if (wasDragging) {
+                    //container.getCloseButton().disappear(true, true);
                 }
             }
         }
@@ -265,9 +281,8 @@ public class ChatHead<T> extends ImageView implements SpringListener {
 
 
     public enum State {
-        FREE, CAPTURED;
+        FREE, CAPTURED
     }
-
 
 
 }

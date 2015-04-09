@@ -54,7 +54,7 @@ public class MainActivity extends ActionBarActivity {
                 }
                 chatContainer.setArrangement(MaximizedArrangement.class, null);
                 Fragment fragment = chatContainer.getFragment(key,true);
-                fragment.setArguments(new Bundle());
+                //fragment.setArguments(new Bundle());
                 System.out.println("fragment = " + fragment);
                 return true;
             }
@@ -94,13 +94,6 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
         });
-
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
 
     }
 

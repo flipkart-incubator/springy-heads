@@ -43,6 +43,10 @@ public class ChatHeadSpringsHolder {
     {
         Spring horSpring = mHorizontalSpringChain.addSpring(chatHead,chatHead.getHorizontalPositionListener(),isSticky);
         Spring verSpring = mVerticalSpringChain.addSpring(chatHead,chatHead.getVerticalPositionListener(), isSticky);
+        horSpring.setRestDisplacementThreshold(10);
+        verSpring.setRestDisplacementThreshold(10);
+        horSpring.setRestSpeedThreshold(10);
+        verSpring.setRestSpeedThreshold(10);
         horSpring.addListener(commonListener);
         verSpring.addListener(commonListener);
     }
@@ -82,8 +86,7 @@ public class ChatHeadSpringsHolder {
                     arrayIndex = i;
                 }
             }
-            ModifiedSpringChain.SpringData springData = allSprings.get(arrayIndex);
-            return springData;
+        return allSprings.get(arrayIndex);
 
         }
 

@@ -66,7 +66,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             ModifiedSpringChain.SpringData horizontalSpring = horizontalSprings.get(i);
             int xPos = leftIndent + (horizontalSpring.getIndex() * widthPerHead);//align right
             horizontalSpring.getSpring().setAtRest();
-            horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.CONVERGING);
+            horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             horizontalSpring.getSpring().setEndValue(xPos);
             ChatHead chatHead = (ChatHead) horizontalSpring.getKey();
             positions.put(chatHead, new Point(xPos, topPadding));
@@ -75,7 +75,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         for (int i = 0; i < verticalSprings.size(); i++) {
             ModifiedSpringChain.SpringData verticalSpring = verticalSprings.get(i);
             verticalSpring.getSpring().setAtRest();
-            verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.CONVERGING);
+            verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             verticalSpring.getSpring().setEndValue(topPadding);
         }
         if (lastChatHead != null) {
@@ -143,10 +143,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private void positionToOriginal(ChatHead activeChatHead, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
         Point point = positions.get(activeChatHead);
         if (point != null) {
-            activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+            activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             activeHorizontalSpring.setVelocity(0);
             activeHorizontalSpring.setEndValue(point.x);
-            activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+            activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             activeVerticalSpring.setVelocity(0);
             activeVerticalSpring.setEndValue(point.y);
         }
@@ -157,19 +157,19 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         /** Bounds Check **/
         if (spring == activeHorizontalSpring && !isDragging) {
             double xPosition = activeHorizontalSpring.getCurrentValue();
-            if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.CONVERGING && !activeHorizontalSpring.isOvershooting()) {
+            if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.NOT_DRAGGING && !activeHorizontalSpring.isOvershooting()) {
                 positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
             }
-            if (xPosition < 0 && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.CONVERGING && !activeHorizontalSpring.isOvershooting()) {
+            if (xPosition < 0 && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.NOT_DRAGGING && !activeHorizontalSpring.isOvershooting()) {
                 positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
             }
         } else if (spring == activeVerticalSpring && !isDragging) {
             double yPosition = activeVerticalSpring.getCurrentValue();
 
-            if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.CONVERGING && !activeHorizontalSpring.isOvershooting()) {
+            if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.NOT_DRAGGING && !activeHorizontalSpring.isOvershooting()) {
                 positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
             }
-            if (yPosition < 0 && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.CONVERGING && !activeHorizontalSpring.isOvershooting()) {
+            if (yPosition < 0 && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.NOT_DRAGGING && !activeHorizontalSpring.isOvershooting()) {
                 positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
             }
 
@@ -240,15 +240,15 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        Fragment fragment = getFragment(activeChatHead, true);
-
-        if(fragment.isDetached())
+        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
+        if(fragment == null)
         {
-            transaction.attach(fragment);
+            fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
+            transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
         }
         else
         {
-            transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
+            transaction.attach(fragment);
         }
 
         if(currentFragment!=fragment && currentFragment!=null)
@@ -327,9 +327,9 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
 
 
-    public ChatHead getNextBestChatHead() {
+    private ChatHead getNextBestChatHead() {
         ChatHead nextBestChatHead = null;
-        for (Map.Entry<T, ChatHead> entry : container.getChatHeads().entrySet()) {
+        for (Map.Entry<T, ChatHead<T>> entry : container.getChatHeads().entrySet()) {
             ChatHead head = entry.getValue();
             if (nextBestChatHead == null) {
                 nextBestChatHead = head;
@@ -347,7 +347,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
 
-    public FragmentManager getFragmentManager() {
+    private FragmentManager getFragmentManager() {
         if (fragmentManager == null) {
             if(container.getViewAdapter() == null)
                 throw new IllegalStateException(ChatHeadViewAdapter.class.getSimpleName() + " should not be null");

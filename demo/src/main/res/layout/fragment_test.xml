@@ -11,13 +11,13 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
-        android:title="hello" />
+        android:title="Welcome" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/text_view"
         android:gravity="center"
-        android:text="Hello world is the message ! How baout that ?" />
+        android:text="Hello world" />
 
 </LinearLayout>

@@ -6,7 +6,6 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -84,10 +83,10 @@ public class ChatHeadCloseButton extends ImageView {
 
     }
 
-    public void appear(boolean immediate, boolean animate) {
+    public void appear() {
         if(isEnabled()) {
-            ySpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
-            xSpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+            ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+            xSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             bringToFront();
             disappeared = false;
         }
@@ -105,7 +104,7 @@ public class ChatHeadCloseButton extends ImageView {
 
     public void disappear(boolean immediate, boolean animate) {
         ySpring.setEndValue(mParentHeight);
-        ySpring.setSpringConfig(SpringConfigsHolder.CONVERGING);
+        ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
         xSpring.setEndValue(0);
         if (!animate) {
             ySpring.setCurrentValue(mParentHeight, true);
@@ -113,11 +112,6 @@ public class ChatHeadCloseButton extends ImageView {
         }
         disappeared = true;
 
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
     }
 
     @Override
@@ -142,22 +136,7 @@ public class ChatHeadCloseButton extends ImageView {
 
     private double getTranslationFromSpring(double springValue, float percent, int fullValue) {
         float widthToCover = percent * fullValue;
-        double translation = SpringUtil.mapValueFromRangeToRange(springValue, 0, fullValue, -widthToCover / 2, widthToCover / 2);
-        return translation;
+        return SpringUtil.mapValueFromRangeToRange(springValue, 0, fullValue, -widthToCover / 2, widthToCover / 2);
     }
 
-    @Override
-    public void setTranslationX(float translationX) {
-        super.setTranslationX(translationX);
-    }
-
-    @Override
-    public void setTranslationY(float translationY) {
-        super.setTranslationY(translationY);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-    }
 }
