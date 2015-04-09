@@ -85,13 +85,13 @@ public class CircularArrangement extends ChatHeadArrangement {
      */
     private Pair<Float, Float> calculateStartEndAngles(Point pointTo, float radius, int left, int top, int right, int bottom) {
         float fullAngle = (float) (Math.PI * 2);
-        float startAngle = 0;
-        float endAngle = fullAngle;
+        double startAngle = 0;
+        double endAngle = fullAngle;
         Rect rect = new Rect(left, top, right, bottom);
         int outside = 2;
         int inside = 1;
         int current = 0;
-        for(float sweep = 0; sweep <= fullAngle; sweep += Math.PI / 4) {
+        for(double sweep = Math.PI/4; sweep <= fullAngle+Math.PI/4; sweep += Math.PI / 4) {
             int x = pointTo.x + (int) (radius * Math.cos(sweep));
             int y = pointTo.y + (int) (radius * Math.sin(sweep));
 
@@ -108,12 +108,12 @@ public class CircularArrangement extends ChatHeadArrangement {
                 current = inside;
             }
         }
-        float finalStartAngle = startAngle;
+        float finalStartAngle = (float) startAngle;
 
         if (endAngle < startAngle) {
             endAngle += fullAngle;
         }
-        float finalEndAngle = endAngle;
+        float finalEndAngle = (float) endAngle;
         return new Pair<>(finalStartAngle, finalEndAngle);
     }
 
