@@ -208,11 +208,8 @@ public class ChatHeadContainer<T> extends FrameLayout {
                 setArrangement(MinimizedArrangement.class, null);
             }
         });
-        SpringConfiguratorView configuratorView = new SpringConfiguratorView(getContext());
-        addView(configuratorView);
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.DRAGGING, "dragging mode");
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.NOT_DRAGGING,"not dragging mode");
-        configuratorView.refreshSpringConfigurations();
 
     }
 
@@ -226,7 +223,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
     double getDistanceCloseButtonFromHead(float touchX, float touchY) {
         int left = closeButton.getLeft();
         int top = closeButton.getTop();
-        double xDiff = touchX - left - closeButton.getTranslationX() - closeButton.getMeasuredWidth() / 2;
+        double xDiff = touchX - left - closeButton.getMeasuredWidth() / 2;
         double yDiff = touchY - top - closeButton.getTranslationY() - closeButton.getMeasuredHeight() / 2;
         double distance = Math.hypot(xDiff, yDiff);
         return distance;
@@ -283,8 +280,8 @@ public class ChatHeadContainer<T> extends FrameLayout {
 
     public int[] getChatHeadCoordsForCloseButton(ChatHead chatHead) {
         int[] coords = new int[2];
-        int x = (int) (closeButton.getLeft() + closeButton.getTranslationX() + closeButton.getMeasuredWidth() / 2 - chatHead.getMeasuredWidth() / 2);
-        int y = (int) (closeButton.getTop() + closeButton.getTranslationY() + closeButton.getMeasuredHeight() / 2 - chatHead.getMeasuredHeight() / 2);
+        int x = (int) (closeButton.getLeft() + closeButton.getEndValueX() + closeButton.getMeasuredWidth() / 2 - chatHead.getMeasuredWidth() / 2);
+        int y = (int) (closeButton.getTop() + closeButton.getEndValueY() + closeButton.getMeasuredHeight() / 2 - chatHead.getMeasuredHeight() / 2);
         coords[0] = x;
         coords[1] = y;
         return coords;

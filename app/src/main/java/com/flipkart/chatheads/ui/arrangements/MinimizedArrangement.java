@@ -41,6 +41,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         this.maxHeight = maxHeight;
         springsHolder.setChaining(true);
         container.getCloseButton().setEnabled(false);
+        handleTouchUp(null,0,0,springsHolder.getActiveHorizontalSpring(),springsHolder.getActiveVerticalSpring(),true);
     }
 
     @Override
@@ -73,14 +74,10 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging) {
 
-        if(Math.abs(xVelocity)<ChatHeadUtils.dpToPx(container.getContext(),50))
-        {
-            if(activeHorizontalSpring.getCurrentValue() < (maxWidth-activeHorizontalSpring.getCurrentValue()))
-            {
+        if (Math.abs(xVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 50)) {
+            if (activeHorizontalSpring.getCurrentValue() < (maxWidth - activeHorizontalSpring.getCurrentValue())) {
                 xVelocity = -1;
-            }
-            else
-            {
+            } else {
                 xVelocity = 1;
             }
         }

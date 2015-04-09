@@ -20,16 +20,15 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 public class ChatHeadCloseButton extends ImageView {
 
     private static final long DELAY = 500;
+    private static final float PERC_PARENT_WIDTH = 0.1f; //perc of parent to be covered during drag
+    private static final float PERC_PARENT_HEIGHT = 0.05f; //perc of parent to be covered during drag
     private int mParentWidth;
     private int mParentHeight;
-    private static final float PERC_PARENT_WIDTH = 0.1f; //perc of parent to be covered during drag
-    private static final float PERC_PARENT_HEIGHT = 0.3f; //perc of parent to be covered during drag
     private Spring scaleSpring;
     private Spring xSpring;
     private Spring ySpring;
     private boolean disappeared;
     private boolean captured = false;
-
     public ChatHeadCloseButton(Context context) {
         super(context);
         init();
@@ -43,6 +42,10 @@ public class ChatHeadCloseButton extends ImageView {
     public ChatHeadCloseButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public boolean isDisappeared() {
+        return disappeared;
     }
 
     private void init() {
@@ -107,7 +110,7 @@ public class ChatHeadCloseButton extends ImageView {
         ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
         xSpring.setEndValue(0);
         if (!animate) {
-            ySpring.setCurrentValue(mParentHeight, true);
+            ySpring.setCurrentValue(mParentHeight-getBottom(), true);
             xSpring.setCurrentValue(0, true);
         }
         disappeared = true;
@@ -128,7 +131,7 @@ public class ChatHeadCloseButton extends ImageView {
             double translationY = getTranslationFromSpring(y, PERC_PARENT_HEIGHT, mParentHeight);
             if (!disappeared) {
                 xSpring.setEndValue(translationX);
-                ySpring.setEndValue(-translationY);
+                ySpring.setEndValue(translationY);
 
             }
         }
@@ -139,4 +142,15 @@ public class ChatHeadCloseButton extends ImageView {
         return SpringUtil.mapValueFromRangeToRange(springValue, 0, fullValue, -widthToCover / 2, widthToCover / 2);
     }
 
+    public boolean isAtRest() {
+        return xSpring.isAtRest() && ySpring.isAtRest();
+    }
+
+    public int getEndValueX() {
+        return (int) xSpring.getEndValue();
+    }
+
+    public int getEndValueY() {
+        return (int) ySpring.getEndValue();
+    }
 }

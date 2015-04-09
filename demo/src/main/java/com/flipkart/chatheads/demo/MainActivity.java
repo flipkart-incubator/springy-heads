@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
+import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
@@ -60,7 +61,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
         chatContainer.addChatHead("head0", false);
-        chatContainer.addChatHead("head1", false);
+        chatContainer.addChatHead("head1", true);
         Button addButton = (Button) findViewById(R.id.add);
         Button removeButton = (Button) findViewById(R.id.remove);
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +95,8 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
         });
+        SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
+        chatContainer.addView(configuratorView,0);
 
     }
 
