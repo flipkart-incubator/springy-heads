@@ -96,17 +96,26 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         float radius = ChatHeadUtils.dpToPx(container.getContext(), 100);
         int chatHeadDiameter = ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER);
         Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius * 1.2), 0, 0, maxWidth, maxHeight);
+        double totalSweepArea = (horizontalChatHeadSprings.size()-1) * Math.PI / 4;
         for (int i = 0; i < horizontalChatHeadSprings.size(); i++) {
             ModifiedSpringChain.SpringData horizontalSpring = horizontalChatHeadSprings.get(i);
             horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            double xValue = pointTo.x + radius * Math.cos(angles.first + ((float) Math.abs(angles.second - angles.first) * (float) i / (float) horizontalChatHeadSprings.size()));
+            double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
+            if(horizontalChatHeadSprings.size()>1) {
+                angle += (float) i / ((float) horizontalChatHeadSprings.size() - 1) * totalSweepArea;
+            }
+            double xValue = pointTo.x + radius * Math.cos(angle);
             xValue -= chatHeadDiameter / 2;
             horizontalSpring.getSpring().setEndValue(xValue);
         }
         for (int i = 0; i < verticalChatHeadSprings.size(); i++) {
             ModifiedSpringChain.SpringData verticalSpring = verticalChatHeadSprings.get(i);
             verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            double yValue = pointTo.y + radius * Math.sin(angles.first + ((float) (angles.second - angles.first) * (float) i / (float) verticalChatHeadSprings.size()));
+            double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
+            if(verticalChatHeadSprings.size()>1) {
+                angle += (float) i / ((float) horizontalChatHeadSprings.size() - 1) * totalSweepArea;
+            }
+            double yValue = pointTo.y + radius * Math.sin(angle);
             yValue -= chatHeadDiameter / 2;
             verticalSpring.getSpring().setEndValue(yValue);
         }
@@ -202,27 +211,35 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
      */
     private Pair<Float, Float> calculateStartEndAngles(Point pointTo, float radius, int left, int top, int right, int bottom) {
         float fullAngle = (float) (Math.PI * 2);
-        double startAngle = 0;
-        double endAngle = fullAngle;
+        double startAngle = -Math.PI;
+        double endAngle = Math.PI;
         Rect rect = new Rect(left, top, right, bottom);
         int outside = 2;
         int inside = 1;
         int current = 0;
-        for (double sweep = Math.PI / 4; sweep <= fullAngle + Math.PI / 4; sweep += Math.PI / 4) {
+        boolean finishedFullsweep = false;
+        for (double sweep = -Math.PI; sweep <=  3*Math.PI; sweep += Math.PI / 4) {
             int x = pointTo.x + (int) (radius * Math.cos(sweep));
             int y = pointTo.y + (int) (radius * Math.sin(sweep));
 
             if (!rect.contains(x, y)) {
-                if (current == inside) {
-                    endAngle = sweep;
-                }
+
                 current = outside;
             }
             if (rect.contains(x, y)) {
                 if (current == outside) {
                     startAngle = sweep;
                 }
+                endAngle = sweep;
                 current = inside;
+            }
+            if(sweep>=Math.PI)
+            {
+                finishedFullsweep = true;
+            }
+            if(finishedFullsweep && current == outside)
+            {
+                break;
             }
         }
         float finalStartAngle = (float) startAngle;
@@ -230,6 +247,9 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         if (endAngle < startAngle) {
             endAngle += fullAngle;
         }
+
+        System.out.println("finalStartAngle = " + Math.toDegrees(finalStartAngle));
+        System.out.println("endAngle = " + Math.toDegrees(endAngle));
         float finalEndAngle = (float) endAngle;
         return new Pair<>(finalStartAngle, finalEndAngle);
     }
