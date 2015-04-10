@@ -256,12 +256,20 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
+
         Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
-        if (fragment == null) {
+
+        if(fragment == null)
+        {
             fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
-            transaction.add(getArrowLayout().getId(), fragment, activeChatHead.getKey().toString());
-        } else {
-            transaction.attach(fragment);
+            transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
+        }
+        else
+        {
+            if(fragment.isDetached())
+            {
+                transaction.attach(fragment);
+            }
         }
 
         if (currentFragment != fragment && currentFragment != null) {

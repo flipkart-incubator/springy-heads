@@ -41,7 +41,9 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         this.maxHeight = maxHeight;
         springsHolder.setChaining(true);
         container.getCloseButton().setEnabled(false);
-        handleTouchUp(null,0,0,springsHolder.getActiveHorizontalSpring(),springsHolder.getActiveVerticalSpring(),true);
+        if(springsHolder.getActiveHorizontalSpring()!=null && springsHolder.getActiveVerticalSpring()!=null) {
+            handleTouchUp(null, 0, 0, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring(), true);
+        }
     }
 
     @Override
