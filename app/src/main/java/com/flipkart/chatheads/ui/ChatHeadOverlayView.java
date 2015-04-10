@@ -13,15 +13,18 @@ import android.graphics.PathEffect;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
-/**
- * Created by kiran.kumar on 10/04/15.
- */
+import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+
 public class ChatHeadOverlayView extends View {
+    private static final long ANIMATION_DURATION = 600;
+    private float OVAL_RADIUS;
+    private float STAMP_SPACING;
     private Path arrowDashedPath;
     private Paint paint = new Paint();
-    private float phase;
     private ObjectAnimator animator;
+    private PathEffect pathDashEffect;
 
     public ChatHeadOverlayView(Context context) {
         super(context);
@@ -34,10 +37,13 @@ public class ChatHeadOverlayView extends View {
     }
 
     private void init(Context context) {
-        animator = ObjectAnimator.ofFloat(this, "phase", 0f, -25f);
+        STAMP_SPACING = ChatHeadUtils.dpToPx(context, 20);
+        OVAL_RADIUS = ChatHeadUtils.dpToPx(context, 3);
+        animator = ObjectAnimator.ofFloat(this, "phase", 0f, -STAMP_SPACING);
+        animator.setInterpolator(new LinearInterpolator());
         animator.setRepeatMode(ValueAnimator.RESTART);
         animator.setRepeatCount(ValueAnimator.INFINITE);
-        animator.setDuration(500);
+        animator.setDuration(ANIMATION_DURATION);
     }
 
     public ChatHeadOverlayView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -49,14 +55,7 @@ public class ChatHeadOverlayView extends View {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (arrowDashedPath != null) {
-            PathEffect effect = new PathDashPathEffect(
-                    makeConvexArrow(24.0f, 7.0f),    // "stamp"
-                    30.0f,                            // advance, or distance between two stamps
-                    phase,                             // phase, or offset before the first stamp
-                    PathDashPathEffect.Style.ROTATE); // how to transform each stamp
-
-            // Apply the effect and draw the arrowDashedPath
-            paint.setPathEffect(effect);
+            paint.setPathEffect(pathDashEffect);
             canvas.drawPath(arrowDashedPath, paint);
         }
     }
@@ -64,35 +63,28 @@ public class ChatHeadOverlayView extends View {
     /**
      * taken from https://github.com/romainguy/road-trip/blob/master/application/src/main/java/org/curiouscreature/android/roadtrip/IntroView.java *
      */
-    private Path makeConvexArrow(float length, float height) {
+    private Path makeDot(float radius) {
         Path p = new Path();
-        p.addCircle(0, 0, height, Path.Direction.CCW);
-//        p.moveTo(0.0f, -height / 2.0f);
-//        p.lineTo(length - height / 4.0f, -height / 2.0f);
-//        p.lineTo(length, 0.0f);
-//        p.lineTo(length - height / 4.0f, height / 2.0f);
-//        p.lineTo(0.0f, height / 2.0f);
-//        p.lineTo(0.0f + height / 4.0f, 0.0f);
-//        p.close();
+        p.addCircle(0, 0, radius, Path.Direction.CCW);
         return p;
     }
 
     public void drawPath(float fromX, float fromY, float toX, float toY) {
-        // Create a straight line
         arrowDashedPath = new Path();
         arrowDashedPath.moveTo(fromX, fromY);
         arrowDashedPath.lineTo(toX, toY);
         paint.setColor(Color.WHITE);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(4.0f);
-        // Stamp a concave arrow along the line
-
+        paint.setStrokeWidth(OVAL_RADIUS * 2); // width = diameter
         animatePath();
         invalidate();
     }
 
+    /**
+     * Will be called by animator
+     * @param phase
+     */
     private void setPhase(float phase) {
-        this.phase = phase;
+        pathDashEffect = new PathDashPathEffect(makeDot(OVAL_RADIUS), STAMP_SPACING, phase, PathDashPathEffect.Style.ROTATE);
         invalidate();
     }
 
@@ -105,7 +97,6 @@ public class ChatHeadOverlayView extends View {
     public void clearPath() {
         animator.cancel();
         arrowDashedPath = null;
-
         invalidate();
     }
 
