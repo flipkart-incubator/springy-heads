@@ -37,6 +37,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private final int CLOSE_ATTRACTION_THRESHOLD;
     private final Spring pointerScaleSpring;
     private final ImageView pointerViewStatic;
+    private final int RADIUS;
     private boolean isActive = false;
     private ChatHeadContainer container;
     private List<ModifiedSpringChain.SpringData> horizontalChatHeadSprings;
@@ -77,7 +78,8 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 pointerViewMovable.setScaleY((float) spring.getCurrentValue());
             }
         });
-        CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(container.getContext(), 75);
+        RADIUS = ChatHeadUtils.dpToPx(container.getContext(), 200);
+        CLOSE_ATTRACTION_THRESHOLD = (int) (RADIUS*0.5);
 
 
     }
@@ -93,9 +95,9 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         horizontalChatHeadSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
         verticalChatHeadSprings = springsHolder.getVerticalSpringChain().getAllSprings();
         Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
-        float radius = ChatHeadUtils.dpToPx(container.getContext(), 100);
         int chatHeadDiameter = ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER);
-        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius * 1.2), 0, 0, maxWidth, maxHeight);
+        int radius = RADIUS;
+        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
         double totalSweepArea = (horizontalChatHeadSprings.size()-1) * Math.PI / 4;
         for (int i = 0; i < horizontalChatHeadSprings.size(); i++) {
             ModifiedSpringChain.SpringData horizontalSpring = horizontalChatHeadSprings.get(i);
