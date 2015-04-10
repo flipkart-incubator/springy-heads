@@ -1,6 +1,8 @@
 package com.flipkart.chatheads.ui;
 
+import android.graphics.Canvas;
 import android.os.Bundle;
+import android.view.MotionEvent;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
@@ -16,6 +18,12 @@ public abstract class ChatHeadArrangement {
     public abstract void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring);
 
     public abstract void onSpringUpdate(ChatHead activeChatHead, boolean isDragging, int maxWidth, int maxHeight, Spring spring, Spring activeHorizontalSpring, Spring activeVerticalSpring, int totalVelocity);
+
+    public boolean handleRawTouchEvent(MotionEvent event) {
+        return false;
+    }
+
+    public void onDraw(Canvas canvas) {};
 
     public abstract boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging);
 

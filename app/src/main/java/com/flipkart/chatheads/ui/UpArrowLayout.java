@@ -18,7 +18,7 @@ import java.util.ArrayList;
  */
 public class UpArrowLayout extends ViewGroup {
     private ImageView arrowView;
-    private Point pointTo = new Point(0,0);
+    private final Point pointTo = new Point(0,0);
     private final ArrayList<View> mMatchParentChildren = new ArrayList<View>(1);
 
 
@@ -186,15 +186,11 @@ public class UpArrowLayout extends ViewGroup {
         arrowView.layout(left,top,left+arrowView.getMeasuredWidth(),top+arrowView.getMeasuredHeight());
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
-                if(child == arrowView) continue;;
+                if(child == arrowView) continue;
                 child.layout(left, top + arrowView.getMeasuredHeight()+pointTo.y, right, bottom);
             }
 
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-    }
 }
 

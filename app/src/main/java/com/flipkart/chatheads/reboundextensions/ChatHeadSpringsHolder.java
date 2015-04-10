@@ -82,8 +82,7 @@ public class ChatHeadSpringsHolder {
                     arrayIndex = i;
                 }
             }
-            ModifiedSpringChain.SpringData springData = allSprings.get(arrayIndex);
-            return springData;
+        return allSprings.get(arrayIndex);
 
         }
 
