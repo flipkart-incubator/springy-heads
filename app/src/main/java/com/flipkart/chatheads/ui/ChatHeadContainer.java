@@ -10,12 +10,15 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.ArrayMap;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.facebook.rebound.SpringConfigRegistry;
 import com.facebook.rebound.SpringSystem;
@@ -36,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class ChatHeadContainer<T> extends FrameLayout {
+public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseButton.CloseButtonListener {
 
     private static final int MAX_CHAT_HEADS = 5;
     private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
@@ -50,6 +53,8 @@ public class ChatHeadContainer<T> extends FrameLayout {
     private ChatHeadOverlayView overlayView;
     private OnItemSelectedListener<T> itemSelectedListener;
     private boolean overlayVisible;
+    private ImageView closeButtonShadow;
+
     public ChatHeadContainer(Context context) {
         super(context);
         init(context);
@@ -175,6 +180,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
         if (activeArrangement != null)
             activeArrangement.onChatHeadAdded(chatHead, springsHolder);
 
+        closeButtonShadow.bringToFront();
         return chatHead;
     }
 
@@ -209,7 +215,15 @@ public class ChatHeadContainer<T> extends FrameLayout {
         arrowLayout.setVisibility(View.GONE);
         springsHolder = new ChatHeadSpringsHolder();
         closeButton = new ChatHeadCloseButton(getContext());
+        closeButton.setListener(this);
         addView(closeButton);
+        closeButtonShadow = new ImageView(getContext());
+        LayoutParams shadowLayoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        shadowLayoutParams.gravity = Gravity.BOTTOM;
+        closeButtonShadow.setLayoutParams(shadowLayoutParams);
+        closeButtonShadow.setImageResource(R.drawable.dismiss_shadow);
+        closeButtonShadow.setVisibility(View.GONE);
+        addView(closeButtonShadow);
         arrangements.put(MinimizedArrangement.class, new MinimizedArrangement(this));
         arrangements.put(MaximizedArrangement.class, new MaximizedArrangement<T>(this));
         arrangements.put(CircularArrangement.class, new CircularArrangement(this));
@@ -222,13 +236,11 @@ public class ChatHeadContainer<T> extends FrameLayout {
         });
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.DRAGGING, "dragging mode");
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.NOT_DRAGGING,"not dragging mode");
-
     }
 
     private void setupOverlay(Context context) {
         overlayView = new ChatHeadOverlayView(context);
         overlayView.setBackgroundResource(R.drawable.overlay_transition);
-
         addView(overlayView, 0);
     }
 
@@ -287,7 +299,6 @@ public class ChatHeadContainer<T> extends FrameLayout {
             overlayView.setClickable(true);
             overlayVisible = true;
         }
-
     }
 
     public int[] getChatHeadCoordsForCloseButton(ChatHead chatHead) {
@@ -312,6 +323,16 @@ public class ChatHeadContainer<T> extends FrameLayout {
         {
             activeArrangement.bringToFront(chatHead);
         }
+    }
+
+    @Override
+    public void onCloseButtonAppear() {
+        closeButtonShadow.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onCloseButtonDisappear() {
+        closeButtonShadow.setVisibility(View.GONE);
     }
 
 

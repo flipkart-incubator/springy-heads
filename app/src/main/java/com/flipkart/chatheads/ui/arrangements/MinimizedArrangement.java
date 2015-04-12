@@ -33,17 +33,21 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         if (currentY < 0) {
             currentY = (int) (maxHeight * 0.8);
         }
-        if (springsHolder.getActiveHorizontalSpring() != null)
+        if (springsHolder.getActiveHorizontalSpring() != null) {
+            springsHolder.getActiveHorizontalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             springsHolder.getActiveHorizontalSpring().setEndValue(currentX);
-        if (springsHolder.getActiveVerticalSpring() != null)
+        }
+        if (springsHolder.getActiveVerticalSpring() != null) {
+            springsHolder.getActiveHorizontalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             springsHolder.getActiveVerticalSpring().setEndValue(currentY);
+        }
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
         springsHolder.setChaining(true);
         container.getCloseButton().setEnabled(false);
-        if(springsHolder.getActiveHorizontalSpring()!=null && springsHolder.getActiveVerticalSpring()!=null) {
-            handleTouchUp(null, 0, 0, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring(), true);
-        }
+//        if(springsHolder.getActiveHorizontalSpring()!=null && springsHolder.getActiveVerticalSpring()!=null) {
+//            handleTouchUp(null, 0, 0, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring(), true);
+//        }
     }
 
     @Override
