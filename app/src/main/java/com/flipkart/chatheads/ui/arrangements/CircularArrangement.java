@@ -308,7 +308,8 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
     }
 
-
-
-
+    @Override
+    public void bringToFront(ChatHead chatHead) {
+        //everything is in front. nothing to do here.
+    }
 }

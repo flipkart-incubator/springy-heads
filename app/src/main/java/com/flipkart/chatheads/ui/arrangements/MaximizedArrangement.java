@@ -60,7 +60,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), (int) (1.1 * ChatHead.DIAMETER));
         topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-        ChatHead<T> lastChatHead = null;
         int leftIndent = maxWidth - (horizontalSprings.size() * widthPerHead);
         for (int i = 0; i < horizontalSprings.size(); i++) {
             ModifiedSpringChain.SpringData horizontalSpring = horizontalSprings.get(i);
@@ -70,7 +69,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             horizontalSpring.getSpring().setEndValue(xPos);
             ChatHead chatHead = (ChatHead) horizontalSpring.getKey();
             positions.put(chatHead, new Point(xPos, topPadding));
-            lastChatHead = chatHead;
+            if(horizontalSpring.getSpring() == springsHolder.getActiveHorizontalSpring())
+            {
+                selectChatHead(chatHead);
+            }
         }
         for (int i = 0; i < verticalSprings.size(); i++) {
             ModifiedSpringChain.SpringData verticalSpring = verticalSprings.get(i);
@@ -78,9 +80,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             verticalSpring.getSpring().setEndValue(topPadding);
         }
-        if (lastChatHead != null) {
-            selectTab(lastChatHead);
-        }
+
 
         container.getCloseButton().setEnabled(true);
         container.getOverlayView().setOnClickListener(new View.OnClickListener() {
@@ -134,6 +134,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     private void selectTab(final ChatHead<T> activeChatHead) {
+        container.getSpringsHolder().selectSpring(activeChatHead);
         currentTab = activeChatHead;
         container.post(new Runnable() {
             @Override
@@ -374,5 +375,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     public void setFragmentManager(FragmentManager fragmentManager) {
         this.fragmentManager = fragmentManager;
+    }
+
+    @Override
+    public void bringToFront(ChatHead chatHead) {
+        //nothing to do, everything is in front.
     }
 }

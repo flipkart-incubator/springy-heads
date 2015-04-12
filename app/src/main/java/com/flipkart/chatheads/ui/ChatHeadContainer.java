@@ -169,6 +169,7 @@ public class ChatHeadContainer<T> extends FrameLayout {
             removeChatHead(chatHeadToRemove.getKey());
         }
         reloadDrawable(key);
+        if(springsHolder.getActiveHorizontalSpring() == null || springsHolder.getActiveVerticalSpring() == null)
         springsHolder.selectSpring(chatHead);
 
         if (activeArrangement != null)
@@ -306,6 +307,12 @@ public class ChatHeadContainer<T> extends FrameLayout {
         return itemSelectedListener != null && itemSelectedListener.onChatHeadSelected(chatHead.getKey(), chatHead);
     }
 
+    public void bringToFront(ChatHead chatHead) {
+        if(activeArrangement!=null)
+        {
+            activeArrangement.bringToFront(chatHead);
+        }
+    }
 
 
     public interface OnItemSelectedListener<T> {

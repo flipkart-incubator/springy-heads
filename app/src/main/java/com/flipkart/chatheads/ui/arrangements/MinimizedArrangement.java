@@ -159,4 +159,11 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             }
         }
     }
+
+    @Override
+    public void bringToFront(ChatHead chatHead) {
+        container.getSpringsHolder().selectSpring(chatHead);
+        container.bringChildToFront(chatHead);
+        onActivate(container,null,container.getSpringsHolder(),container.getMaxWidth(),container.getMaxHeight());
+    }
 }

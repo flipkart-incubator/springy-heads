@@ -108,6 +108,9 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     }
 
     public void setUnreadCount(int unreadCount) {
+        if (unreadCount != this.unreadCount) {
+            container.reloadDrawable(key);
+        }
         this.unreadCount = unreadCount;
     }
 
