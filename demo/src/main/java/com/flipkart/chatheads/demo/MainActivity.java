@@ -63,11 +63,11 @@ public class MainActivity extends ActionBarActivity {
                     System.out.println("Clicked on " + key + " " +
                             "when arrangement was circular");
                 }
-                chatContainer.setArrangement(MaximizedArrangement.class, null);
-                Fragment fragment = chatContainer.getFragment(key,true);
-                //fragment.setArguments(new Bundle());
-                System.out.println("fragment = " + fragment);
-                return true;
+//                chatContainer.setArrangement(MaximizedArrangement.class, null);
+//                Fragment fragment = chatContainer.getFragment(key,true);
+//                //fragment.setArguments(new Bundle());
+//                System.out.println("fragment = " + fragment);
+                return false;
             }
         });
         chatContainer.addChatHead("head0", false);
@@ -77,46 +77,47 @@ public class MainActivity extends ActionBarActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chatContainer.addChatHead("head" + Math.random(), false);
+                ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false);
+                //chatContainer.bringToFront(chatHead);
             }
         });
         removeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Set<Object> keys = chatContainer.getChatHeads().keySet();
-                Object[] objects = keys.toArray();
-                if (objects.length > 0) {
-                    Object object = objects[objects.length - 1];
-                    chatContainer.removeChatHead(object);
-                }
+//                Set<Object> keys = chatContainer.getChatHeads().keySet();
+//                Object[] objects = keys.toArray();
+//                if (objects.length > 0) {
+//                    Object object = objects[objects.length - 1];
+//                    chatContainer.removeChatHead(object);
+//                }
             }
         });
 
 
-//        circularClickArea.setOnTouchListener(new View.OnTouchListener() {
-//
-//            Bundle bundle = new Bundle();
-//            Runnable longPressCallback = new Runnable() {
-//                @Override
-//                public void run() {
-//                    chatContainer.setArrangement(CircularArrangement.class, bundle);
-//                }
-//            };
-//
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                chatContainer.dispatchTouchEvent(event);
-//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//                    circularClickArea.removeCallbacks(longPressCallback);
-//                    bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
-//                    bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
-//                    circularClickArea.postDelayed(longPressCallback, 1000);
-//                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-//                    circularClickArea.removeCallbacks(longPressCallback);
-//                }
-//                return true;
-//            }
-//        });
+        circularClickArea.setOnTouchListener(new View.OnTouchListener() {
+
+            Bundle bundle = new Bundle();
+            Runnable longPressCallback = new Runnable() {
+                @Override
+                public void run() {
+                    chatContainer.setArrangement(CircularArrangement.class, bundle);
+                }
+            };
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                chatContainer.dispatchTouchEvent(event);
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    circularClickArea.removeCallbacks(longPressCallback);
+                    bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
+                    bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
+                    circularClickArea.postDelayed(longPressCallback, 1000);
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    circularClickArea.removeCallbacks(longPressCallback);
+                }
+                return true;
+            }
+        });
         SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
         chatContainer.addView(configuratorView, 0);
 

@@ -28,9 +28,9 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     private final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
+    private SpringSystem springSystem;
     private boolean isSticky = false;
     private ChatHeadContainer container;
-    private ChatHeadSpringsHolder springsHolder;
     private State state;
     private T key;
     private float downX = -1;
@@ -43,12 +43,12 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     private SpringListener xPositionListener;
     private SpringListener yPositionListener;
     private Spring scaleSpring;
-
+    private Spring xPositionSpring;
+    private Spring yPositionSpring;
     public ChatHead(Context context) {
         super(context);
         init();
     }
-
     public ChatHead(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -58,13 +58,21 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         super(context, attrs, defStyleAttr);
         init();
     }
-
-    public ChatHead(ChatHeadContainer container, ChatHeadSpringsHolder springsHolder, Context context, boolean isSticky) {
+    public ChatHead(ChatHeadContainer container, SpringSystem springsHolder, Context context, boolean isSticky) {
         super(context);
         this.container = container;
-        this.springsHolder = springsHolder;
+        this.springSystem = springsHolder;
         this.isSticky = isSticky;
         init();
+    }
+
+
+    public Spring getHorizontalSpring() {
+        return xPositionSpring;
+    }
+
+    public Spring getVerticalSpring() {
+        return yPositionSpring;
     }
 
     public boolean isSticky() {
@@ -82,6 +90,10 @@ public class ChatHead<T> extends ImageView implements SpringListener {
                 setTranslationX((float) spring.getCurrentValue());
             }
         };
+        xPositionSpring = springSystem.createSpring();
+        xPositionSpring.addListener(xPositionListener);
+        xPositionSpring.addListener(this);
+
         yPositionListener = new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
@@ -89,9 +101,11 @@ public class ChatHead<T> extends ImageView implements SpringListener {
                 setTranslationY((float) spring.getCurrentValue());
             }
         };
-        SpringSystem horizontalSpringSystem = springsHolder.getHorizontalSpringSystem();
+        yPositionSpring = springSystem.createSpring();
+        yPositionSpring.addListener(yPositionListener);
+        yPositionSpring.addListener(this);
 
-        scaleSpring = horizontalSpringSystem.createSpring();
+        scaleSpring = springSystem.createSpring();
         scaleSpring.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
@@ -132,12 +146,11 @@ public class ChatHead<T> extends ImageView implements SpringListener {
 
     @Override
     public void onSpringUpdate(Spring spring) {
-        Spring activeHorizontalSpring = springsHolder.getActiveHorizontalSpring();
-        Spring activeVerticalSpring = springsHolder.getActiveVerticalSpring();
+        Spring activeHorizontalSpring = xPositionSpring;
+        Spring activeVerticalSpring = yPositionSpring;
         if(spring!=activeHorizontalSpring && spring!=activeVerticalSpring)
             return;
         float deltaX = (float) (DELTA * ((float) container.getMaxWidth() / 2f - (activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2)) / ((float) container.getMaxWidth() / 2f));
-        springsHolder.setChainDelta(deltaX, 0);
         double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + getMeasuredHeight() / 2);
         int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
         container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
@@ -197,8 +210,8 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         super.onTouchEvent(event);
 
         //Chathead view will set the correct active springs on touch
-        Spring activeHorizontalSpring = springsHolder.getActiveHorizontalSpring();
-        Spring activeVerticalSpring = springsHolder.getActiveVerticalSpring();
+        Spring activeHorizontalSpring = xPositionSpring;
+        Spring activeVerticalSpring = yPositionSpring;
 
         int action = event.getAction();
         float rawX = event.getRawX();
@@ -277,6 +290,13 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         }
 
         return true;
+    }
+
+    public void onRemove() {
+        getHorizontalSpring().removeAllListeners();
+        getHorizontalSpring().destroy();
+        getVerticalSpring().removeAllListeners();
+        getVerticalSpring().destroy();
     }
 
 

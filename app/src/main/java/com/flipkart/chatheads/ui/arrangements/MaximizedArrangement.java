@@ -12,7 +12,6 @@ import android.view.View;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.R;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
 import com.flipkart.chatheads.ui.ChatHead;
@@ -27,6 +26,7 @@ import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class MaximizedArrangement<T> extends ChatHeadArrangement {
+    public static final String BUNDLE_HERO_INDEX_KEY = "hero_index";
     private final Map<ChatHead, Point> positions = new ArrayMap<>();
     private ChatHeadContainer<T> container;
     private int maxWidth;
@@ -49,39 +49,37 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
-    public void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight) {
         this.container = container;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
-        springsHolder.setChaining(false);
-        List<ChatHeadSpringChain.SpringData> horizontalSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
-        List<ChatHeadSpringChain.SpringData> verticalSprings = springsHolder.getVerticalSpringChain().getAllSprings();
+        List<ChatHead> chatHeads = container.getChatHeads();
+        int heroIndex = 0;
+        if(extras!=null)
+            heroIndex = extras.getInt(BUNDLE_HERO_INDEX_KEY, -1);
+        if (heroIndex < 0 || heroIndex > chatHeads.size() - 1) {
+            heroIndex = 0;
+        }
+        currentTab = chatHeads.get(heroIndex);
         maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
         int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), (int) (1.1 * ChatHead.DIAMETER));
         topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-        int leftIndent = maxWidth - (horizontalSprings.size() * widthPerHead);
-        for (int i = 0; i < horizontalSprings.size(); i++) {
-            ChatHeadSpringChain.SpringData horizontalSpring = horizontalSprings.get(i);
-            int xPos = leftIndent + (horizontalSpring.getIndex() * widthPerHead);//align right
-            horizontalSpring.getSpring().setAtRest();
-            horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            horizontalSpring.getSpring().setEndValue(xPos);
-            ChatHead chatHead = (ChatHead) horizontalSpring.getKey();
+        int leftIndent = maxWidth - (chatHeads.size() * widthPerHead);
+        for (int i = 0; i < chatHeads.size(); i++) {
+            ChatHead chatHead = chatHeads.get(i);
+            Spring horizontalSpring = chatHead.getHorizontalSpring();
+            int xPos = leftIndent + (i * widthPerHead);//align right
+            horizontalSpring.setAtRest();
+            horizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+            horizontalSpring.setEndValue(xPos);
+            Spring verticalSpring = chatHead.getVerticalSpring();
+            verticalSpring.setAtRest();
+            verticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+            verticalSpring.setEndValue(topPadding);
             positions.put(chatHead, new Point(xPos, topPadding));
-            if(horizontalSpring.getSpring() == springsHolder.getActiveHorizontalSpring())
-            {
-                selectChatHead(chatHead);
-            }
-        }
-        for (int i = 0; i < verticalSprings.size(); i++) {
-            ChatHeadSpringChain.SpringData verticalSpring = verticalSprings.get(i);
-            verticalSpring.getSpring().setAtRest();
-            verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            verticalSpring.getSpring().setEndValue(topPadding);
-        }
 
-
+        }
         container.getCloseButton().setEnabled(true);
         container.getOverlayView().setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,12 +88,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
         });
         container.showOverlayView();
+        selectChatHead(currentTab);
     }
 
     @Override
-    public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
-        hideView();
-        container.hideOverlayView();
+    public void onDeactivate(int maxWidth, int maxHeight) {
+
         if (currentFragment != null) {
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -104,12 +102,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
             fragmentTransaction.commitAllowingStateLoss();
         }
-
+        hideView();
+        container.hideOverlayView();
     }
 
     @Override
     public boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging) {
-
 
 
         activeHorizontalSpring.setVelocity(xVelocity);
@@ -146,12 +144,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     private void positionToOriginal(ChatHead activeChatHead, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
-        if(activeChatHead.isSticky())
-        {
+        if (activeChatHead.isSticky()) {
             deactivate();
-        }
-        else {
-            if(activeChatHead.getState() == ChatHead.State.FREE) {
+        } else {
+            if (activeChatHead.getState() == ChatHead.State.FREE) {
                 Point point = positions.get(activeChatHead);
                 if (point != null) {
                     activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
@@ -190,7 +186,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         /** position it back **/
         if (!isDragging && totalVelocity < ChatHeadUtils.dpToPx(container.getContext(), 50) && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
-                positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
+            positionToOriginal(activeChatHead, activeHorizontalSpring, activeVerticalSpring);
 
         }
 
@@ -260,15 +256,11 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
 
-        if(fragment == null)
-        {
+        if (fragment == null) {
             fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
-            transaction.add(getArrowLayout().getId(),fragment,activeChatHead.getKey().toString());
-        }
-        else
-        {
-            if(fragment.isDetached())
-            {
+            transaction.add(getArrowLayout().getId(), fragment, activeChatHead.getKey().toString());
+        } else {
+            if (fragment.isDetached()) {
                 transaction.attach(fragment);
             }
         }
@@ -299,35 +291,31 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
 
     @Override
-    public void onChatHeadAdded(final ChatHead chatHead, final ChatHeadSpringsHolder springsHolder) {
+    public void onChatHeadAdded(final ChatHead chatHead) {
         //we post so that chat head measurement is done
-        ChatHeadSpringChain.SpringData horizontalSpring = springsHolder.getHorizontalSpring(chatHead);
-        Spring spring = horizontalSpring.getSpring();
+        Spring spring = chatHead.getHorizontalSpring();
         spring.setCurrentValue(maxWidth).setAtRest();
-        ChatHeadSpringChain.SpringData verticalSpring = springsHolder.getVerticalSpring(chatHead);
-        spring = verticalSpring.getSpring();
+        spring = chatHead.getVerticalSpring();
         spring.setCurrentValue(topPadding).setAtRest();
 
         container.post(new Runnable() {
             @Override
             public void run() {
-                onActivate(container, null, springsHolder, maxWidth, maxHeight);
+                onActivate(container, null, maxWidth, maxHeight);
             }
         });
     }
 
     @Override
-    public void onChatHeadRemoved(ChatHead removed, ChatHeadSpringsHolder springsHolder) {
+    public void onChatHeadRemoved(ChatHead removed) {
         removeInnerView(removed);
         if (currentTab == removed) {
             ChatHead nextBestChatHead = getNextBestChatHead();
             if (nextBestChatHead != null) {
                 selectTab(nextBestChatHead);
-            } else {
-                //container.toggleArrangement();
             }
         }
-        onActivate(container, null, springsHolder, maxWidth, maxHeight);
+        onActivate(container, null, maxWidth, maxHeight);
 
     }
 
@@ -345,8 +333,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private ChatHead getNextBestChatHead() {
         ChatHead nextBestChatHead = null;
-        for (Map.Entry<T, ChatHead<T>> entry : container.getChatHeads().entrySet()) {
-            ChatHead head = entry.getValue();
+        for (ChatHead head: container.getChatHeads()) {
             if (nextBestChatHead == null) {
                 nextBestChatHead = head;
             } else if (head.getUnreadCount() >= nextBestChatHead.getUnreadCount()) {
@@ -358,7 +345,18 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
 
     private void deactivate() {
-        container.setArrangement(MinimizedArrangement.class, null);
+        int heroIndex = 0;
+        List<ChatHead<T>> chatHeads = container.getChatHeads();
+        int i = 0;
+        for (ChatHead<T> chatHead : chatHeads) {
+            if (currentTab == chatHead) {
+                heroIndex = i;
+            }
+            i++;
+        }
+        Bundle bundle = new Bundle();
+        bundle.putInt(MinimizedArrangement.BUNDLE_HERO_INDEX_KEY, heroIndex);
+        container.setArrangement(MinimizedArrangement.class, bundle);
     }
 
 

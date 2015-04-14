@@ -39,11 +39,10 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     private static final int MAX_CHAT_HEADS = 5;
     private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
-    private final Map<T, ChatHead<T>> chatHeads = new LinkedHashMap<>(5);
+    private final List<ChatHead<T>> chatHeads = new ArrayList<>(MAX_CHAT_HEADS);
     private int maxWidth;
     private int maxHeight;
     private ChatHeadCloseButton closeButton;
-    private ChatHeadSpringsHolder springsHolder;
     private ChatHeadArrangement activeArrangement;
     private ChatHeadViewAdapter<T> viewAdapter;
     private ChatHeadOverlayView overlayView;
@@ -51,7 +50,6 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private boolean overlayVisible;
     private ImageView closeButtonShadow;
     private SpringSystem springSystem;
-
     public ChatHeadContainer(Context context) {
         super(context);
         init(context);
@@ -67,8 +65,8 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         init(context);
     }
 
-    public ChatHeadSpringsHolder getSpringsHolder() {
-        return springsHolder;
+    public List<ChatHead<T>> getChatHeads() {
+        return chatHeads;
     }
 
     public ChatHeadViewAdapter getViewAdapter() {
@@ -99,14 +97,6 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         return activeArrangement;
     }
 
-    public Map<T, ChatHead<T>> getChatHeads() {
-        return chatHeads;
-    }
-
-    void selectSpring(ChatHead chatHead) {
-        springsHolder.selectSpring(chatHead);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return super.onTouchEvent(event);
@@ -122,7 +112,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     }
 
     public void selectChatHead(T key) {
-        ChatHead chatHead = chatHeads.get(key);
+        ChatHead chatHead = findChatHeadByKey(key);
         selectChatHead(chatHead);
     }
 
@@ -134,7 +124,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
      */
     public Fragment getFragment(T key, boolean createIfRequired) {
         MaximizedArrangement<T> chatHeadArrangement = (MaximizedArrangement) arrangements.get(MaximizedArrangement.class);
-        return chatHeadArrangement.getFragment(getChatHeads().get(key), createIfRequired);
+        return chatHeadArrangement.getFragment(findChatHeadByKey(key), createIfRequired);
     }
 
     @Override
@@ -161,39 +151,57 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     public ChatHead<T> addChatHead(T key, boolean isSticky) {
         final ChatHead<T> chatHead = new ChatHead<T>(this, springSystem, getContext(), isSticky);
         chatHead.setKey(key);
-        chatHeads.put(key, chatHead);
+        chatHeads.add(chatHead);
         addView(chatHead);
-        springsHolder.addChatHead(this,chatHead, chatHead, isSticky);
-        if (springsHolder.getHorizontalSpringChain().getAllSprings().size() > MAX_CHAT_HEADS) {
-            ChatHeadSpringChain.SpringData oldestSpring = springsHolder.getOldestSpring(springsHolder.getHorizontalSpringChain(), true);
-            ChatHead<T> chatHeadToRemove = (ChatHead<T>) oldestSpring.getKey();
-            removeChatHead(chatHeadToRemove.getKey());
+        if(chatHeads.size()>MAX_CHAT_HEADS)
+        {
+            removeOldestChatHead();
         }
         reloadDrawable(key);
-        if(springsHolder.getActiveHorizontalSpring() == null || springsHolder.getActiveVerticalSpring() == null)
-        springsHolder.selectSpring(chatHead);
 
         if (activeArrangement != null)
-            activeArrangement.onChatHeadAdded(chatHead, springsHolder);
+            activeArrangement.onChatHeadAdded(chatHead);
 
         closeButtonShadow.bringToFront();
         return chatHead;
     }
 
+    private void removeOldestChatHead() {
+        for (ChatHead<T> chatHead : chatHeads) {
+            if(!chatHead.isSticky())
+            {
+                removeChatHead(chatHead.getKey());
+                break;
+            }
+        }
+
+    }
+
+    public ChatHead<T> findChatHeadByKey(T key)
+    {
+        for (ChatHead<T> chatHead : chatHeads) {
+            if(chatHead.getKey().equals(key))
+                return chatHead;
+        }
+
+        return null;
+    }
     public void reloadDrawable(T key) {
         Drawable chatHeadDrawable = viewAdapter.getChatHeadDrawable(key);
         if (chatHeadDrawable != null) {
-            chatHeads.get(key).setImageDrawable(viewAdapter.getChatHeadDrawable(key));
+            findChatHeadByKey(key).setImageDrawable(viewAdapter.getChatHeadDrawable(key));
         }
     }
 
     public boolean removeChatHead(T key) {
-        ChatHead chatHead = chatHeads.get(key);
+        ChatHead chatHead = findChatHeadByKey(key);
         if (chatHead != null && chatHead.getParent() != null && !chatHead.isSticky()) {
-            chatHeads.remove(key);
-            springsHolder.removeChatHead(chatHead);
+            chatHead.onRemove();
+            ChatHead<T> chatHeadByKey = findChatHeadByKey(key);
+            chatHeads.remove(chatHeadByKey);
+            removeView(chatHead);
             if (activeArrangement != null)
-                activeArrangement.onChatHeadRemoved(chatHead, springsHolder);
+                activeArrangement.onChatHeadRemoved(chatHead);
             return true;
         }
         return false;
@@ -209,8 +217,6 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
         arrowLayout.setVisibility(View.GONE);
         springSystem = SpringSystem.create();
-
-        springsHolder = new ChatHeadSpringsHolder(this);
         closeButton = new ChatHeadCloseButton(getContext());
         closeButton.setListener(this);
         addView(closeButton);
@@ -255,28 +261,29 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     }
 
     public void removeAllChatHeads() {
-        Set<Map.Entry<T, ChatHead<T>>> entries = chatHeads.entrySet();
-        Iterator<Map.Entry<T, ChatHead<T>>> iterator = entries.iterator();
-        List<ChatHead<T>> temp = new ArrayList<>();
-        while (iterator.hasNext()) {
-            Map.Entry<T, ChatHead<T>> next = iterator.next();
-            if (!next.getValue().isSticky()) {
-                temp.add(next.getValue());
-                iterator.remove();
-            }
-        }
-        for (int i = 0; i < temp.size(); i++) {
-            removeChatHead(temp.get(i).getKey());
-        }
+//        Set<Map.Entry<T, ChatHead<T>>> entries = chatHeads.entrySet();
+//        Iterator<Map.Entry<T, ChatHead<T>>> iterator = entries.iterator();
+//        List<ChatHead<T>> temp = new ArrayList<>();
+//        while (iterator.hasNext()) {
+//            Map.Entry<T, ChatHead<T>> next = iterator.next();
+//            if (!next.getValue().isSticky()) {
+//                temp.add(next.getValue());
+//                iterator.remove();
+//            }
+//        }
+//        for (int i = 0; i < temp.size(); i++) {
+//            removeChatHead(temp.get(i).getKey());
+//        }
     }
 
     public void setArrangement(final Class<? extends ChatHeadArrangement> arrangement, Bundle extras) {
         ChatHeadArrangement chatHeadArrangement = arrangements.get(arrangement);
         if (activeArrangement != null && chatHeadArrangement != activeArrangement) {
-            activeArrangement.onDeactivate(maxWidth, maxHeight, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring());
+            activeArrangement.onDeactivate(maxWidth, maxHeight);
         }
         activeArrangement = chatHeadArrangement;
-        chatHeadArrangement.onActivate(ChatHeadContainer.this, extras, springsHolder, maxWidth, maxHeight);
+        if(extras == null) extras = new Bundle();
+        chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight);
 
     }
 
@@ -332,6 +339,15 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         closeButtonShadow.setVisibility(View.GONE);
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        activeArrangement.onDraw(canvas);
+    }
+
+    public SpringSystem getSpringSystem() {
+        return springSystem;
+    }
 
     public interface OnItemSelectedListener<T> {
         /**
@@ -344,11 +360,5 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
          * @return true if you want to take control. false if you dont care.
          */
         boolean onChatHeadSelected(T key, ChatHead chatHead);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        activeArrangement.onDraw(canvas);
     }
 }

@@ -14,7 +14,6 @@ import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
 import com.flipkart.chatheads.ui.ChatHead;
@@ -34,14 +33,12 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private final ImageView pointerViewMovable;
     private final Spring pointerXSpring;
     private final Spring pointerYSpring;
-    private final int CLOSE_ATTRACTION_THRESHOLD;
+    private int CLOSE_ATTRACTION_THRESHOLD;
     private final Spring pointerScaleSpring;
     private final ImageView pointerViewStatic;
-    private final int RADIUS;
+    private int RADIUS;
     private boolean isActive = false;
     private ChatHeadContainer container;
-    private List<ChatHeadSpringChain.SpringData> horizontalChatHeadSprings;
-    private List<ChatHeadSpringChain.SpringData> verticalChatHeadSprings;
     private ChatHead<T> currentChatHead;
 
 
@@ -53,9 +50,9 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         this.pointerViewStatic.setLayoutParams(new FrameLayout.LayoutParams(ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER + 5), ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER + 5)));
         container.addView(pointerViewMovable);
         container.addView(pointerViewStatic);
-        this.pointerXSpring = container.getSpringsHolder().getHorizontalSpringSystem().createSpring();
-        this.pointerYSpring = container.getSpringsHolder().getHorizontalSpringSystem().createSpring();
-        this.pointerScaleSpring = container.getSpringsHolder().getHorizontalSpringSystem().createSpring();
+        this.pointerXSpring = container.getSpringSystem().createSpring();
+        this.pointerYSpring = container.getSpringSystem().createSpring();
+        this.pointerScaleSpring = container.getSpringSystem().createSpring();
         this.pointerXSpring.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
@@ -78,8 +75,6 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 pointerViewMovable.setScaleY((float) spring.getCurrentValue());
             }
         });
-        RADIUS = ChatHeadUtils.dpToPx(container.getContext(), 200);
-        CLOSE_ATTRACTION_THRESHOLD = (int) (RADIUS*0.5);
 
 
     }
@@ -90,37 +85,41 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
-    public void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
-        springsHolder.setChaining(false);
-        horizontalChatHeadSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
-        verticalChatHeadSprings = springsHolder.getVerticalSpringChain().getAllSprings();
+    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight) {
+        List<ChatHead> chatHeads = container.getChatHeads();
+        RADIUS = (int) (maxWidth / 2.5);
+        CLOSE_ATTRACTION_THRESHOLD = (int) (RADIUS * 0.5);
+
         Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
         int chatHeadDiameter = ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER);
         int radius = RADIUS;
         Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
-        double totalSweepArea = (horizontalChatHeadSprings.size()-1) * Math.PI / 4;
-        for (int i = 0; i < horizontalChatHeadSprings.size(); i++) {
-            ChatHeadSpringChain.SpringData horizontalSpring = horizontalChatHeadSprings.get(i);
-            horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+        double totalSweepArea = (chatHeads.size() - 1) * Math.PI / 4;
+        int i = 0;
+        for (ChatHead chatHead : chatHeads) {
+            /** Horizontal **/
+            chatHead.getHorizontalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
-            if(horizontalChatHeadSprings.size()>1) {
-                angle += (float) i / ((float) horizontalChatHeadSprings.size() - 1) * totalSweepArea;
+            if (chatHeads.size() > 1) {
+                angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
             }
             double xValue = pointTo.x + radius * Math.cos(angle);
             xValue -= chatHeadDiameter / 2;
-            horizontalSpring.getSpring().setEndValue(xValue);
-        }
-        for (int i = 0; i < verticalChatHeadSprings.size(); i++) {
-            ChatHeadSpringChain.SpringData verticalSpring = verticalChatHeadSprings.get(i);
-            verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
-            if(verticalChatHeadSprings.size()>1) {
-                angle += (float) i / ((float) horizontalChatHeadSprings.size() - 1) * totalSweepArea;
+            chatHead.getHorizontalSpring().setEndValue(xValue);
+
+            /** Vertical **/
+            chatHead.getVerticalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+            angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
+            if (chatHeads.size() > 1) {
+                angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
             }
             double yValue = pointTo.y + radius * Math.sin(angle);
             yValue -= chatHeadDiameter / 2;
-            verticalSpring.getSpring().setEndValue(yValue);
+            chatHead.getVerticalSpring().setEndValue(yValue);
+
+            i++;
         }
+
         isActive = true;
         this.container = container;
         container.showOverlayView();
@@ -154,9 +153,8 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         super.handleRawTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
             boolean foundSpring = false;
-            Map<T, ChatHead<T>> chatHeads = container.getChatHeads();
-            for (Map.Entry<T, ChatHead<T>> chatHeadEntry : chatHeads.entrySet()) {
-                ChatHead<T> chatHead = chatHeadEntry.getValue();
+            List<ChatHead> chatHeads = container.getChatHeads();
+            for (ChatHead chatHead : chatHeads) {
                 double distance = Math.hypot(event.getX() - pointerViewMovable.getMeasuredWidth() / 2 - chatHead.getTranslationX(), event.getY() - pointerViewMovable.getMeasuredHeight() / 2 - chatHead.getTranslationY());
                 if (distance < CLOSE_ATTRACTION_THRESHOLD) {
                     foundSpring = true;
@@ -165,7 +163,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                     pointerYSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     pointerYSpring.setEndValue(chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
                     pointerScaleSpring.setEndValue(1f);
-                    if(currentChatHead!=chatHead) {
+                    if (currentChatHead != chatHead) {
                         container.getOverlayView().drawPath(pointerViewStatic.getTranslationX() + pointerViewStatic.getMeasuredWidth() / 2, pointerViewStatic.getTranslationY() + pointerViewStatic.getMeasuredHeight() / 2, chatHead.getTranslationX() + chatHead.getMeasuredHeight() / 2, chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
                     }
                     currentChatHead = chatHead;
@@ -220,7 +218,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         int inside = 1;
         int current = 0;
         boolean finishedFullsweep = false;
-        for (double sweep = -Math.PI; sweep <=  3*Math.PI; sweep += Math.PI / 4) {
+        for (double sweep = -Math.PI; sweep <= 3 * Math.PI; sweep += Math.PI / 4) {
             int x = pointTo.x + (int) (radius * Math.cos(sweep));
             int y = pointTo.y + (int) (radius * Math.sin(sweep));
 
@@ -235,12 +233,10 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 endAngle = sweep;
                 current = inside;
             }
-            if(sweep>=Math.PI)
-            {
+            if (sweep >= Math.PI) {
                 finishedFullsweep = true;
             }
-            if(finishedFullsweep && current == outside)
-            {
+            if (finishedFullsweep && current == outside) {
                 break;
             }
         }
@@ -263,7 +259,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
 
     @Override
-    public void onDeactivate(int maxWidth, int maxHeight, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
+    public void onDeactivate(int maxWidth, int maxHeight) {
         isActive = false;
         pointerViewMovable.setVisibility(View.GONE);
         pointerViewStatic.setVisibility(View.GONE);
@@ -289,12 +285,12 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
-    public void onChatHeadAdded(ChatHead chatHead, ChatHeadSpringsHolder springsHolder) {
+    public void onChatHeadAdded(ChatHead chatHead) {
 
     }
 
     @Override
-    public void onChatHeadRemoved(ChatHead removed, ChatHeadSpringsHolder springsHolder) {
+    public void onChatHeadRemoved(ChatHead removed) {
 
     }
 
