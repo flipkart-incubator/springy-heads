@@ -134,6 +134,8 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     public void onSpringUpdate(Spring spring) {
         Spring activeHorizontalSpring = springsHolder.getActiveHorizontalSpring();
         Spring activeVerticalSpring = springsHolder.getActiveVerticalSpring();
+        if(spring!=activeHorizontalSpring && spring!=activeVerticalSpring)
+            return;
         float deltaX = (float) (DELTA * ((float) container.getMaxWidth() / 2f - (activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2)) / ((float) container.getMaxWidth() / 2f));
         springsHolder.setChainDelta(deltaX, 0);
         double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + getMeasuredHeight() / 2);
@@ -193,9 +195,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     @Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         super.onTouchEvent(event);
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            container.selectSpring(this);
-        }
 
         //Chathead view will set the correct active springs on touch
         Spring activeHorizontalSpring = springsHolder.getActiveHorizontalSpring();

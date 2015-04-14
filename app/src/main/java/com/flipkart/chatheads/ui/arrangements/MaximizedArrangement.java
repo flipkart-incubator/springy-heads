@@ -14,7 +14,7 @@ import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
-import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
+import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
@@ -54,15 +54,15 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
         springsHolder.setChaining(false);
-        List<ModifiedSpringChain.SpringData> horizontalSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
-        List<ModifiedSpringChain.SpringData> verticalSprings = springsHolder.getVerticalSpringChain().getAllSprings();
+        List<ChatHeadSpringChain.SpringData> horizontalSprings = springsHolder.getHorizontalSpringChain().getAllSprings();
+        List<ChatHeadSpringChain.SpringData> verticalSprings = springsHolder.getVerticalSpringChain().getAllSprings();
         maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
         int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), (int) (1.1 * ChatHead.DIAMETER));
         topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
         int leftIndent = maxWidth - (horizontalSprings.size() * widthPerHead);
         for (int i = 0; i < horizontalSprings.size(); i++) {
-            ModifiedSpringChain.SpringData horizontalSpring = horizontalSprings.get(i);
+            ChatHeadSpringChain.SpringData horizontalSpring = horizontalSprings.get(i);
             int xPos = leftIndent + (horizontalSpring.getIndex() * widthPerHead);//align right
             horizontalSpring.getSpring().setAtRest();
             horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
@@ -75,7 +75,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
         }
         for (int i = 0; i < verticalSprings.size(); i++) {
-            ModifiedSpringChain.SpringData verticalSpring = verticalSprings.get(i);
+            ChatHeadSpringChain.SpringData verticalSpring = verticalSprings.get(i);
             verticalSpring.getSpring().setAtRest();
             verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             verticalSpring.getSpring().setEndValue(topPadding);
@@ -135,7 +135,6 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     private void selectTab(final ChatHead<T> activeChatHead) {
-        container.getSpringsHolder().selectSpring(activeChatHead);
         currentTab = activeChatHead;
         container.post(new Runnable() {
             @Override
@@ -302,10 +301,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onChatHeadAdded(final ChatHead chatHead, final ChatHeadSpringsHolder springsHolder) {
         //we post so that chat head measurement is done
-        ModifiedSpringChain.SpringData horizontalSpring = springsHolder.getHorizontalSpring(chatHead);
+        ChatHeadSpringChain.SpringData horizontalSpring = springsHolder.getHorizontalSpring(chatHead);
         Spring spring = horizontalSpring.getSpring();
         spring.setCurrentValue(maxWidth).setAtRest();
-        ModifiedSpringChain.SpringData verticalSpring = springsHolder.getVerticalSpring(chatHead);
+        ChatHeadSpringChain.SpringData verticalSpring = springsHolder.getVerticalSpring(chatHead);
         spring = verticalSpring.getSpring();
         spring.setCurrentValue(topPadding).setAtRest();
 

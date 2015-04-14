@@ -30,6 +30,8 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public void onActivate(ChatHeadContainer container, Bundle extras, ChatHeadSpringsHolder springsHolder, int maxWidth, int maxHeight) {
         this.container = container;
+        springsHolder.setChaining(true);
+
         if (currentY < 0) {
             currentY = (int) (maxHeight * 0.8);
         }
@@ -43,11 +45,10 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         }
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
-        springsHolder.setChaining(true);
         container.getCloseButton().setEnabled(false);
-//        if(springsHolder.getActiveHorizontalSpring()!=null && springsHolder.getActiveVerticalSpring()!=null) {
-//            handleTouchUp(null, 0, 0, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring(), true);
-//        }
+        if(springsHolder.getActiveHorizontalSpring()!=null && springsHolder.getActiveVerticalSpring()!=null) {
+            handleTouchUp(null, 0, 0, springsHolder.getActiveHorizontalSpring(), springsHolder.getActiveVerticalSpring(), true);
+        }
     }
 
     @Override
@@ -63,7 +64,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
         // we dont care about the active ones
-        container.removeAllChatHeads();
+        //container.removeAllChatHeads();
     }
 
     @Override

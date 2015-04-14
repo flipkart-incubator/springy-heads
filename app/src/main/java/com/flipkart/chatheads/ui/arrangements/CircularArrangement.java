@@ -16,7 +16,7 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
-import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
+import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
@@ -40,8 +40,8 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private final int RADIUS;
     private boolean isActive = false;
     private ChatHeadContainer container;
-    private List<ModifiedSpringChain.SpringData> horizontalChatHeadSprings;
-    private List<ModifiedSpringChain.SpringData> verticalChatHeadSprings;
+    private List<ChatHeadSpringChain.SpringData> horizontalChatHeadSprings;
+    private List<ChatHeadSpringChain.SpringData> verticalChatHeadSprings;
     private ChatHead<T> currentChatHead;
 
 
@@ -100,7 +100,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
         double totalSweepArea = (horizontalChatHeadSprings.size()-1) * Math.PI / 4;
         for (int i = 0; i < horizontalChatHeadSprings.size(); i++) {
-            ModifiedSpringChain.SpringData horizontalSpring = horizontalChatHeadSprings.get(i);
+            ChatHeadSpringChain.SpringData horizontalSpring = horizontalChatHeadSprings.get(i);
             horizontalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
             if(horizontalChatHeadSprings.size()>1) {
@@ -111,7 +111,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
             horizontalSpring.getSpring().setEndValue(xValue);
         }
         for (int i = 0; i < verticalChatHeadSprings.size(); i++) {
-            ModifiedSpringChain.SpringData verticalSpring = verticalChatHeadSprings.get(i);
+            ChatHeadSpringChain.SpringData verticalSpring = verticalChatHeadSprings.get(i);
             verticalSpring.getSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
             if(verticalChatHeadSprings.size()>1) {

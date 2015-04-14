@@ -8,24 +8,20 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.util.ArrayMap;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SpringConfigRegistry;
 import com.facebook.rebound.SpringSystem;
-import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
-import com.flipkart.chatheads.reboundextensions.ModifiedSpringChain;
+import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
 import com.flipkart.chatheads.ui.arrangements.CircularArrangement;
 import com.flipkart.chatheads.ui.arrangements.MaximizedArrangement;
 import com.flipkart.chatheads.ui.arrangements.MinimizedArrangement;
@@ -54,6 +50,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private OnItemSelectedListener<T> itemSelectedListener;
     private boolean overlayVisible;
     private ImageView closeButtonShadow;
+    private SpringSystem springSystem;
 
     public ChatHeadContainer(Context context) {
         super(context);
@@ -108,7 +105,6 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     void selectSpring(ChatHead chatHead) {
         springsHolder.selectSpring(chatHead);
-        chatHead.bringToFront();
     }
 
     @Override
@@ -163,13 +159,13 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
      * @return
      */
     public ChatHead<T> addChatHead(T key, boolean isSticky) {
-        final ChatHead<T> chatHead = new ChatHead<T>(this, springsHolder, getContext(), isSticky);
+        final ChatHead<T> chatHead = new ChatHead<T>(this, springSystem, getContext(), isSticky);
         chatHead.setKey(key);
         chatHeads.put(key, chatHead);
         addView(chatHead);
-        springsHolder.addChatHead(chatHead, chatHead, isSticky);
+        springsHolder.addChatHead(this,chatHead, chatHead, isSticky);
         if (springsHolder.getHorizontalSpringChain().getAllSprings().size() > MAX_CHAT_HEADS) {
-            ModifiedSpringChain.SpringData oldestSpring = springsHolder.getOldestSpring(springsHolder.getHorizontalSpringChain(), true);
+            ChatHeadSpringChain.SpringData oldestSpring = springsHolder.getOldestSpring(springsHolder.getHorizontalSpringChain(), true);
             ChatHead<T> chatHeadToRemove = (ChatHead<T>) oldestSpring.getKey();
             removeChatHead(chatHeadToRemove.getKey());
         }
@@ -194,7 +190,6 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     public boolean removeChatHead(T key) {
         ChatHead chatHead = chatHeads.get(key);
         if (chatHead != null && chatHead.getParent() != null && !chatHead.isSticky()) {
-            removeView(chatHead);
             chatHeads.remove(key);
             springsHolder.removeChatHead(chatHead);
             if (activeArrangement != null)
@@ -213,7 +208,9 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         LayoutInflater.from(context).inflate(R.layout.arrow_layout, this, true);
         UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
         arrowLayout.setVisibility(View.GONE);
-        springsHolder = new ChatHeadSpringsHolder();
+        springSystem = SpringSystem.create();
+
+        springsHolder = new ChatHeadSpringsHolder(this);
         closeButton = new ChatHeadCloseButton(getContext());
         closeButton.setListener(this);
         addView(closeButton);

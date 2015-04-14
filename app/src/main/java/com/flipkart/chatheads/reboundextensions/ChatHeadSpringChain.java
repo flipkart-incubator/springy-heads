@@ -10,12 +10,15 @@
 package com.flipkart.chatheads.reboundextensions;
 
 import android.support.v4.util.ArrayMap;
+import android.view.ViewGroup;
 
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringConfigRegistry;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
+import com.flipkart.chatheads.ui.ChatHead;
+import com.flipkart.chatheads.ui.ChatHeadContainer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,21 +33,21 @@ import java.util.Map;
  * Springs before and after the control spring in the chain are pulled along by their predecessor.
  * You can change which spring is the control spring at any point by calling
  */
-public class ModifiedSpringChain implements SpringListener {
+public class ChatHeadSpringChain implements SpringListener {
 
     /**
      * Add these spring configs to the registry to support live tuning through the
      * {@link com.facebook.rebound.ui.SpringConfiguratorView}
      */
     private static final SpringConfigRegistry registry = SpringConfigRegistry.getInstance();
-    private static final int DEFAULT_MAIN_TENSION = 40;
-    private static final int DEFAULT_MAIN_FRICTION = 6;
-    private static final int DEFAULT_ATTACHMENT_TENSION = 190;
-    private static final int DEFAULT_ATTACHMENT_FRICTION = 20;
+    private static int DEFAULT_MAIN_TENSION = 40;
+    private static int DEFAULT_MAIN_FRICTION = 6;
+    private static int DEFAULT_ATTACHMENT_TENSION = 190;
+    private static int DEFAULT_ATTACHMENT_FRICTION = 20;
     private static int id = 0;
     private final SpringSystem mSpringSystem = SpringSystem.create();
     private final List<SpringData> mSprings = new ArrayList<SpringData>();
-    private final Map<Object, SpringData> mKeyMapping = new ArrayMap<Object, SpringData>();
+    private final Map<ChatHead, SpringData> mKeyMapping = new ArrayMap<ChatHead, SpringData>();
     private final Map<Spring, SpringData> mSpringMapping = new ArrayMap<Spring, SpringData>();
     // The main spring config defines the tension and friction for the control spring. Keeping these
     // values separate allows the behavior of the trailing springs to be different than that of the
@@ -53,51 +56,27 @@ public class ModifiedSpringChain implements SpringListener {
     // The attachment spring config defines the tension and friction for the rest of the springs in
     // the chain.
     private final SpringConfig mAttachmentSpringConfig;
+    private final ChatHeadContainer mContainer;
     private double delta;
     private int mControlSpringIndex = -1;
-    private ModifiedSpringChain() {
-        this(
-                DEFAULT_MAIN_TENSION,
-                DEFAULT_MAIN_FRICTION,
-                DEFAULT_ATTACHMENT_TENSION,
-                DEFAULT_ATTACHMENT_FRICTION);
-    }
-    private ModifiedSpringChain(
-            int mainTension,
-            int mainFriction,
-            int attachmentTension,
-            int attachmentFriction) {
-        mMainSpringConfig = SpringConfig.fromOrigamiTensionAndFriction(mainTension, mainFriction);
+
+    private ChatHeadSpringChain(ChatHeadContainer container) {
+        mContainer = container;
+        mMainSpringConfig = SpringConfig.fromOrigamiTensionAndFriction(DEFAULT_MAIN_TENSION, DEFAULT_MAIN_FRICTION);
         mAttachmentSpringConfig =
-                SpringConfig.fromOrigamiTensionAndFriction(attachmentTension, attachmentFriction);
+                SpringConfig.fromOrigamiTensionAndFriction(DEFAULT_ATTACHMENT_TENSION, DEFAULT_ATTACHMENT_FRICTION);
         registry.addSpringConfig(mMainSpringConfig, "main spring " + id++);
         registry.addSpringConfig(mAttachmentSpringConfig, "attachment spring " + id++);
     }
+
 
     /**
      * Factory method for creating a new SpringChain with default SpringConfig.
      *
      * @return the newly created SpringChain
      */
-    public static ModifiedSpringChain create() {
-        return new ModifiedSpringChain();
-    }
-
-    /**
-     * Factory method for creating a new SpringChain with the provided SpringConfig.
-     *
-     * @param mainTension        tension for the main spring
-     * @param mainFriction       friction for the main spring
-     * @param attachmentTension  tension for the attachment spring
-     * @param attachmentFriction friction for the attachment spring
-     * @return the newly created SpringChain
-     */
-    public static ModifiedSpringChain create(
-            int mainTension,
-            int mainFriction,
-            int attachmentTension,
-            int attachmentFriction) {
-        return new ModifiedSpringChain(mainTension, mainFriction, attachmentTension, attachmentFriction);
+    public static ChatHeadSpringChain create(ChatHeadContainer container) {
+        return new ChatHeadSpringChain(container);
     }
 
     public SpringSystem getSpringSystem() {
@@ -123,7 +102,7 @@ public class ModifiedSpringChain implements SpringListener {
      * @param listener the listener to notify for this Spring in the chain
      * @return this SpringChain for chaining
      */
-    public Spring addSpring(final Object key, final SpringListener listener, boolean isSticky) {
+    public SpringData addSpring(final ChatHeadContainer container, final ChatHead chatHead, final SpringListener listener, boolean isSticky) {
         // We listen to each spring added to the SpringChain and dynamically chain the springs together
         // whenever the control spring state is modified.
         Spring spring = mSpringSystem
@@ -132,35 +111,50 @@ public class ModifiedSpringChain implements SpringListener {
                 .setSpringConfig(mAttachmentSpringConfig);
         //spring.setRestDisplacementThreshold(5);
         int nextIndex = mSprings.size();
-        SpringData data = new SpringData(nextIndex, key, spring, listener, isSticky);
+        SpringData data = new SpringData(nextIndex, chatHead, spring, listener, isSticky);
         mSprings.add(data);
-        mKeyMapping.put(key, data);
+        mKeyMapping.put(chatHead, data);
         mSpringMapping.put(spring, data);
-        return spring;
+        if (getControlSpring() != null)
+            spring.setCurrentValue(getControlSpring().getCurrentValue());
+        moveControlSpringToEnd();
+        if (getControlSpring() != null)
+            getControlSpring().setEndValue(getControlSpring().getCurrentValue());
+        return data;
     }
 
-    public Spring removeSpring(final Object key) {
+    public Spring removeSpring(final ChatHead key) {
         SpringData data = mKeyMapping.get(key);
         if (data != null) {
+            if(data.getKey().getParent()!=null)
+            {
+                ((ViewGroup)data.getKey().getParent()).removeView(data.getKey());
+            }
             int i = mSprings.indexOf(data);
             mSprings.remove(data);
             mKeyMapping.remove(key);
             mSpringMapping.remove(data.getSpring());
-            if (i == mControlSpringIndex) {
-                mControlSpringIndex = mSprings.size() - 1;
-            }
+            Spring controlSpring = getControlSpring();
+            SpringData springData = mSpringMapping.get(controlSpring);
+
             Collections.sort(mSprings, new Comparator<SpringData>() {
                 @Override
                 public int compare(SpringData lhs, SpringData rhs) {
                     return lhs.getIndex() - rhs.getIndex();
                 }
             });
-            int index = 0;
             for (SpringData mSpring : mSprings) {
-                mSpring.setIndex(index);
-                index++;
+                mSpring.setIndex(mSprings.indexOf(mSpring));
+            }
+            if(i == mControlSpringIndex) {
+                mControlSpringIndex = mSprings.size()-1;
+            }
+            else
+            {
+                mControlSpringIndex = mSprings.indexOf(springData);
             }
 
+            moveControlSpringToEnd();
             return data.getSpring();
         }
 
@@ -178,10 +172,15 @@ public class ModifiedSpringChain implements SpringListener {
      * Useful to move the control spring to end
      */
     public void moveControlSpringToEnd() {
+        if (mControlSpringIndex < 0 || mControlSpringIndex >= mSprings.size()) {
+            return;
+        }
         SpringData data = mSprings.get(mControlSpringIndex);
+
         if (data != null) {
             mSprings.remove(mControlSpringIndex);
             mSprings.add(data);
+            data.getKey().bringToFront();
             mControlSpringIndex = mSprings.size() - 1;
         }
     }
@@ -203,7 +202,7 @@ public class ModifiedSpringChain implements SpringListener {
      * Set the control spring. This spring will drive the positions of all the springs
      * before and after it in the list when moved.
      */
-    public ModifiedSpringChain setControlSpring(Object key) {
+    public ChatHeadSpringChain setControlSpring(Object key) {
 
         SpringData data = mKeyMapping.get(key);
         mControlSpringIndex = mSprings.indexOf(data);
@@ -214,6 +213,7 @@ public class ModifiedSpringChain implements SpringListener {
         for (Spring spring : mSpringSystem.getAllSprings()) {
             spring.setSpringConfig(mAttachmentSpringConfig);
         }
+        data.getKey().bringToFront();
         getControlSpring().setSpringConfig(mMainSpringConfig);
 
         return this;
@@ -286,10 +286,11 @@ public class ModifiedSpringChain implements SpringListener {
 
         private final boolean mSticky;
         private Spring mSpring;
-        private Object mKey;
+        private ChatHead mKey;
         private int mIndex;
         private SpringListener mListener;
-        public SpringData(int index, Object key, Spring spring, SpringListener listener, boolean isSticky) {
+
+        public SpringData(int index, ChatHead key, Spring spring, SpringListener listener, boolean isSticky) {
             mKey = key;
             mIndex = index;
             mSpring = spring;
@@ -305,7 +306,7 @@ public class ModifiedSpringChain implements SpringListener {
             return mSpring;
         }
 
-        public Object getKey() {
+        public ChatHead getKey() {
             return mKey;
         }
 

@@ -43,6 +43,11 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public Drawable getChatHeadDrawable(Object key) {
+                if(key.equals("main"))
+                {
+                    return getResources().getDrawable(R.drawable.circular_view_main);
+                }
+                else
                 return getResources().getDrawable(R.drawable.circular_view);
             }
 
@@ -66,7 +71,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
         chatContainer.addChatHead("head0", false);
-        chatContainer.addChatHead("head1", true);
+        chatContainer.addChatHead("main", true);
         Button addButton = (Button) findViewById(R.id.add);
         Button removeButton = (Button) findViewById(R.id.remove);
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -88,30 +93,30 @@ public class MainActivity extends ActionBarActivity {
         });
 
 
-        circularClickArea.setOnTouchListener(new View.OnTouchListener() {
-
-            Bundle bundle = new Bundle();
-            Runnable longPressCallback = new Runnable() {
-                @Override
-                public void run() {
-                    chatContainer.setArrangement(CircularArrangement.class, bundle);
-                }
-            };
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                chatContainer.dispatchTouchEvent(event);
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    circularClickArea.removeCallbacks(longPressCallback);
-                    bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
-                    bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
-                    circularClickArea.postDelayed(longPressCallback, 1000);
-                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-                    circularClickArea.removeCallbacks(longPressCallback);
-                }
-                return true;
-            }
-        });
+//        circularClickArea.setOnTouchListener(new View.OnTouchListener() {
+//
+//            Bundle bundle = new Bundle();
+//            Runnable longPressCallback = new Runnable() {
+//                @Override
+//                public void run() {
+//                    chatContainer.setArrangement(CircularArrangement.class, bundle);
+//                }
+//            };
+//
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                chatContainer.dispatchTouchEvent(event);
+//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//                    circularClickArea.removeCallbacks(longPressCallback);
+//                    bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
+//                    bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
+//                    circularClickArea.postDelayed(longPressCallback, 1000);
+//                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+//                    circularClickArea.removeCallbacks(longPressCallback);
+//                }
+//                return true;
+//            }
+//        });
         SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
         chatContainer.addView(configuratorView, 0);
 

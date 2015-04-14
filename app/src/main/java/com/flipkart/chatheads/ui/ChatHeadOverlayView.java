@@ -73,7 +73,7 @@ public class ChatHeadOverlayView extends View {
         arrowDashedPath = new Path();
         arrowDashedPath.moveTo(fromX, fromY);
         arrowDashedPath.lineTo(toX, toY);
-        paint.setColor(Color.WHITE);
+        paint.setColor(Color.parseColor("#77FFFFFF"));
         paint.setStrokeWidth(OVAL_RADIUS * 2); // width = diameter
         animatePath();
         invalidate();
