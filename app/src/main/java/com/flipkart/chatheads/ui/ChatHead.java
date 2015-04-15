@@ -45,10 +45,12 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     private Spring scaleSpring;
     private Spring xPositionSpring;
     private Spring yPositionSpring;
+
     public ChatHead(Context context) {
         super(context);
         init();
     }
+
     public ChatHead(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -58,6 +60,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         super(context, attrs, defStyleAttr);
         init();
     }
+
     public ChatHead(ChatHeadContainer container, SpringSystem springsHolder, Context context, boolean isSticky) {
         super(context);
         this.container = container;
@@ -148,12 +151,13 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     public void onSpringUpdate(Spring spring) {
         Spring activeHorizontalSpring = xPositionSpring;
         Spring activeVerticalSpring = yPositionSpring;
-        if(spring!=activeHorizontalSpring && spring!=activeVerticalSpring)
+        if (spring != activeHorizontalSpring && spring != activeVerticalSpring)
             return;
         float deltaX = (float) (DELTA * ((float) container.getMaxWidth() / 2f - (activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2)) / ((float) container.getMaxWidth() / 2f));
         double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + getMeasuredHeight() / 2);
         int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
-        container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
+        if (container.getActiveArrangement() != null)
+            container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
         if (!isDragging && !isSticky()) {
 
             /** Capturing check **/

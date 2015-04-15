@@ -50,6 +50,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private boolean overlayVisible;
     private ImageView closeButtonShadow;
     private SpringSystem springSystem;
+
     public ChatHeadContainer(Context context) {
         super(context);
         init(context);
@@ -108,7 +109,8 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
      * @param chatHead
      */
     public void selectChatHead(ChatHead chatHead) {
-        activeArrangement.selectChatHead(chatHead);
+        if (activeArrangement != null)
+            activeArrangement.selectChatHead(chatHead);
     }
 
     public void selectChatHead(T key) {
@@ -118,6 +120,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     /**
      * Returns the fragment for the key if its already present. If createIfRequired is set to true, it will create and return it.
+     *
      * @param key
      * @param createIfRequired
      * @return
@@ -153,14 +156,17 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         chatHead.setKey(key);
         chatHeads.add(chatHead);
         addView(chatHead);
-        if(chatHeads.size()>MAX_CHAT_HEADS)
-        {
+        if (chatHeads.size() > MAX_CHAT_HEADS) {
             removeOldestChatHead();
         }
         reloadDrawable(key);
 
         if (activeArrangement != null)
             activeArrangement.onChatHeadAdded(chatHead);
+        else {
+            chatHead.getHorizontalSpring().setCurrentValue(-100);
+            chatHead.getVerticalSpring().setCurrentValue(-100);
+        }
 
         closeButtonShadow.bringToFront();
         return chatHead;
@@ -168,8 +174,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     private void removeOldestChatHead() {
         for (ChatHead<T> chatHead : chatHeads) {
-            if(!chatHead.isSticky())
-            {
+            if (!chatHead.isSticky()) {
                 removeChatHead(chatHead.getKey());
                 break;
             }
@@ -177,15 +182,15 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     }
 
-    public ChatHead<T> findChatHeadByKey(T key)
-    {
+    public ChatHead<T> findChatHeadByKey(T key) {
         for (ChatHead<T> chatHead : chatHeads) {
-            if(chatHead.getKey().equals(key))
+            if (chatHead.getKey().equals(key))
                 return chatHead;
         }
 
         return null;
     }
+
     public void reloadDrawable(T key) {
         Drawable chatHeadDrawable = viewAdapter.getChatHeadDrawable(key);
         if (chatHeadDrawable != null) {
@@ -231,14 +236,8 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         arrangements.put(MaximizedArrangement.class, new MaximizedArrangement<T>(this));
         arrangements.put(CircularArrangement.class, new CircularArrangement(this));
         setupOverlay(context);
-        post(new Runnable() {
-            @Override
-            public void run() {
-                setArrangement(MinimizedArrangement.class, null);
-            }
-        });
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.DRAGGING, "dragging mode");
-        SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.NOT_DRAGGING,"not dragging mode");
+        SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.NOT_DRAGGING, "not dragging mode");
     }
 
     private void setupOverlay(Context context) {
@@ -282,7 +281,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
             activeArrangement.onDeactivate(maxWidth, maxHeight);
         }
         activeArrangement = chatHeadArrangement;
-        if(extras == null) extras = new Bundle();
+        if (extras == null) extras = new Bundle();
         chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight);
 
     }
@@ -323,8 +322,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     }
 
     public void bringToFront(ChatHead chatHead) {
-        if(activeArrangement!=null)
-        {
+        if (activeArrangement != null) {
             activeArrangement.bringToFront(chatHead);
         }
     }

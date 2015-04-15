@@ -15,6 +15,7 @@ import com.flipkart.chatheads.ui.ChatHeadContainer;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.arrangements.CircularArrangement;
 import com.flipkart.chatheads.ui.arrangements.MaximizedArrangement;
+import com.flipkart.chatheads.ui.arrangements.MinimizedArrangement;
 
 import java.util.Set;
 
@@ -43,12 +44,10 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public Drawable getChatHeadDrawable(Object key) {
-                if(key.equals("main"))
-                {
+                if (key.equals("main")) {
                     return getResources().getDrawable(R.drawable.circular_view_main);
-                }
-                else
-                return getResources().getDrawable(R.drawable.circular_view);
+                } else
+                    return getResources().getDrawable(R.drawable.circular_view);
             }
 
             @Override
@@ -72,13 +71,19 @@ public class MainActivity extends ActionBarActivity {
         });
         chatContainer.addChatHead("head0", false);
         chatContainer.addChatHead("main", true);
+        chatContainer.post(new Runnable() {
+            @Override
+            public void run() {
+                chatContainer.setArrangement(MinimizedArrangement.class, null);
+            }
+        });
         Button addButton = (Button) findViewById(R.id.add);
         Button removeButton = (Button) findViewById(R.id.remove);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false);
-                //chatContainer.bringToFront(chatHead);
+                chatContainer.bringToFront(chatHead);
             }
         });
         removeButton.setOnClickListener(new View.OnClickListener() {

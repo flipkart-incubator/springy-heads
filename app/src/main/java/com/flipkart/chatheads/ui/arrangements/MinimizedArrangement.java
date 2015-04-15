@@ -143,6 +143,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             chatHead.getHorizontalSpring().setCurrentValue(hero.getHorizontalSpring().getCurrentValue() - currentDelta);
             chatHead.getVerticalSpring().setCurrentValue(hero.getVerticalSpring().getCurrentValue());
         }
+
         onActivate(container, null, maxWidth, maxHeight);
     }
 
@@ -237,19 +238,17 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             if (spring == activeHorizontalSpring) {
 
                 double xPosition = activeHorizontalSpring.getCurrentValue();
-                if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth) {
+                if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth && activeHorizontalSpring.getVelocity()>0) {
                     //outside the right bound
                     //System.out.println("outside the right bound !! xPosition = " + xPosition);
                     int newPos = maxWidth - activeChatHead.getMeasuredWidth();
                     activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeHorizontalSpring.setEndValue(newPos);
-                    activeVerticalSpring.setVelocity(0);
-                } else if (xPosition < 0) {
+                } else if (xPosition < 0 && activeHorizontalSpring.getVelocity()<0) {
                     //outside the left bound
                     //System.out.println("outside the left bound !! xPosition = " + xPosition);
                     activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeHorizontalSpring.setEndValue(0);
-                    activeVerticalSpring.setVelocity(0);
 
                 } else {
                     //within bound
@@ -258,13 +257,13 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 }
             } else if (spring == activeVerticalSpring) {
                 double yPosition = activeVerticalSpring.getCurrentValue();
-                if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight) {
+                if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && activeVerticalSpring.getVelocity()>0) {
                     //outside the bottom bound
                     //System.out.println("outside the bottom bound !! yPosition = " + yPosition);
 
                     activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeVerticalSpring.setEndValue(maxHeight - activeChatHead.getMeasuredHeight());
-                } else if (yPosition < 0) {
+                } else if (yPosition < 0 && activeVerticalSpring.getVelocity()<0) {
                     //outside the top bound
                     //System.out.println("outside the top bound !! yPosition = " + yPosition);
 
