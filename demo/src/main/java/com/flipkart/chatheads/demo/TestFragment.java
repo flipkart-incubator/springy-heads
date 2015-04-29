@@ -1,6 +1,5 @@
 package com.flipkart.chatheads.demo;
 
-import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,7 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.flipkart.chatheads.demo.R;
+import java.io.Serializable;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -21,8 +21,13 @@ import com.flipkart.chatheads.demo.R;
 public class TestFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
-    public static TestFragment newInstance() {
-        return new TestFragment();
+    public static TestFragment newInstance(Object key) {
+        TestFragment testFragment = new TestFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("key", (Serializable) key);
+        bundle.putFloat("random", (float) Math.random());
+        testFragment.setArguments(bundle);
+        return testFragment;
     }
 
     public TestFragment() {
@@ -40,6 +45,7 @@ public class TestFragment extends Fragment {
         // Inflate the layout for this fragment
         View inflate = inflater.inflate(R.layout.fragment_test, container, false);
         TextView textView = (TextView) inflate.findViewById(R.id.text_view);
+        textView.setText(getArguments().getString("key")+":"+getArguments().getFloat("random"));
         return inflate;
     }
 

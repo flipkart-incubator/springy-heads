@@ -13,11 +13,8 @@ import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
-import com.flipkart.chatheads.ui.arrangements.CircularArrangement;
-import com.flipkart.chatheads.ui.arrangements.MaximizedArrangement;
-import com.flipkart.chatheads.ui.arrangements.MinimizedArrangement;
-
-import java.util.Set;
+import com.flipkart.chatheads.ui.CircularArrangement;
+import com.flipkart.chatheads.ui.MinimizedArrangement;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -39,7 +36,7 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public Fragment getFragment(Object key, ChatHead chatHead) {
-                return TestFragment.newInstance();
+                return TestFragment.newInstance(key);
             }
 
             @Override
@@ -79,6 +76,8 @@ public class MainActivity extends ActionBarActivity {
         });
         Button addButton = (Button) findViewById(R.id.add);
         Button removeButton = (Button) findViewById(R.id.remove);
+        Button reloadFragmentButton = (Button) findViewById(R.id.reload_fragment);
+
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,6 +94,12 @@ public class MainActivity extends ActionBarActivity {
 //                    Object object = objects[objects.length - 1];
 //                    chatContainer.removeChatHead(object);
 //                }
+            }
+        });
+        reloadFragmentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                chatContainer.reloadFragment("main");
             }
         });
 

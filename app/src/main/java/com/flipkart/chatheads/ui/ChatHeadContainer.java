@@ -8,6 +8,8 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,19 +22,11 @@ import android.widget.ImageView;
 import com.facebook.rebound.SpringConfigRegistry;
 import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.R;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
-import com.flipkart.chatheads.ui.arrangements.CircularArrangement;
-import com.flipkart.chatheads.ui.arrangements.MaximizedArrangement;
-import com.flipkart.chatheads.ui.arrangements.MinimizedArrangement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseButton.CloseButtonListener {
@@ -50,6 +44,8 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private boolean overlayVisible;
     private ImageView closeButtonShadow;
     private SpringSystem springSystem;
+    private FragmentManager fragmentManager;
+    private Fragment currentFragment;
 
     public ChatHeadContainer(Context context) {
         super(context);
@@ -126,8 +122,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
      * @return
      */
     public Fragment getFragment(T key, boolean createIfRequired) {
-        MaximizedArrangement<T> chatHeadArrangement = (MaximizedArrangement) arrangements.get(MaximizedArrangement.class);
-        return chatHeadArrangement.getFragment(findChatHeadByKey(key), createIfRequired);
+        return getFragment(findChatHeadByKey(key), createIfRequired);
     }
 
     @Override
@@ -343,8 +338,93 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         activeArrangement.onDraw(canvas);
     }
 
+    public void reloadFragment(T key) {
+        removeFragment(findChatHeadByKey(key));
+        if (activeArrangement != null) {
+            activeArrangement.onReloadFragment(findChatHeadByKey(key));
+        }
+    }
+
     public SpringSystem getSpringSystem() {
         return springSystem;
+    }
+
+    Fragment addFragment(ChatHead<T> activeChatHead, ViewGroup parent) {
+
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+
+        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
+
+        if (fragment == null) {
+            fragment = getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
+            transaction.add(parent.getId(), fragment, activeChatHead.getKey().toString());
+        } else {
+            if (fragment.isDetached()) {
+                transaction.attach(fragment);
+            }
+        }
+        if (fragment != currentFragment && currentFragment!=null) {
+            transaction.detach(currentFragment);
+        }
+        currentFragment = fragment;
+        transaction.commitAllowingStateLoss();
+        manager.executePendingTransactions();
+        return fragment;
+    }
+
+    Fragment removeFragment(ChatHead chatHead) {
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        Fragment fragment = getFragment(chatHead, false);
+        if (fragment == null) {
+            //we dont have it in our cache. So we create it and add it
+        } else {
+            //we have added it already sometime earlier. So re-attach it.
+            transaction.remove(fragment);
+
+        }
+        if(fragment == currentFragment) {
+            currentFragment = null;
+        }
+        transaction.commitAllowingStateLoss();
+        manager.executePendingTransactions();
+        return fragment;
+    }
+
+    Fragment detachFragment(ChatHead chatHead) {
+        FragmentManager fragmentManager = getFragmentManager();
+        Fragment fragment = getFragment(chatHead, false);
+        if (fragment != null) {
+
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            if (!fragment.isDetached()) {
+                fragmentTransaction.detach(fragment);
+            }
+            fragmentTransaction.commitAllowingStateLoss();
+        }
+        return fragment;
+    }
+
+
+    Fragment getFragment(ChatHead<T> activeChatHead, boolean createIfRequired) {
+        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
+        if (fragment == null && createIfRequired) {
+            fragment = getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
+        }
+        return fragment;
+    }
+
+
+    public FragmentManager getFragmentManager() {
+        if (fragmentManager == null) {
+            if (getViewAdapter() == null)
+                throw new IllegalStateException(ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
+            fragmentManager = getViewAdapter().getFragmentManager();
+            if (fragmentManager == null)
+                throw new IllegalStateException(FragmentManager.class.getSimpleName() + " returned from " + ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
+        }
+        return fragmentManager;
     }
 
     public interface OnItemSelectedListener<T> {

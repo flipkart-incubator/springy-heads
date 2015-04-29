@@ -1,25 +1,16 @@
-package com.flipkart.chatheads.ui.arrangements;
+package com.flipkart.chatheads.ui;
 
 import android.annotation.TargetApi;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.ArrayMap;
 import android.view.View;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
-import com.flipkart.chatheads.ui.ChatHead;
-import com.flipkart.chatheads.ui.ChatHeadArrangement;
-import com.flipkart.chatheads.ui.ChatHeadContainer;
-import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
-import com.flipkart.chatheads.ui.SpringConfigsHolder;
-import com.flipkart.chatheads.ui.UpArrowLayout;
 
 import java.util.List;
 import java.util.Map;
@@ -31,12 +22,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     private ChatHeadContainer<T> container;
     private int maxWidth;
     private int maxHeight;
-    private ChatHead currentTab = null;
+    private ChatHead currentChatHead = null;
     private UpArrowLayout arrowLayout;
-    private FragmentManager fragmentManager;
     private int maxDistanceFromOriginal;
     private int topPadding;
-    private Fragment currentFragment;
 
 
     public MaximizedArrangement(ChatHeadContainer<T> container) {
@@ -55,12 +44,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         this.maxHeight = maxHeight;
         List<ChatHead> chatHeads = container.getChatHeads();
         int heroIndex = 0;
-        if(extras!=null)
+        if (extras != null)
             heroIndex = extras.getInt(BUNDLE_HERO_INDEX_KEY, -1);
         if (heroIndex < 0 || heroIndex > chatHeads.size() - 1) {
             heroIndex = 0;
         }
-        currentTab = chatHeads.get(heroIndex);
+        currentChatHead = chatHeads.get(heroIndex);
         maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
         int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), (int) (1.1 * ChatHead.DIAMETER));
@@ -88,21 +77,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
         });
         container.showOverlayView();
-        selectChatHead(currentTab);
+        selectChatHead(currentChatHead);
     }
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
-
-        if (currentFragment != null) {
-            FragmentManager fragmentManager = getFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            if (!currentFragment.isDetached()) {
-                fragmentTransaction.detach(currentFragment);
-            }
-            fragmentTransaction.commitAllowingStateLoss();
-        }
-        hideView();
+        container.detachFragment(currentChatHead);
         container.hideOverlayView();
     }
 
@@ -117,7 +97,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         if (wasDragging) {
             return true;
         } else {
-            if (activeChatHead != currentTab) {
+            if (activeChatHead != currentChatHead) {
                 boolean handled = container.onItemSelected(activeChatHead);
                 if (!handled) {
                     selectTab(activeChatHead);
@@ -133,7 +113,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     private void selectTab(final ChatHead<T> activeChatHead) {
-        currentTab = activeChatHead;
+        currentChatHead = activeChatHead;
         container.post(new Runnable() {
             @Override
             public void run() {
@@ -193,7 +173,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
         if (spring == activeVerticalSpring || spring == activeHorizontalSpring) {
 
-            if (currentTab == activeChatHead) {
+            if (currentChatHead == activeChatHead) {
                 Point point = positions.get(activeChatHead);
                 if (point != null) {
                     double dx = activeHorizontalSpring.getCurrentValue() - point.x;
@@ -233,60 +213,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private void pointTo(ChatHead<T> activeChatHead) {
         UpArrowLayout arrowLayout = getArrowLayout();
-        addInnerView(activeChatHead);
+        container.addFragment(activeChatHead, arrowLayout);
         Point point = positions.get(activeChatHead);
         if (point != null) {
             int padding = ChatHeadUtils.dpToPx(container.getContext(), 5);
             arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight() + padding);
         }
-    }
-
-    public Fragment getFragment(ChatHead<T> activeChatHead, boolean createIfRequired) {
-        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
-        if (fragment == null && createIfRequired) {
-            fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
-        }
-        return fragment;
-    }
-
-    private void addInnerView(ChatHead<T> activeChatHead) {
-
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-
-        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
-
-        if (fragment == null) {
-            fragment = container.getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
-            transaction.add(getArrowLayout().getId(), fragment, activeChatHead.getKey().toString());
-        } else {
-            if (fragment.isDetached()) {
-                transaction.attach(fragment);
-            }
-        }
-
-        if (currentFragment != fragment && currentFragment != null) {
-            transaction.detach(currentFragment);
-        }
-        currentFragment = fragment;
-        transaction.commitAllowingStateLoss();
-        manager.executePendingTransactions();
-    }
-
-    private void removeInnerView(ChatHead removed) {
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        Fragment fragment = getFragment(removed, false);
-        if (fragment == null) {
-            //we dont have it in our cache. So we create it and add it
-        } else {
-            //we have added it already sometime earlier. So re-attach it.
-            transaction.remove(fragment);
-
-        }
-        if (currentFragment == fragment) currentFragment = null;
-        transaction.commitAllowingStateLoss();
-        manager.executePendingTransactions();
     }
 
 
@@ -308,8 +240,8 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        removeInnerView(removed);
-        if (currentTab == removed) {
+        container.removeFragment(removed);
+        if (currentChatHead == removed) {
             ChatHead nextBestChatHead = getNextBestChatHead();
             if (nextBestChatHead != null) {
                 selectTab(nextBestChatHead);
@@ -333,7 +265,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private ChatHead getNextBestChatHead() {
         ChatHead nextBestChatHead = null;
-        for (ChatHead head: container.getChatHeads()) {
+        for (ChatHead head : container.getChatHeads()) {
             if (nextBestChatHead == null) {
                 nextBestChatHead = head;
             } else if (head.getUnreadCount() >= nextBestChatHead.getUnreadCount()) {
@@ -349,7 +281,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         List<ChatHead<T>> chatHeads = container.getChatHeads();
         int i = 0;
         for (ChatHead<T> chatHead : chatHeads) {
-            if (currentTab == chatHead) {
+            if (currentChatHead == chatHead) {
                 heroIndex = i;
             }
             i++;
@@ -360,23 +292,15 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
 
-    private FragmentManager getFragmentManager() {
-        if (fragmentManager == null) {
-            if (container.getViewAdapter() == null)
-                throw new IllegalStateException(ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
-            fragmentManager = container.getViewAdapter().getFragmentManager();
-            if (fragmentManager == null)
-                throw new IllegalStateException(FragmentManager.class.getSimpleName() + " returned from " + ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
-        }
-        return fragmentManager;
-    }
-
-    public void setFragmentManager(FragmentManager fragmentManager) {
-        this.fragmentManager = fragmentManager;
-    }
-
     @Override
     public void bringToFront(ChatHead chatHead) {
         //nothing to do, everything is in front.
+    }
+
+    @Override
+    public void onReloadFragment(ChatHead chatHead) {
+        if(chatHead == currentChatHead) {
+            container.addFragment(chatHead, getArrowLayout());
+        }
     }
 }

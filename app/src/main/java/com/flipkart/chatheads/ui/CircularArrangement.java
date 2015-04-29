@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.ui.arrangements;
+package com.flipkart.chatheads.ui;
 
 import android.annotation.TargetApi;
 import android.graphics.Point;
@@ -15,14 +15,8 @@ import android.widget.ImageView;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringChain;
-import com.flipkart.chatheads.ui.ChatHead;
-import com.flipkart.chatheads.ui.ChatHeadArrangement;
-import com.flipkart.chatheads.ui.ChatHeadContainer;
-import com.flipkart.chatheads.ui.SpringConfigsHolder;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by kiran.kumar on 07/04/15.
@@ -307,5 +301,10 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     @Override
     public void bringToFront(ChatHead chatHead) {
         //everything is in front. nothing to do here.
+    }
+
+    @Override
+    public void onReloadFragment(ChatHead chatHead) {
+        //nothing to do
     }
 }
