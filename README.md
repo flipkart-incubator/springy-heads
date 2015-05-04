@@ -72,3 +72,5 @@ This object will be passed in all callbacks as the parameter (T key).
                         return true;
                     }
                 });
+# Reload a fragment after its shown
+                chatContainer.reloadFragment(T key);
