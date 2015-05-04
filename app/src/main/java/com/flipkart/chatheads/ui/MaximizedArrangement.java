@@ -83,6 +83,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
         container.detachFragment(currentChatHead);
+        hideView();
         container.hideOverlayView();
     }
 
