@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.util.ArrayMap;
 import android.view.View;
 
@@ -52,13 +51,14 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         currentChatHead = chatHeads.get(heroIndex);
         maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
-        int widthPerHead = ChatHeadUtils.dpToPx(container.getContext(), (int) (1.1 * ChatHead.DIAMETER));
+        int spacing = container.getConfig().getHeadHorizontalSpacing();
+        int widthPerHead = container.getConfig().getHeadWidth();
         topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-        int leftIndent = maxWidth - (chatHeads.size() * widthPerHead);
+        int leftIndent = maxWidth - (chatHeads.size() * (widthPerHead+spacing));
         for (int i = 0; i < chatHeads.size(); i++) {
             ChatHead chatHead = chatHeads.get(i);
             Spring horizontalSpring = chatHead.getHorizontalSpring();
-            int xPos = leftIndent + (i * widthPerHead);//align right
+            int xPos = leftIndent + (i * (widthPerHead + spacing));//align right
             horizontalSpring.setAtRest();
             horizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             horizontalSpring.setEndValue(xPos);
@@ -217,7 +217,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         container.addFragment(activeChatHead, arrowLayout);
         Point point = positions.get(activeChatHead);
         if (point != null) {
-            int padding = ChatHeadUtils.dpToPx(container.getContext(), 5);
+            int padding = container.getConfig().getHeadVerticalSpacing();
             arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight() + padding);
         }
     }

@@ -1,17 +1,22 @@
 package com.flipkart.chatheads.demo;
 
+import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
 import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.ui.ChatHead;
+import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
+import com.flipkart.chatheads.ui.ChatHeadDefaultConfig;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.CircularArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
@@ -21,13 +26,16 @@ public class MainActivity extends ActionBarActivity {
 
 
     private View circularClickArea;
+    private SharedPreferences chatHeadPreferences;
+    private ChatHeadContainer chatContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         circularClickArea = findViewById(R.id.circular_click_area);
-        final ChatHeadContainer chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
+        chatHeadPreferences = getSharedPreferences("chat", MODE_PRIVATE);
+        chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
         chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
             @Override
             public FragmentManager getFragmentManager() {
@@ -64,6 +72,12 @@ public class MainActivity extends ActionBarActivity {
 //                //fragment.setArguments(new Bundle());
 //                System.out.println("fragment = " + fragment);
                 return false;
+            }
+        });
+        chatContainer.setConfig(new ChatHeadDefaultConfig(this){
+            @Override
+            public Point getInitialPosition() {
+                return new Point(getInitialX(),getInitialY());
             }
         });
         chatContainer.addChatHead("head0", false);
@@ -133,5 +147,20 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    private int getInitialX() {
+        return chatHeadPreferences.getInt("initialX",0);
+    }
 
+    private int getInitialY() {
+        return chatHeadPreferences.getInt("initialY",200);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MinimizedArrangement arrangement = (MinimizedArrangement) chatContainer.getArrangement(MinimizedArrangement.class);
+        Point idleStatePosition = arrangement.getIdleStatePosition();
+        Log.v("idle_position",idleStatePosition.toString());
+        chatHeadPreferences.edit().putInt("initialX",idleStatePosition.x).putInt("initialY",idleStatePosition.y).apply();
+    }
 }

@@ -1,5 +1,6 @@
 package com.flipkart.chatheads.ui;
 
+import android.graphics.Point;
 import android.os.Bundle;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -15,8 +16,8 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     public static final String BUNDLE_HERO_INDEX_KEY = "hero_index";
     private float DELTA = 0;
     private float currentDelta = 0;
-    private int currentX = 0;
-    private int currentY = -Integer.MAX_VALUE;
+    private int idleStateX = Integer.MIN_VALUE;
+    private int idleStateY = Integer.MIN_VALUE;
     private int maxWidth;
     private int maxHeight;
     private ChatHeadContainer container;
@@ -26,29 +27,32 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     private SpringListener horizontalHeroListener = new SimpleSpringListener() {
         @Override
         public void onSpringUpdate(Spring spring) {
-            currentDelta = (float) ((float)DELTA * (maxWidth/2 - spring.getCurrentValue())/(maxWidth/2));
+            currentDelta = (float) ((float) DELTA * (maxWidth / 2 - spring.getCurrentValue()) / (maxWidth / 2));
             horizontalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
-            setCurrentX((int) spring.getCurrentValue());
         }
     };
     private SpringListener verticalHeroListener = new SimpleSpringListener() {
         @Override
         public void onSpringUpdate(Spring spring) {
             verticalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
-            setCurrentY((int) spring.getCurrentValue());
         }
     };
+
     public MinimizedArrangement(ChatHeadContainer container) {
-        DELTA = ChatHeadUtils.dpToPx(container.getContext(),5);
+        DELTA = ChatHeadUtils.dpToPx(container.getContext(), 5);
         this.container = container;
     }
 
-    public void setCurrentX(int currentX) {
-        this.currentX = currentX;
+    public void setIdleStateX(int idleStateX) {
+        this.idleStateX = idleStateX;
     }
 
-    public void setCurrentY(int currentY) {
-        this.currentY = currentY;
+    public void setIdleStateY(int idleStateY) {
+        this.idleStateY = idleStateY;
+    }
+
+    public Point getIdleStatePosition() {
+        return new Point(idleStateX, idleStateY);
     }
 
     @Override
@@ -70,7 +74,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         if (heroIndex < 0 || heroIndex > chatHeads.size() - 1) {
             heroIndex = 0;
         }
-        if(heroIndex<chatHeads.size()) {
+        if (heroIndex < chatHeads.size()) {
             hero = chatHeads.get(heroIndex);
 
             for (int i = 0; i < chatHeads.size(); i++) {
@@ -101,8 +105,11 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
 
             }
-            if (currentY < 0) {
-                currentY = (int) (maxHeight * 0.8);
+            if (idleStateY == Integer.MIN_VALUE) {
+                idleStateY = container.getConfig().getInitialPosition().y;
+            }
+            if (idleStateX == Integer.MIN_VALUE) {
+                idleStateX = container.getConfig().getInitialPosition().x;
             }
             if (hero != null) {
                 hero.bringToFront();
@@ -117,9 +124,9 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 hero.getVerticalSpring().addListener(verticalHeroListener);
 
                 hero.getHorizontalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                hero.getHorizontalSpring().setEndValue(currentX);
+                hero.getHorizontalSpring().setEndValue(idleStateX);
                 hero.getVerticalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                hero.getVerticalSpring().setEndValue(currentY);
+                hero.getVerticalSpring().setEndValue(idleStateY);
             }
 
 
@@ -134,7 +141,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead) {
-        if(hero!=null) {
+        if (hero != null) {
             chatHead.getHorizontalSpring().setCurrentValue(hero.getHorizontalSpring().getCurrentValue() - currentDelta);
             chatHead.getVerticalSpring().setCurrentValue(hero.getVerticalSpring().getCurrentValue());
         }
@@ -230,16 +237,21 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         double xVelocity = activeHorizontalSpring.getVelocity();
         double yVelocity = activeVerticalSpring.getVelocity();
         if (!isDragging && Math.abs(totalVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 600)) {
+
+            if (Math.abs(totalVelocity)<ChatHeadUtils.dpToPx(container.getContext(),5) && activeChatHead == hero) {
+                setIdleStateX((int) activeHorizontalSpring.getCurrentValue());
+                setIdleStateY((int) activeVerticalSpring.getCurrentValue());
+            }
             if (spring == activeHorizontalSpring) {
 
                 double xPosition = activeHorizontalSpring.getCurrentValue();
-                if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth && activeHorizontalSpring.getVelocity()>0) {
+                if (xPosition + activeChatHead.getMeasuredWidth() > maxWidth && activeHorizontalSpring.getVelocity() >0) {
                     //outside the right bound
                     //System.out.println("outside the right bound !! xPosition = " + xPosition);
                     int newPos = maxWidth - activeChatHead.getMeasuredWidth();
                     activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeHorizontalSpring.setEndValue(newPos);
-                } else if (xPosition < 0 && activeHorizontalSpring.getVelocity()<0) {
+                } else if (xPosition < 0 && activeHorizontalSpring.getVelocity() <0) {
                     //outside the left bound
                     //System.out.println("outside the left bound !! xPosition = " + xPosition);
                     activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
@@ -252,13 +264,13 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 }
             } else if (spring == activeVerticalSpring) {
                 double yPosition = activeVerticalSpring.getCurrentValue();
-                if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && activeVerticalSpring.getVelocity()>0) {
+                if (yPosition + activeChatHead.getMeasuredHeight() > maxHeight && activeVerticalSpring.getVelocity() > 0) {
                     //outside the bottom bound
                     //System.out.println("outside the bottom bound !! yPosition = " + yPosition);
 
                     activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeVerticalSpring.setEndValue(maxHeight - activeChatHead.getMeasuredHeight());
-                } else if (yPosition < 0 && activeVerticalSpring.getVelocity()<0) {
+                } else if (yPosition < 0 && activeVerticalSpring.getVelocity() <0) {
                     //outside the top bound
                     //System.out.println("outside the top bound !! yPosition = " + yPosition);
 
@@ -270,13 +282,15 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
             }
         }
+
+
     }
 
     @Override
     public void bringToFront(ChatHead chatHead) {
         int index = container.getChatHeads().indexOf(chatHead);
         Bundle b = new Bundle();
-        b.putInt(BUNDLE_HERO_INDEX_KEY,index);
+        b.putInt(BUNDLE_HERO_INDEX_KEY, index);
         onActivate(container, b, container.getMaxWidth(), container.getMaxHeight());
     }
 

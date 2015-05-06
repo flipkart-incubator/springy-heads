@@ -46,21 +46,23 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private SpringSystem springSystem;
     private FragmentManager fragmentManager;
     private Fragment currentFragment;
+    private ChatHeadConfig config;
 
     public ChatHeadContainer(Context context) {
         super(context);
-        init(context);
+        init(context, new ChatHeadDefaultConfig(context));
     }
 
     public ChatHeadContainer(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        init(context, new ChatHeadDefaultConfig(context));
     }
 
     public ChatHeadContainer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init(context, new ChatHeadDefaultConfig(context));
     }
+
 
     public List<ChatHead<T>> getChatHeads() {
         return chatHeads;
@@ -211,7 +213,8 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         return overlayView;
     }
 
-    private void init(Context context) {
+    private void init(Context context, ChatHeadConfig chatHeadDefaultConfig) {
+        setConfig(chatHeadDefaultConfig);
         setLayerType(LAYER_TYPE_HARDWARE, null);
         LayoutInflater.from(context).inflate(R.layout.arrow_layout, this, true);
         UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
@@ -268,6 +271,11 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 //        for (int i = 0; i < temp.size(); i++) {
 //            removeChatHead(temp.get(i).getKey());
 //        }
+    }
+
+    public ChatHeadArrangement getArrangement(Class<? extends ChatHeadArrangement> arrangementType)
+    {
+        return arrangements.get(arrangementType);
     }
 
     public void setArrangement(final Class<? extends ChatHeadArrangement> arrangement, Bundle extras) {
@@ -364,7 +372,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
                 transaction.attach(fragment);
             }
         }
-        if (fragment != currentFragment && currentFragment!=null) {
+        if (fragment != currentFragment && currentFragment != null) {
             transaction.detach(currentFragment);
         }
         currentFragment = fragment;
@@ -384,7 +392,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
             transaction.remove(fragment);
 
         }
-        if(fragment == currentFragment) {
+        if (fragment == currentFragment) {
             currentFragment = null;
         }
         transaction.commitAllowingStateLoss();
@@ -425,6 +433,14 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
                 throw new IllegalStateException(FragmentManager.class.getSimpleName() + " returned from " + ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
         }
         return fragmentManager;
+    }
+
+    public ChatHeadConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(ChatHeadConfig config) {
+        this.config = config;
     }
 
     public interface OnItemSelectedListener<T> {

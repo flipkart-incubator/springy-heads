@@ -55,7 +55,7 @@ public class ChatHeadCloseButton extends ImageView {
 
     private void init() {
         setImageResource(R.drawable.dismiss_big);
-        int myDiameter = (int) (ChatHead.DIAMETER * 1.2);
+        int myDiameter = 62;
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ChatHeadUtils.dpToPx(getContext(), myDiameter), ChatHeadUtils.dpToPx(getContext(), myDiameter));
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
         layoutParams.bottomMargin = ChatHeadUtils.dpToPx(getContext(), 50);

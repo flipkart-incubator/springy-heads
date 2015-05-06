@@ -40,8 +40,8 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         this.container = container;
         this.pointerViewMovable = new ImageView(container.getContext());
         this.pointerViewStatic = new ImageView(container.getContext());
-        this.pointerViewMovable.setLayoutParams(new FrameLayout.LayoutParams(ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER + 5), ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER + 5)));
-        this.pointerViewStatic.setLayoutParams(new FrameLayout.LayoutParams(ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER + 5), ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER + 5)));
+        this.pointerViewMovable.setLayoutParams(new FrameLayout.LayoutParams(container.getConfig().getHeadWidth() + ChatHeadUtils.dpToPx(container.getContext(), 5), container.getConfig().getHeadHeight() + ChatHeadUtils.dpToPx(container.getContext(), 5)));
+        this.pointerViewStatic.setLayoutParams(new FrameLayout.LayoutParams(container.getConfig().getHeadWidth() + ChatHeadUtils.dpToPx(container.getContext(), 5), container.getConfig().getHeadHeight() + ChatHeadUtils.dpToPx(container.getContext(), 5)));
         container.addView(pointerViewMovable);
         container.addView(pointerViewStatic);
         this.pointerXSpring = container.getSpringSystem().createSpring();
@@ -85,7 +85,6 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         CLOSE_ATTRACTION_THRESHOLD = (int) (RADIUS * 0.5);
 
         Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
-        int chatHeadDiameter = ChatHeadUtils.dpToPx(container.getContext(), ChatHead.DIAMETER);
         int radius = RADIUS;
         Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
         double totalSweepArea = (chatHeads.size() - 1) * Math.PI / 4;
@@ -98,7 +97,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
             }
             double xValue = pointTo.x + radius * Math.cos(angle);
-            xValue -= chatHeadDiameter / 2;
+            xValue -= container.getConfig().getHeadWidth() / 2;
             chatHead.getHorizontalSpring().setEndValue(xValue);
 
             /** Vertical **/
@@ -108,7 +107,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
             }
             double yValue = pointTo.y + radius * Math.sin(angle);
-            yValue -= chatHeadDiameter / 2;
+            yValue -= container.getConfig().getHeadHeight() / 2;
             chatHead.getVerticalSpring().setEndValue(yValue);
 
             i++;
