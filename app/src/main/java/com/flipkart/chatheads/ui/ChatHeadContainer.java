@@ -25,6 +25,7 @@ import com.flipkart.chatheads.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -195,18 +196,30 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         }
     }
 
+    public void removeAllChatHeads() {
+        for (Iterator<ChatHead<T>> iterator = chatHeads.iterator(); iterator.hasNext(); ) {
+            ChatHead<T> chatHead = iterator.next();
+            iterator.remove();
+            onChatHeadRemoved(chatHead);
+        }
+    }
     public boolean removeChatHead(T key) {
         ChatHead chatHead = findChatHeadByKey(key);
-        if (chatHead != null && chatHead.getParent() != null && !chatHead.isSticky()) {
-            chatHead.onRemove();
-            ChatHead<T> chatHeadByKey = findChatHeadByKey(key);
-            chatHeads.remove(chatHeadByKey);
-            removeView(chatHead);
-            if (activeArrangement != null)
-                activeArrangement.onChatHeadRemoved(chatHead);
+        if (chatHead != null) {
+            chatHeads.remove(chatHead);
+            onChatHeadRemoved(chatHead);
             return true;
         }
         return false;
+    }
+
+    private void onChatHeadRemoved(ChatHead chatHead) {
+        if (chatHead != null && chatHead.getParent() != null) {
+            chatHead.onRemove();
+            removeView(chatHead);
+            if (activeArrangement != null)
+                activeArrangement.onChatHeadRemoved(chatHead);
+        }
     }
 
     public ChatHeadOverlayView getOverlayView() {
@@ -245,36 +258,25 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     }
 
     double getDistanceCloseButtonFromHead(float touchX, float touchY) {
-        int left = closeButton.getLeft();
-        int top = closeButton.getTop();
-        double xDiff = touchX - left - closeButton.getMeasuredWidth() / 2;
-        double yDiff = touchY - top - closeButton.getTranslationY() - closeButton.getMeasuredHeight() / 2;
-        double distance = Math.hypot(xDiff, yDiff);
-        return distance;
+        if (closeButton.isDisappeared()) {
+            return Double.MAX_VALUE;
+        } else {
+            int left = closeButton.getLeft();
+            int top = closeButton.getTop();
+            double xDiff = touchX - left - closeButton.getMeasuredWidth() / 2;
+            double yDiff = touchY - top - closeButton.getTranslationY() - closeButton.getMeasuredHeight() / 2;
+            double distance = Math.hypot(xDiff, yDiff);
+            return distance;
+        }
     }
 
     void captureChatHeads(ChatHead causingChatHead) {
         activeArrangement.onCapture(this, causingChatHead);
     }
 
-    public void removeAllChatHeads() {
-//        Set<Map.Entry<T, ChatHead<T>>> entries = chatHeads.entrySet();
-//        Iterator<Map.Entry<T, ChatHead<T>>> iterator = entries.iterator();
-//        List<ChatHead<T>> temp = new ArrayList<>();
-//        while (iterator.hasNext()) {
-//            Map.Entry<T, ChatHead<T>> next = iterator.next();
-//            if (!next.getValue().isSticky()) {
-//                temp.add(next.getValue());
-//                iterator.remove();
-//            }
-//        }
-//        for (int i = 0; i < temp.size(); i++) {
-//            removeChatHead(temp.get(i).getKey());
-//        }
-    }
 
-    public ChatHeadArrangement getArrangement(Class<? extends ChatHeadArrangement> arrangementType)
-    {
+
+    public ChatHeadArrangement getArrangement(Class<? extends ChatHeadArrangement> arrangementType) {
         return arrangements.get(arrangementType);
     }
 

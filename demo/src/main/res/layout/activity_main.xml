@@ -3,6 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/circular_click_area"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <com.flipkart.chatheads.ui.ChatHeadContainer
         android:id="@+id/chat_container"
         android:layout_width="match_parent"
@@ -12,7 +19,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:id="@+id/circular_click_area"
         android:orientation="vertical">
 
         <Button
@@ -33,7 +39,6 @@
             android:layout_height="wrap_content"
             android:text="Reload fragment" />
     </LinearLayout>
-
 
 
 </RelativeLayout>

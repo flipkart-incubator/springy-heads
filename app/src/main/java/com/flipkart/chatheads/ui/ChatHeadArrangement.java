@@ -38,4 +38,6 @@ public abstract class ChatHeadArrangement {
     public abstract void bringToFront(ChatHead chatHead);
 
     public abstract void onReloadFragment(ChatHead chatHead);
+
+    public abstract boolean shouldShowCloseButton(ChatHead chatHead);
 }

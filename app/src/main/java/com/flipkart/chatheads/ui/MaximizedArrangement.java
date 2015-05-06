@@ -54,7 +54,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         int spacing = container.getConfig().getHeadHorizontalSpacing();
         int widthPerHead = container.getConfig().getHeadWidth();
         topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-        int leftIndent = maxWidth - (chatHeads.size() * (widthPerHead+spacing));
+        int leftIndent = maxWidth - (chatHeads.size() * (widthPerHead + spacing));
         for (int i = 0; i < chatHeads.size(); i++) {
             ChatHead chatHead = chatHeads.get(i);
             Spring horizontalSpring = chatHead.getHorizontalSpring();
@@ -91,8 +91,10 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     public boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging) {
 
 
-        activeHorizontalSpring.setVelocity(xVelocity);
-        activeVerticalSpring.setVelocity(yVelocity);
+        if (activeChatHead.getState() == ChatHead.State.FREE) {
+            activeHorizontalSpring.setVelocity(xVelocity);
+            activeVerticalSpring.setVelocity(yVelocity);
+        }
 
 
         if (wasDragging) {
@@ -186,6 +188,36 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
                         hideView();
                     }
                 }
+            }
+        }
+
+        if (!isDragging) {
+
+            /** Capturing check **/
+
+
+            int[] coords = container.getChatHeadCoordsForCloseButton(activeChatHead);
+            double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + activeChatHead.getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + activeChatHead.getMeasuredHeight() / 2);
+
+            if (distanceCloseButtonFromHead < activeChatHead.CLOSE_ATTRACTION_THRESHOLD && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && activeVerticalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
+
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                activeChatHead.setState(ChatHead.State.CAPTURED);
+            }
+            if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
+                activeHorizontalSpring.setEndValue(coords[0]);
+                activeVerticalSpring.setEndValue(coords[1]);
+
+            }
+            if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeVerticalSpring.isAtRest()) {
+                container.getCloseButton().disappear(false, true);
+                container.captureChatHeads(activeChatHead);
+            }
+            if (!activeVerticalSpring.isAtRest()) {
+                container.getCloseButton().appear();
+            } else {
+                container.getCloseButton().disappear(true, true);
             }
         }
     }
@@ -300,8 +332,14 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onReloadFragment(ChatHead chatHead) {
-        if(chatHead == currentChatHead) {
+        if (chatHead == currentChatHead) {
             container.addFragment(chatHead, getArrowLayout());
         }
+    }
+
+    @Override
+    public boolean shouldShowCloseButton(ChatHead chatHead) {
+        if (chatHead.isSticky()) return false;
+        return true;
     }
 }

@@ -25,7 +25,7 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 public class ChatHead<T> extends ImageView implements SpringListener {
 
     private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
-    private final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
+    final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
     private SpringSystem springSystem;
     private boolean isSticky = false;
@@ -153,36 +153,10 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         if (spring != activeHorizontalSpring && spring != activeVerticalSpring)
             return;
         float deltaX = (float) (DELTA * ((float) container.getMaxWidth() / 2f - (activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2)) / ((float) container.getMaxWidth() / 2f));
-        double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + getMeasuredHeight() / 2);
         int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
         if (container.getActiveArrangement() != null)
             container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
-        if (!isDragging && !isSticky()) {
 
-            /** Capturing check **/
-
-
-            int[] coords = container.getChatHeadCoordsForCloseButton(this);
-
-            if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && activeVerticalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
-
-                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                activeHorizontalSpring.setEndValue(coords[0]);
-                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                activeVerticalSpring.setEndValue(coords[1]);
-                setState(ChatHead.State.CAPTURED);
-            }
-            if (getState() == ChatHead.State.CAPTURED && activeVerticalSpring.isAtRest()) {
-                scaleSpring.setEndValue(0);
-                container.getCloseButton().disappear(false, true);
-                container.captureChatHeads(this);
-            }
-            if (!activeVerticalSpring.isAtRest()) {
-                container.getCloseButton().appear();
-            } else {
-                container.getCloseButton().disappear(true, true);
-            }
-        }
     }
 
     @Override
@@ -221,7 +195,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         float rawY = event.getRawY();
         float offsetX = rawX - downX;
         float offsetY = rawY - downY;
-
+        boolean showCloseButton = container.getActiveArrangement().shouldShowCloseButton(this);
         event.offsetLocation(getTranslationX(), getTranslationY());
         if (action == MotionEvent.ACTION_DOWN) {
             if (velocityTracker == null) {
@@ -246,7 +220,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         } else if (action == MotionEvent.ACTION_MOVE) {
             if (Math.hypot(offsetX, offsetY) > touchSlop) {
                 isDragging = true;
-                if (!isSticky) {
+                if (showCloseButton) {
                     container.getCloseButton().appear();
                 }
             }
@@ -255,7 +229,7 @@ public class ChatHead<T> extends ImageView implements SpringListener {
             if (isDragging) {
                 container.getCloseButton().pointTo(rawX, rawY);
                 double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
-                if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && !isSticky) {
+                if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && showCloseButton) {
                     setState(ChatHead.State.CAPTURED);
                     activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);

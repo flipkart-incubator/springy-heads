@@ -95,7 +95,7 @@ public class ChatHeadCloseButton extends ImageView {
             scaleSpring.setEndValue(.8f);
             bringToFront();
             disappeared = false;
-            if(listener!=null) listener.onCloseButtonAppear();
+
         }
     }
 
@@ -136,7 +136,7 @@ public class ChatHeadCloseButton extends ImageView {
             if (!disappeared) {
                 xSpring.setEndValue(translationX);
                 ySpring.setEndValue(translationY);
-
+                if(listener!=null) listener.onCloseButtonAppear();
             }
         }
     }

@@ -306,4 +306,9 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     public void onReloadFragment(ChatHead chatHead) {
         //nothing to do
     }
+
+    @Override
+    public boolean shouldShowCloseButton(ChatHead chatHead) {
+        return false;
+    }
 }
