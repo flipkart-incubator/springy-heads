@@ -48,6 +48,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private FragmentManager fragmentManager;
     private Fragment currentFragment;
     private ChatHeadConfig config;
+    private ChatHeadListener listener;
 
     public ChatHeadContainer(Context context) {
         super(context);
@@ -64,6 +65,9 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         init(context, new ChatHeadDefaultConfig(context));
     }
 
+    public void setListener(ChatHeadListener listener) {
+        this.listener = listener;
+    }
 
     public List<ChatHead<T>> getChatHeads() {
         return chatHeads;
@@ -203,6 +207,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
             onChatHeadRemoved(chatHead);
         }
     }
+
     public boolean removeChatHead(T key) {
         ChatHead chatHead = findChatHeadByKey(key);
         if (chatHead != null) {
@@ -219,6 +224,9 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
             removeView(chatHead);
             if (activeArrangement != null)
                 activeArrangement.onChatHeadRemoved(chatHead);
+            if (listener != null) {
+                listener.onChatHeadRemoved(chatHead.getKey());
+            }
         }
     }
 
@@ -273,7 +281,6 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     void captureChatHeads(ChatHead causingChatHead) {
         activeArrangement.onCapture(this, causingChatHead);
     }
-
 
 
     public ChatHeadArrangement getArrangement(Class<? extends ChatHeadArrangement> arrangementType) {
