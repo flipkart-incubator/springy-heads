@@ -48,36 +48,38 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         if (heroIndex < 0 || heroIndex > chatHeads.size() - 1) {
             heroIndex = 0;
         }
-        currentChatHead = chatHeads.get(heroIndex);
-        maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
+        if(chatHeads.size()>0) {
+            currentChatHead = chatHeads.get(heroIndex);
+            maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
-        int spacing = container.getConfig().getHeadHorizontalSpacing();
-        int widthPerHead = container.getConfig().getHeadWidth();
-        topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
-        int leftIndent = maxWidth - (chatHeads.size() * (widthPerHead + spacing));
-        for (int i = 0; i < chatHeads.size(); i++) {
-            ChatHead chatHead = chatHeads.get(i);
-            Spring horizontalSpring = chatHead.getHorizontalSpring();
-            int xPos = leftIndent + (i * (widthPerHead + spacing));//align right
-            horizontalSpring.setAtRest();
-            horizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            horizontalSpring.setEndValue(xPos);
-            Spring verticalSpring = chatHead.getVerticalSpring();
-            verticalSpring.setAtRest();
-            verticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            verticalSpring.setEndValue(topPadding);
-            positions.put(chatHead, new Point(xPos, topPadding));
+            int spacing = container.getConfig().getHeadHorizontalSpacing();
+            int widthPerHead = container.getConfig().getHeadWidth();
+            topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
+            int leftIndent = maxWidth - (chatHeads.size() * (widthPerHead + spacing));
+            for (int i = 0; i < chatHeads.size(); i++) {
+                ChatHead chatHead = chatHeads.get(i);
+                Spring horizontalSpring = chatHead.getHorizontalSpring();
+                int xPos = leftIndent + (i * (widthPerHead + spacing));//align right
+                horizontalSpring.setAtRest();
+                horizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                horizontalSpring.setEndValue(xPos);
+                Spring verticalSpring = chatHead.getVerticalSpring();
+                verticalSpring.setAtRest();
+                verticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                verticalSpring.setEndValue(topPadding);
+                positions.put(chatHead, new Point(xPos, topPadding));
 
-        }
-        container.getCloseButton().setEnabled(true);
-        container.getOverlayView().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deactivate();
             }
-        });
-        container.showOverlayView();
-        selectChatHead(currentChatHead);
+            container.getCloseButton().setEnabled(true);
+            container.getOverlayView().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    deactivate();
+                }
+            });
+            container.showOverlayView();
+            selectChatHead(currentChatHead);
+        }
     }
 
     @Override

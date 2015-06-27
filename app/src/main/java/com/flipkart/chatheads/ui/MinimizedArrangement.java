@@ -173,13 +173,17 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             hero.getHorizontalSpring().removeListener(horizontalHeroListener);
             hero.getVerticalSpring().removeListener(verticalHeroListener);
         }
-        List<Spring> allSprings = horizontalSpringChain.getAllSprings();
-        for (Spring spring : allSprings) {
-            spring.destroy();
+        if(horizontalSpringChain!=null) {
+            List<Spring> allSprings = horizontalSpringChain.getAllSprings();
+            for (Spring spring : allSprings) {
+                spring.destroy();
+            }
         }
-        allSprings = verticalSpringChain.getAllSprings();
-        for (Spring spring : allSprings) {
-            spring.destroy();
+        if(verticalSpringChain!=null) {
+            List<Spring> allSprings = verticalSpringChain.getAllSprings();
+            for (Spring spring : allSprings) {
+                spring.destroy();
+            }
         }
         horizontalSpringChain = null;
         verticalSpringChain = null;
@@ -202,7 +206,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 xVelocity = (newVelocity);
 
         } else if (xVelocity > 0) {
-            int newVelocity = (int) ((maxWidth - activeHorizontalSpring.getCurrentValue()) * SpringConfigsHolder.DRAGGING.friction);
+            int newVelocity = (int) ((maxWidth - activeHorizontalSpring.getCurrentValue() - activeChatHead.getMeasuredWidth()) * SpringConfigsHolder.DRAGGING.friction);
             if (newVelocity > xVelocity)
                 xVelocity = (newVelocity);
         }
