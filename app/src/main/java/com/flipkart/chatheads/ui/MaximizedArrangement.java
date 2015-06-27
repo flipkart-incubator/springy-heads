@@ -48,11 +48,11 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         if (heroIndex < 0 || heroIndex > chatHeads.size() - 1) {
             heroIndex = 0;
         }
-        if(chatHeads.size()>0) {
+        if (chatHeads.size() > 0 && heroIndex < chatHeads.size()) {
             currentChatHead = chatHeads.get(heroIndex);
             maxDistanceFromOriginal = ChatHeadUtils.dpToPx(container.getContext(), 10);
 
-            int spacing = container.getConfig().getHeadHorizontalSpacing();
+            int spacing = container.getConfig().getHeadHorizontalSpacing(maxWidth, maxHeight);
             int widthPerHead = container.getConfig().getHeadWidth();
             topPadding = ChatHeadUtils.dpToPx(container.getContext(), 5);
             int leftIndent = maxWidth - (chatHeads.size() * (widthPerHead + spacing));
@@ -251,7 +251,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         container.addFragment(activeChatHead, arrowLayout);
         Point point = positions.get(activeChatHead);
         if (point != null) {
-            int padding = container.getConfig().getHeadVerticalSpacing();
+            int padding = container.getConfig().getHeadVerticalSpacing(maxWidth, maxHeight);
             arrowLayout.pointTo(point.x + activeChatHead.getMeasuredWidth() / 2, point.y + activeChatHead.getMeasuredHeight() + padding);
         }
     }
@@ -276,13 +276,21 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
         container.removeFragment(removed);
+        boolean isEmpty = false;
         if (currentChatHead == removed) {
             ChatHead nextBestChatHead = getNextBestChatHead();
             if (nextBestChatHead != null) {
+                isEmpty = false;
                 selectTab(nextBestChatHead);
+            } else {
+                isEmpty = true;
             }
         }
-        onActivate(container, null, maxWidth, maxHeight);
+        if (!isEmpty) {
+            onActivate(container, null, maxWidth, maxHeight);
+        } else {
+            deactivate();
+        }
 
     }
 

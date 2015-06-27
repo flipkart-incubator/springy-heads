@@ -74,12 +74,7 @@ public class MainActivity extends ActionBarActivity {
                 return false;
             }
         });
-        chatContainer.setConfig(new ChatHeadDefaultConfig(this){
-            @Override
-            public Point getInitialPosition() {
-                return new Point(getInitialX(),getInitialY());
-            }
-        });
+        chatContainer.setConfig(new CustomChatHeadConfig(this,getInitialX(),getInitialY()));
         chatContainer.addChatHead("head0", false);
         chatContainer.addChatHead("main", true);
         chatContainer.post(new Runnable() {

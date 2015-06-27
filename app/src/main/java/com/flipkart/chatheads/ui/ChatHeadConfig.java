@@ -11,6 +11,18 @@ public class ChatHeadConfig {
     private int headHorizontalSpacing;
     private int headVerticalSpacing;
     private Point initialPosition;
+    private int maxChatHeads;
+    private int closeButtonWidth;
+    private int closeButtonHeight;
+    private int closeButtonBottomMargin;
+
+    public int getMaxChatHeads() {
+        return maxChatHeads;
+    }
+
+    public void setMaxChatHeads(int maxChatHeads) {
+        this.maxChatHeads = maxChatHeads;
+    }
 
     public int getHeadHeight() {
         return headHeight;
@@ -28,7 +40,7 @@ public class ChatHeadConfig {
         this.headWidth = headWidth;
     }
 
-    public int getHeadHorizontalSpacing() {
+    public int getHeadHorizontalSpacing(int maxWidth, int maxHeight) {
         return headHorizontalSpacing;
     }
 
@@ -36,7 +48,7 @@ public class ChatHeadConfig {
         this.headHorizontalSpacing = headHorizontalSpacing;
     }
 
-    public int getHeadVerticalSpacing() {
+    public int getHeadVerticalSpacing(int maxWidth, int maxHeight) {
         return headVerticalSpacing;
     }
 
@@ -50,5 +62,33 @@ public class ChatHeadConfig {
 
     public void setInitialPosition(Point initialPosition) {
         this.initialPosition = initialPosition;
+    }
+
+    public int getMaxChatHeads(int maxWidth, int maxHeight) {
+        return maxChatHeads;
+    }
+
+    public int getCloseButtonWidth() {
+        return closeButtonWidth;
+    }
+
+    public void setCloseButtonWidth(int closeButtonWidth) {
+        this.closeButtonWidth = closeButtonWidth;
+    }
+
+    public int getCloseButtonHeight() {
+        return closeButtonHeight;
+    }
+
+    public void setCloseButtonHeight(int closeButtonHeight) {
+        this.closeButtonHeight = closeButtonHeight;
+    }
+
+    public int getCloseButtonBottomMargin() {
+        return closeButtonBottomMargin;
+    }
+
+    public void setCloseButtonBottomMargin(int closeButtonBottomMargin) {
+        this.closeButtonBottomMargin = closeButtonBottomMargin;
     }
 }

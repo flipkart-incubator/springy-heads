@@ -19,7 +19,6 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadCloseButton extends ImageView {
 
-    private static final long DELAY = 500;
     private static final float PERC_PARENT_WIDTH = 0.1f; //perc of parent to be covered during drag
     private static final float PERC_PARENT_HEIGHT = 0.05f; //perc of parent to be covered during drag
     private int mParentWidth;
@@ -29,20 +28,11 @@ public class ChatHeadCloseButton extends ImageView {
     private Spring ySpring;
     private boolean disappeared;
     private CloseButtonListener listener;
+    private ChatHeadContainer chatHeadContainer;
 
-    public ChatHeadCloseButton(Context context) {
+    public ChatHeadCloseButton(Context context, ChatHeadContainer container) {
         super(context);
-        init();
-    }
-
-    public ChatHeadCloseButton(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public ChatHeadCloseButton(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
+        init(container);
     }
 
     public void setListener(CloseButtonListener listener) {
@@ -53,12 +43,12 @@ public class ChatHeadCloseButton extends ImageView {
         return disappeared;
     }
 
-    private void init() {
+    private void init(ChatHeadContainer container) {
+        this.chatHeadContainer = container;
         setImageResource(R.drawable.dismiss_big);
-        int myDiameter = 62;
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ChatHeadUtils.dpToPx(getContext(), myDiameter), ChatHeadUtils.dpToPx(getContext(), myDiameter));
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(chatHeadContainer.getConfig().getCloseButtonWidth(), chatHeadContainer.getConfig().getCloseButtonHeight());
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-        layoutParams.bottomMargin = ChatHeadUtils.dpToPx(getContext(), 50);
+        layoutParams.bottomMargin = chatHeadContainer.getConfig().getCloseButtonBottomMargin();
         setLayoutParams(layoutParams);
         SpringSystem springSystem = SpringSystem.create();
         xSpring = springSystem.createSpring();

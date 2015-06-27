@@ -262,7 +262,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
                 velocityTracker.recycle();
                 velocityTracker = null;
                 boolean touchUpHandled = container.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
-
             }
         }
 

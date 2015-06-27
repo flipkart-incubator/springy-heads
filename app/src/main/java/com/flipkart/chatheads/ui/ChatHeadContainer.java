@@ -32,9 +32,8 @@ import java.util.Map;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseButton.CloseButtonListener {
 
-    private static final int MAX_CHAT_HEADS = 5;
     private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
-    private final List<ChatHead<T>> chatHeads = new ArrayList<>(MAX_CHAT_HEADS);
+    private List<ChatHead<T>> chatHeads;
     private int maxWidth;
     private int maxHeight;
     private ChatHeadCloseButton closeButton;
@@ -158,7 +157,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         chatHead.setKey(key);
         chatHeads.add(chatHead);
         addView(chatHead);
-        if (chatHeads.size() > MAX_CHAT_HEADS) {
+        if (chatHeads.size() > config.getMaxChatHeads(maxWidth,maxHeight)) {
             removeOldestChatHead();
         }
         reloadDrawable(key);
@@ -236,12 +235,12 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     private void init(Context context, ChatHeadConfig chatHeadDefaultConfig) {
         setConfig(chatHeadDefaultConfig);
-        setLayerType(LAYER_TYPE_HARDWARE, null);
+        chatHeads = new ArrayList<>(5);
         LayoutInflater.from(context).inflate(R.layout.arrow_layout, this, true);
         UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
         arrowLayout.setVisibility(View.GONE);
         springSystem = SpringSystem.create();
-        closeButton = new ChatHeadCloseButton(getContext());
+        closeButton = new ChatHeadCloseButton(getContext(),this);
         closeButton.setListener(this);
         addView(closeButton);
         closeButtonShadow = new ImageView(getContext());
@@ -450,6 +449,13 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     public void setConfig(ChatHeadConfig config) {
         this.config = config;
+        if(closeButton!=null) {
+            FrameLayout.LayoutParams params = (LayoutParams) closeButton.getLayoutParams();
+            params.width = config.getCloseButtonWidth();
+            params.height = config.getCloseButtonHeight();
+            params.bottomMargin = config.getCloseButtonBottomMargin();
+            closeButton.setLayoutParams(params);
+        }
     }
 
     public interface OnItemSelectedListener<T> {
