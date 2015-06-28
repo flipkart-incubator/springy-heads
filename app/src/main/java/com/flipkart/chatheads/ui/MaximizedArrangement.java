@@ -94,6 +94,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
 
         if (activeChatHead.getState() == ChatHead.State.FREE) {
+            if (xVelocity == 0 && yVelocity == 0) {
+                // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
+                // so we give a a negligible velocity to artificially fire onSpringUpdate
+                xVelocity = 1;
+                yVelocity = 1;
+            }
             activeHorizontalSpring.setVelocity(xVelocity);
             activeVerticalSpring.setVelocity(yVelocity);
         }
@@ -297,7 +303,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
-        container.removeChatHead(activeChatHead.getKey(),true);
+        container.removeChatHead(activeChatHead.getKey(), true);
     }
 
     @Override
@@ -332,6 +338,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         Bundle bundle = new Bundle();
         bundle.putInt(MinimizedArrangement.BUNDLE_HERO_INDEX_KEY, heroIndex);
         container.setArrangement(MinimizedArrangement.class, bundle);
+        hideView();
     }
 
 

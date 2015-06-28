@@ -28,15 +28,15 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         @Override
         public void onSpringUpdate(Spring spring) {
             currentDelta = (float) ((float) DELTA * (maxWidth / 2 - spring.getCurrentValue()) / (maxWidth / 2));
-            if(horizontalSpringChain!=null)
-            horizontalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
+            if (horizontalSpringChain != null)
+                horizontalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
         }
     };
     private SpringListener verticalHeroListener = new SimpleSpringListener() {
         @Override
         public void onSpringUpdate(Spring spring) {
-            if(verticalSpringChain!=null)
-            verticalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
+            if (verticalSpringChain != null)
+                verticalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
         }
     };
 
@@ -173,13 +173,13 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             hero.getHorizontalSpring().removeListener(horizontalHeroListener);
             hero.getVerticalSpring().removeListener(verticalHeroListener);
         }
-        if(horizontalSpringChain!=null) {
+        if (horizontalSpringChain != null) {
             List<Spring> allSprings = horizontalSpringChain.getAllSprings();
             for (Spring spring : allSprings) {
                 spring.destroy();
             }
         }
-        if(verticalSpringChain!=null) {
+        if (verticalSpringChain != null) {
             List<Spring> allSprings = verticalSpringChain.getAllSprings();
             for (Spring spring : allSprings) {
                 spring.destroy();
@@ -210,8 +210,16 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             if (newVelocity > xVelocity)
                 xVelocity = (newVelocity);
         }
-        if(activeChatHead.getState()== ChatHead.State.FREE)
-        {
+        if (activeChatHead.getState() == ChatHead.State.FREE) {
+            if (Math.abs(xVelocity) <= 1 && yVelocity == 0) {
+                // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
+                // so we give a a negligible velocity to artificially fire onSpringUpdate
+                if (xVelocity < 0)
+                    xVelocity = -1;
+                else
+                    xVelocity = 1;
+                yVelocity = 1;
+            }
             activeHorizontalSpring.setVelocity(xVelocity);
             activeVerticalSpring.setVelocity(yVelocity);
         }
@@ -246,9 +254,9 @@ public class MinimizedArrangement extends ChatHeadArrangement {
         /** This method does a bounds Check **/
         double xVelocity = activeHorizontalSpring.getVelocity();
         double yVelocity = activeVerticalSpring.getVelocity();
-        if (!isDragging && Math.abs(totalVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 600) && activeChatHead == hero ) {
+        if (!isDragging && Math.abs(totalVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 600) && activeChatHead == hero) {
 
-            if (Math.abs(totalVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 5)  && activeChatHead.getState()== ChatHead.State.FREE) {
+            if (Math.abs(totalVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 5) && activeChatHead.getState() == ChatHead.State.FREE) {
                 setIdleStateX((int) activeHorizontalSpring.getCurrentValue());
                 setIdleStateY((int) activeVerticalSpring.getCurrentValue());
             }
