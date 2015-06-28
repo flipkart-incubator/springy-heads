@@ -159,7 +159,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
         // we dont care about the active ones
-        container.removeAllChatHeads();
+        container.removeAllChatHeads(true);
     }
 
     @Override

@@ -297,7 +297,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
-        container.removeChatHead(activeChatHead.getKey());
+        container.removeChatHead(activeChatHead.getKey(),true);
     }
 
     @Override

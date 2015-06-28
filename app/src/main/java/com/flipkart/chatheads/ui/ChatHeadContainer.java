@@ -176,7 +176,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private void removeOldestChatHead() {
         for (ChatHead<T> chatHead : chatHeads) {
             if (!chatHead.isSticky()) {
-                removeChatHead(chatHead.getKey());
+                removeChatHead(chatHead.getKey(),false);
                 break;
             }
         }
@@ -199,32 +199,42 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         }
     }
 
-    public void removeAllChatHeads() {
+    /**
+     *
+     * @param userTriggered if true this means that the chat head was removed by user action (drag to bottom)
+     */
+    public void removeAllChatHeads(boolean userTriggered) {
         for (Iterator<ChatHead<T>> iterator = chatHeads.iterator(); iterator.hasNext(); ) {
             ChatHead<T> chatHead = iterator.next();
             iterator.remove();
-            onChatHeadRemoved(chatHead);
+            onChatHeadRemoved(chatHead,userTriggered);
         }
     }
 
-    public boolean removeChatHead(T key) {
+    /**
+     * Removed the chat head and calls the onChatHeadRemoved listener
+     * @param key
+     * @param userTriggered if true this means that the chat head was removed by user action (drag to bottom)
+     * @return
+     */
+    public boolean removeChatHead(T key, boolean userTriggered) {
         ChatHead chatHead = findChatHeadByKey(key);
         if (chatHead != null) {
             chatHeads.remove(chatHead);
-            onChatHeadRemoved(chatHead);
+            onChatHeadRemoved(chatHead,userTriggered);
             return true;
         }
         return false;
     }
 
-    private void onChatHeadRemoved(ChatHead chatHead) {
+    private void onChatHeadRemoved(ChatHead chatHead, boolean userTriggered) {
         if (chatHead != null && chatHead.getParent() != null) {
             chatHead.onRemove();
             removeView(chatHead);
             if (activeArrangement != null)
                 activeArrangement.onChatHeadRemoved(chatHead);
             if (listener != null) {
-                listener.onChatHeadRemoved(chatHead.getKey());
+                listener.onChatHeadRemoved(chatHead.getKey(), userTriggered);
             }
         }
     }
