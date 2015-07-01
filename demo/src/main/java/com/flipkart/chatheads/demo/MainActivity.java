@@ -43,7 +43,7 @@ public class MainActivity extends ActionBarActivity {
             }
 
             @Override
-            public Fragment getFragment(Object key, ChatHead chatHead) {
+            public Fragment instantiateFragment(Object key, ChatHead chatHead) {
                 return TestFragment.newInstance(key);
             }
 
@@ -59,6 +59,11 @@ public class MainActivity extends ActionBarActivity {
             public Drawable getPointerDrawable() {
                 return getResources().getDrawable(R.drawable.circular_ring);
             }
+
+            @Override
+            public View getTitleView(Object key, ChatHead chatHead) {
+                return null;
+            }
         });
         chatContainer.setOnItemSelectedListener(new ChatHeadContainer.OnItemSelectedListener() {
             @Override
@@ -68,7 +73,7 @@ public class MainActivity extends ActionBarActivity {
                             "when arrangement was circular");
                 }
 //                chatContainer.setArrangement(MaximizedArrangement.class, null);
-//                Fragment fragment = chatContainer.getFragment(key,true);
+//                Fragment fragment = chatContainer.instantiateFragment(key,true);
 //                //fragment.setArguments(new Bundle());
 //                System.out.println("fragment = " + fragment);
                 return false;

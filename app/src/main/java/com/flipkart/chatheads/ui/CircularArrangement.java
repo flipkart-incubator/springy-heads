@@ -34,14 +34,15 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private boolean isActive = false;
     private ChatHeadContainer container;
     private ChatHead<T> currentChatHead;
+    private int maxWidth;
+    private int maxHeight;
 
 
     public CircularArrangement(ChatHeadContainer container) {
         this.container = container;
         this.pointerViewMovable = new ImageView(container.getContext());
         this.pointerViewStatic = new ImageView(container.getContext());
-        this.pointerViewMovable.setLayoutParams(new FrameLayout.LayoutParams(container.getConfig().getHeadWidth() + ChatHeadUtils.dpToPx(container.getContext(), 5), container.getConfig().getHeadHeight() + ChatHeadUtils.dpToPx(container.getContext(), 5)));
-        this.pointerViewStatic.setLayoutParams(new FrameLayout.LayoutParams(container.getConfig().getHeadWidth() + ChatHeadUtils.dpToPx(container.getContext(), 5), container.getConfig().getHeadHeight() + ChatHeadUtils.dpToPx(container.getContext(), 5)));
+
         container.addView(pointerViewMovable);
         container.addView(pointerViewStatic);
         this.pointerXSpring = container.getSpringSystem().createSpring();
@@ -70,6 +71,14 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
             }
         });
 
+        onConfigChanged(container.getConfig());
+
+    }
+
+    @Override
+    public void onConfigChanged(ChatHeadConfig newConfig) {
+        this.pointerViewMovable.setLayoutParams(new FrameLayout.LayoutParams(newConfig.getCircularRingWidth(), newConfig.getCircularRingHeight()));
+        this.pointerViewStatic.setLayoutParams(new FrameLayout.LayoutParams(newConfig.getCircularRingWidth(), newConfig.getCircularRingHeight()));
 
     }
 
@@ -81,12 +90,16 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight) {
         List<ChatHead> chatHeads = container.getChatHeads();
-        RADIUS = (int) (maxWidth / 2.5);
+        RADIUS = container.getConfig().getCircularFanOutRadius(maxWidth, maxHeight);
+        int headHeight = container.getConfig().getHeadHeight();
+        int headWidth = container.getConfig().getHeadWidth();
         CLOSE_ATTRACTION_THRESHOLD = (int) (RADIUS * 0.5);
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
 
         Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
         int radius = RADIUS;
-        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
+        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0 + headWidth, 0, maxWidth - headWidth, maxHeight - (headHeight * 2));
         double totalSweepArea = (chatHeads.size() - 1) * Math.PI / 4;
         int i = 0;
         for (ChatHead chatHead : chatHeads) {
@@ -164,7 +177,6 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 }
             }
 
-
             if (!foundSpring) {
                 pointerXSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 pointerYSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
@@ -178,7 +190,6 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
             container.getOverlayView().clearPath();
             if (currentChatHead != null) {
                 boolean handled = container.onItemSelected(currentChatHead);
-                currentChatHead = null;
                 if (!handled) {
                     deactivate();
                 }
@@ -191,7 +202,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     }
 
     /**
-     * Brute force method to find the start angles. Not very well thought out. Working under pressure :(
+     * Brute force method to find the start angles. Not very well thought out.
      * This method will give the start and end angles where the arc cut out by the rectangle lies within the rectangle.
      *
      * @param pointTo
@@ -216,7 +227,6 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
             int y = pointTo.y + (int) (radius * Math.sin(sweep));
 
             if (!rect.contains(x, y)) {
-
                 current = outside;
             }
             if (rect.contains(x, y)) {
@@ -239,23 +249,35 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
             endAngle += fullAngle;
         }
 
-        System.out.println("finalStartAngle = " + Math.toDegrees(finalStartAngle));
-        System.out.println("endAngle = " + Math.toDegrees(endAngle));
         float finalEndAngle = (float) endAngle;
         return new Pair<>(finalStartAngle, finalEndAngle);
     }
 
     private void deactivate() {
         container.setArrangement(MinimizedArrangement.class, null);
-        container.hideOverlayView();
     }
 
+    @Override
+    public Integer getHeroIndex() {
+        int heroIndex = 0;
+        List<ChatHead> chatHeads = container.getChatHeads();
+        int i = 0;
+        for (ChatHead chatHead : chatHeads) {
+            if (currentChatHead == chatHead) {
+                heroIndex = i;
+            }
+            i++;
+        }
+        return heroIndex;
+    }
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
         isActive = false;
         pointerViewMovable.setVisibility(View.GONE);
         pointerViewStatic.setVisibility(View.GONE);
+        this.container.hideOverlayView();
+        currentChatHead = null;
     }
 
     @Override
@@ -279,12 +301,12 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead) {
-
+        onActivate(container, null, maxWidth, maxHeight);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-
+        onActivate(container, null, maxWidth, maxHeight);
     }
 
     @Override

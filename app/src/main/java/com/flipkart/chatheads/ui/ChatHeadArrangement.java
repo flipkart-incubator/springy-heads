@@ -40,4 +40,8 @@ public abstract class ChatHeadArrangement {
     public abstract void onReloadFragment(ChatHead chatHead);
 
     public abstract boolean shouldShowCloseButton(ChatHead chatHead);
+
+    public abstract Integer getHeroIndex();
+
+    public abstract void onConfigChanged(ChatHeadConfig newConfig);
 }

@@ -18,8 +18,7 @@ public interface ChatHeadViewAdapter<T> {
     /**
      * Based on the key, this should instantiate and return a fragment. This fragment will be removed when the chathead is removed.
      */
-    public Fragment getFragment(T key, ChatHead<T> chatHead);
-
+    public Fragment instantiateFragment(T key, ChatHead<T> chatHead);
 
     /**
      * Should return the view used to represent a chat "head". Typically a rounded imageview.
@@ -33,4 +32,6 @@ public interface ChatHeadViewAdapter<T> {
      * @return
      */
     public Drawable getPointerDrawable();
+
+    public View getTitleView(T key, ChatHead chatHead);
 }

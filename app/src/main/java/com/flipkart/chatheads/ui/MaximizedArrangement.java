@@ -31,6 +31,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         this.container = container;
     }
 
+
     @Override
     public void setContainer(ChatHeadContainer container) {
         this.container = container;
@@ -81,6 +82,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             selectChatHead(currentChatHead);
         }
     }
+
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
@@ -136,20 +138,29 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
     private void positionToOriginal(ChatHead activeChatHead, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
         if (activeChatHead.isSticky()) {
-            deactivate();
-        } else {
-            if (activeChatHead.getState() == ChatHead.State.FREE) {
-                Point point = positions.get(activeChatHead);
-                if (point != null) {
-                    activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                    activeHorizontalSpring.setVelocity(0);
-                    activeHorizontalSpring.setEndValue(point.x);
-                    activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                    activeVerticalSpring.setVelocity(0);
-                    activeVerticalSpring.setEndValue(point.y);
+            Point point = positions.get(activeChatHead);
+            if (point != null) {
+                double distanceFromOriginal = Math.hypot(point.x - activeHorizontalSpring.getCurrentValue(), point.y - activeVerticalSpring.getCurrentValue());
+                if (distanceFromOriginal > ChatHeadUtils.dpToPx(container.getContext(), 50)) {
+                    deactivate();
+                    return;
+
                 }
             }
         }
+
+        if (activeChatHead.getState() == ChatHead.State.FREE) {
+            Point point = positions.get(activeChatHead);
+            if (point != null) {
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                activeHorizontalSpring.setVelocity(0);
+                activeHorizontalSpring.setEndValue(point.x);
+                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                activeVerticalSpring.setVelocity(0);
+                activeVerticalSpring.setEndValue(point.y);
+            }
+        }
+
     }
 
     @Override
@@ -326,6 +337,18 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
 
     private void deactivate() {
+
+        Bundle bundle = new Bundle();
+        bundle.putInt(MinimizedArrangement.BUNDLE_HERO_INDEX_KEY, getHeroIndex());
+        container.setArrangement(MinimizedArrangement.class, bundle);
+        hideView();
+    }
+
+    /**
+     * @return the index of the selected chat head a.k.a the hero
+     */
+    @Override
+    public Integer getHeroIndex() {
         int heroIndex = 0;
         List<ChatHead<T>> chatHeads = container.getChatHeads();
         int i = 0;
@@ -335,10 +358,12 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
             i++;
         }
-        Bundle bundle = new Bundle();
-        bundle.putInt(MinimizedArrangement.BUNDLE_HERO_INDEX_KEY, heroIndex);
-        container.setArrangement(MinimizedArrangement.class, bundle);
-        hideView();
+        return heroIndex;
+    }
+
+    @Override
+    public void onConfigChanged(ChatHeadConfig newConfig) {
+
     }
 
 
@@ -359,4 +384,5 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         if (chatHead.isSticky()) return false;
         return true;
     }
+
 }

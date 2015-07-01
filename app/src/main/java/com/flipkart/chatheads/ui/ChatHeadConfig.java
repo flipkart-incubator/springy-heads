@@ -15,6 +15,13 @@ public class ChatHeadConfig {
     private int closeButtonWidth;
     private int closeButtonHeight;
     private int closeButtonBottomMargin;
+    private int circularRingWidth;
+    private int circularRingHeight;
+    private int circularFanOutRadius;
+
+    public void setCircularFanOutRadius(int circularFanOutRadius) {
+        this.circularFanOutRadius = circularFanOutRadius;
+    }
 
     public int getMaxChatHeads() {
         return maxChatHeads;
@@ -90,5 +97,26 @@ public class ChatHeadConfig {
 
     public void setCloseButtonBottomMargin(int closeButtonBottomMargin) {
         this.closeButtonBottomMargin = closeButtonBottomMargin;
+    }
+
+    public int getCircularRingWidth() {
+
+        return circularRingWidth;
+    }
+
+    public void setCircularRingWidth(int circularRingWidth) {
+        this.circularRingWidth = circularRingWidth;
+    }
+
+    public int getCircularRingHeight() {
+        return circularRingHeight;
+    }
+
+    public void setCircularRingHeight(int circularRingHeight) {
+        this.circularRingHeight = circularRingHeight;
+    }
+
+    public int getCircularFanOutRadius(int maxWidth, int maxHeight) {
+        return circularFanOutRadius;
     }
 }

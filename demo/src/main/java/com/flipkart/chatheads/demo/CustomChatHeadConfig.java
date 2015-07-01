@@ -20,6 +20,8 @@ public class CustomChatHeadConfig extends ChatHeadDefaultConfig {
         setCloseButtonHeight(ChatHeadUtils.dpToPx(context,50));
         setCloseButtonWidth(ChatHeadUtils.dpToPx(context,50));
         setCloseButtonBottomMargin(ChatHeadUtils.dpToPx(context,100));
+        setCircularRingWidth(ChatHeadUtils.dpToPx(context,105));
+        setCircularRingHeight(ChatHeadUtils.dpToPx(context,105));
         setMaxChatHeads(4);
     }
 }

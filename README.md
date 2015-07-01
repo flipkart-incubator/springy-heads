@@ -17,7 +17,7 @@ This object will be passed in all callbacks as the parameter (T key).
             }
 
             @Override
-            public Fragment getFragment(Object key, ChatHead chatHead) {
+            public Fragment instantiateFragment(Object key, ChatHead chatHead) {
                 return new Fragment();
             }
 

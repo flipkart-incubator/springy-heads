@@ -211,15 +211,19 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 xVelocity = (newVelocity);
         }
         if (activeChatHead.getState() == ChatHead.State.FREE) {
-            if (Math.abs(xVelocity) <= 1 && yVelocity == 0) {
+            if (Math.abs(xVelocity) <= 1) {
                 // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
                 // so we give a a negligible velocity to artificially fire onSpringUpdate
                 if (xVelocity < 0)
                     xVelocity = -1;
                 else
                     xVelocity = 1;
-                yVelocity = 1;
             }
+
+            if(yVelocity == 0)
+                yVelocity = 1;
+
+
             activeHorizontalSpring.setVelocity(xVelocity);
             activeVerticalSpring.setVelocity(yVelocity);
         }
@@ -235,6 +239,16 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     }
 
     private void deactivate() {
+        Bundle bundle = new Bundle();
+        bundle.putInt(MaximizedArrangement.BUNDLE_HERO_INDEX_KEY, getHeroIndex());
+        container.setArrangement(MaximizedArrangement.class, bundle);
+    }
+
+    /**
+     * @return the index of the selected chat head a.k.a the hero
+     */
+    @Override
+    public Integer getHeroIndex() {
         int heroIndex = 0;
         List<ChatHead> chatHeads = container.getChatHeads();
         int i = 0;
@@ -244,9 +258,12 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             }
             i++;
         }
-        Bundle bundle = new Bundle();
-        bundle.putInt(MaximizedArrangement.BUNDLE_HERO_INDEX_KEY, heroIndex);
-        container.setArrangement(MaximizedArrangement.class, bundle);
+        return heroIndex;
+    }
+
+    @Override
+    public void onConfigChanged(ChatHeadConfig newConfig) {
+
     }
 
     @Override

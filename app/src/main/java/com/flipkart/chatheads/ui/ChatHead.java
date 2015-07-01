@@ -2,13 +2,16 @@ package com.flipkart.chatheads.ui;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -24,8 +27,8 @@ import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHead<T> extends ImageView implements SpringListener {
 
-    private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
+    private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
     private SpringSystem springSystem;
     private boolean isSticky = false;
@@ -44,6 +47,8 @@ public class ChatHead<T> extends ImageView implements SpringListener {
     private Spring scaleSpring;
     private Spring xPositionSpring;
     private Spring yPositionSpring;
+    private Bundle extras;
+    private ImageView imageView;
 
     public ChatHead(Context context) {
         super(context);
@@ -68,6 +73,13 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         init();
     }
 
+    public Bundle getExtras() {
+        return extras;
+    }
+
+    public void setExtras(Bundle extras) {
+        this.extras = extras;
+    }
 
     public Spring getHorizontalSpring() {
         return xPositionSpring;
@@ -83,7 +95,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
 
     private void init() {
         setLayoutParams(new ViewGroup.LayoutParams(container.getConfig().getHeadWidth(), container.getConfig().getHeadHeight()));
-
         xPositionListener = new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
@@ -152,7 +163,6 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         Spring activeVerticalSpring = yPositionSpring;
         if (spring != activeHorizontalSpring && spring != activeVerticalSpring)
             return;
-        float deltaX = (float) (DELTA * ((float) container.getMaxWidth() / 2f - (activeHorizontalSpring.getCurrentValue() + getMeasuredWidth() / 2)) / ((float) container.getMaxWidth() / 2f));
         int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
         if (container.getActiveArrangement() != null)
             container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
@@ -273,6 +283,10 @@ public class ChatHead<T> extends ImageView implements SpringListener {
         getHorizontalSpring().destroy();
         getVerticalSpring().removeAllListeners();
         getVerticalSpring().destroy();
+    }
+
+    public void setImageDrawable(Drawable chatHeadDrawable) {
+        super.setImageDrawable(chatHeadDrawable);
     }
 
 

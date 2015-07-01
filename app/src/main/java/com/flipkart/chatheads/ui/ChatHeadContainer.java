@@ -157,7 +157,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         chatHead.setKey(key);
         chatHeads.add(chatHead);
         addView(chatHead);
-        if (chatHeads.size() > config.getMaxChatHeads(maxWidth,maxHeight)) {
+        if (chatHeads.size() > config.getMaxChatHeads(maxWidth, maxHeight)) {
             removeOldestChatHead();
         }
         reloadDrawable(key);
@@ -176,7 +176,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private void removeOldestChatHead() {
         for (ChatHead<T> chatHead : chatHeads) {
             if (!chatHead.isSticky()) {
-                removeChatHead(chatHead.getKey(),false);
+                removeChatHead(chatHead.getKey(), false);
                 break;
             }
         }
@@ -200,19 +200,19 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     }
 
     /**
-     *
      * @param userTriggered if true this means that the chat head was removed by user action (drag to bottom)
      */
     public void removeAllChatHeads(boolean userTriggered) {
         for (Iterator<ChatHead<T>> iterator = chatHeads.iterator(); iterator.hasNext(); ) {
             ChatHead<T> chatHead = iterator.next();
             iterator.remove();
-            onChatHeadRemoved(chatHead,userTriggered);
+            onChatHeadRemoved(chatHead, userTriggered);
         }
     }
 
     /**
      * Removed the chat head and calls the onChatHeadRemoved listener
+     *
      * @param key
      * @param userTriggered if true this means that the chat head was removed by user action (drag to bottom)
      * @return
@@ -221,7 +221,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         ChatHead chatHead = findChatHeadByKey(key);
         if (chatHead != null) {
             chatHeads.remove(chatHead);
-            onChatHeadRemoved(chatHead,userTriggered);
+            onChatHeadRemoved(chatHead, userTriggered);
             return true;
         }
         return false;
@@ -250,7 +250,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         UpArrowLayout arrowLayout = (UpArrowLayout) findViewById(R.id.arrow_layout);
         arrowLayout.setVisibility(View.GONE);
         springSystem = SpringSystem.create();
-        closeButton = new ChatHeadCloseButton(getContext(),this);
+        closeButton = new ChatHeadCloseButton(getContext(), this);
         closeButton.setListener(this);
         addView(closeButton);
         closeButtonShadow = new ImageView(getContext());
@@ -383,7 +383,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
 
         if (fragment == null) {
-            fragment = getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
+            fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
             transaction.add(parent.getId(), fragment, activeChatHead.getKey().toString());
         } else {
             if (fragment.isDetached()) {
@@ -436,7 +436,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     Fragment getFragment(ChatHead<T> activeChatHead, boolean createIfRequired) {
         Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
         if (fragment == null && createIfRequired) {
-            fragment = getViewAdapter().getFragment(activeChatHead.getKey(), activeChatHead);
+            fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
         }
         return fragment;
     }
@@ -459,13 +459,17 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     public void setConfig(ChatHeadConfig config) {
         this.config = config;
-        if(closeButton!=null) {
+        if (closeButton != null) {
             FrameLayout.LayoutParams params = (LayoutParams) closeButton.getLayoutParams();
             params.width = config.getCloseButtonWidth();
             params.height = config.getCloseButtonHeight();
             params.bottomMargin = config.getCloseButtonBottomMargin();
             closeButton.setLayoutParams(params);
         }
+        for (Map.Entry<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangementEntry : arrangements.entrySet()) {
+            arrangementEntry.getValue().onConfigChanged(config);
+        }
+
     }
 
     public interface OnItemSelectedListener<T> {

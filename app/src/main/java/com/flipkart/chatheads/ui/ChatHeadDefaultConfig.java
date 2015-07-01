@@ -19,6 +19,13 @@ public class ChatHeadDefaultConfig extends ChatHeadConfig {
         setCloseButtonWidth(ChatHeadUtils.dpToPx(context, 62));
         setCloseButtonHeight(ChatHeadUtils.dpToPx(context, 62));
         setCloseButtonBottomMargin(ChatHeadUtils.dpToPx(context, 50));
+        setCircularRingWidth(ChatHeadUtils.dpToPx(context,diameter+5));
+        setCircularRingHeight(ChatHeadUtils.dpToPx(context,diameter+5));
         setMaxChatHeads(5);
+    }
+
+    @Override
+    public int getCircularFanOutRadius(int maxWidth, int maxHeight) {
+        return (int) (maxWidth/2.5f);
     }
 }
