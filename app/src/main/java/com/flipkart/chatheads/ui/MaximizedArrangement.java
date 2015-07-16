@@ -11,11 +11,12 @@ import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.R;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class MaximizedArrangement<T> extends ChatHeadArrangement {
+public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrangement {
     public static final String BUNDLE_HERO_INDEX_KEY = "hero_index";
     private final Map<ChatHead, Point> positions = new ArrayMap<>();
     private ChatHeadContainer<T> container;
@@ -38,7 +39,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
-    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
         this.container = container;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -64,10 +65,16 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
                 horizontalSpring.setAtRest();
                 horizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 horizontalSpring.setEndValue(xPos);
+                if (!animated) {
+                    horizontalSpring.setCurrentValue(xPos);
+                }
                 Spring verticalSpring = chatHead.getVerticalSpring();
                 verticalSpring.setAtRest();
                 verticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 verticalSpring.setEndValue(topPadding);
+                if (!animated) {
+                    verticalSpring.setCurrentValue(topPadding);
+                }
                 positions.put(chatHead, new Point(xPos, topPadding));
 
             }
@@ -78,7 +85,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
                     deactivate();
                 }
             });
-            container.showOverlayView();
+            container.showOverlayView(animated);
             selectChatHead(currentChatHead);
         }
     }
@@ -88,7 +95,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     public void onDeactivate(int maxWidth, int maxHeight) {
         container.detachFragment(currentChatHead);
         hideView();
-        container.hideOverlayView();
+        container.hideOverlayView(true);
     }
 
     @Override
@@ -275,7 +282,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
 
 
     @Override
-    public void onChatHeadAdded(final ChatHead chatHead) {
+    public void onChatHeadAdded(final ChatHead chatHead, final boolean animated) {
         //we post so that chat head measurement is done
         Spring spring = chatHead.getHorizontalSpring();
         spring.setCurrentValue(maxWidth).setAtRest();
@@ -285,7 +292,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         container.post(new Runnable() {
             @Override
             public void run() {
-                onActivate(container, null, maxWidth, maxHeight);
+                onActivate(container, getBundleWithHero(), maxWidth, maxHeight, animated);
             }
         });
     }
@@ -304,7 +311,7 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
             }
         }
         if (!isEmpty) {
-            onActivate(container, null, maxWidth, maxHeight);
+            onActivate(container, getBundleWithHero(), maxWidth, maxHeight, true);
         } else {
             deactivate();
         }
@@ -335,12 +342,14 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
         return nextBestChatHead;
     }
 
-
-    private void deactivate() {
-
+    private Bundle getBundleWithHero() {
         Bundle bundle = new Bundle();
         bundle.putInt(MinimizedArrangement.BUNDLE_HERO_INDEX_KEY, getHeroIndex());
-        container.setArrangement(MinimizedArrangement.class, bundle);
+        return bundle;
+    }
+
+    private void deactivate() {
+        container.setArrangement(MinimizedArrangement.class, getBundleWithHero());
         hideView();
     }
 
@@ -364,6 +373,11 @@ public class MaximizedArrangement<T> extends ChatHeadArrangement {
     @Override
     public void onConfigChanged(ChatHeadConfig newConfig) {
 
+    }
+
+    @Override
+    public Bundle getRetainBundle() {
+        return getBundleWithHero();
     }
 
 

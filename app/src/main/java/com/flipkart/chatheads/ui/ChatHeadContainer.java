@@ -7,10 +7,14 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.util.SimpleArrayMap;
 import android.util.AttributeSet;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,15 +27,19 @@ import com.facebook.rebound.SpringConfigRegistry;
 import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.R;
 
+import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseButton.CloseButtonListener {
+public class ChatHeadContainer<T extends Serializable> extends FrameLayout implements ChatHeadCloseButton.CloseButtonListener {
 
+    private static final int OVERLAY_TRANSITION_DURATION = 200;
     private final Map<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangements = new HashMap<>(3);
     private List<ChatHead<T>> chatHeads;
     private int maxWidth;
@@ -48,6 +56,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     private Fragment currentFragment;
     private ChatHeadConfig config;
     private ChatHeadListener listener;
+    private Bundle activeArrangementBundle;
 
     public ChatHeadContainer(Context context) {
         super(context);
@@ -152,7 +161,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
      *                 Sticky chat heads can never be removed
      * @return
      */
-    public ChatHead<T> addChatHead(T key, boolean isSticky) {
+    public ChatHead<T> addChatHead(T key, boolean isSticky, boolean animated) {
         final ChatHead<T> chatHead = new ChatHead<T>(this, springSystem, getContext(), isSticky);
         chatHead.setKey(key);
         chatHeads.add(chatHead);
@@ -163,7 +172,7 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
         reloadDrawable(key);
 
         if (activeArrangement != null)
-            activeArrangement.onChatHeadAdded(chatHead);
+            activeArrangement.onChatHeadAdded(chatHead, animated);
         else {
             chatHead.getHorizontalSpring().setCurrentValue(-100);
             chatHead.getVerticalSpring().setCurrentValue(-100);
@@ -297,29 +306,38 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
     }
 
     public void setArrangement(final Class<? extends ChatHeadArrangement> arrangement, Bundle extras) {
+        setArrangement(arrangement, extras, true);
+    }
+
+    public void setArrangement(final Class<? extends ChatHeadArrangement> arrangement, Bundle extras, boolean animated) {
         ChatHeadArrangement chatHeadArrangement = arrangements.get(arrangement);
         if (activeArrangement != null && chatHeadArrangement != activeArrangement) {
             activeArrangement.onDeactivate(maxWidth, maxHeight);
         }
         activeArrangement = chatHeadArrangement;
         if (extras == null) extras = new Bundle();
-        chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight);
+        activeArrangementBundle = extras;
+        chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight, animated);
 
     }
 
-    public void hideOverlayView() {
+    public void hideOverlayView(boolean animated) {
         if (overlayVisible) {
             TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
-            drawable.reverseTransition(200);
+            int duration = OVERLAY_TRANSITION_DURATION;
+            if (!animated) duration = 0;
+            drawable.reverseTransition(duration);
             overlayView.setClickable(false);
             overlayVisible = false;
         }
     }
 
-    public void showOverlayView() {
+    public void showOverlayView(boolean animated) {
         if (!overlayVisible) {
             TransitionDrawable drawable = (TransitionDrawable) overlayView.getBackground();
-            drawable.startTransition(200);
+            int duration = OVERLAY_TRANSITION_DURATION;
+            if (!animated) duration = 0;
+            drawable.startTransition(duration);
             overlayView.setClickable(true);
             overlayVisible = true;
         }
@@ -340,6 +358,16 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     public boolean onItemSelected(ChatHead<T> chatHead) {
         return itemSelectedListener != null && itemSelectedListener.onChatHeadSelected(chatHead.getKey(), chatHead);
+    }
+
+    public void onItemRollOver(ChatHead<T> chatHead) {
+        if (itemSelectedListener != null)
+            itemSelectedListener.onChatHeadRollOver(chatHead.getKey(), chatHead);
+    }
+
+    public void onItemRollOut(ChatHead<T> chatHead) {
+        if (itemSelectedListener != null)
+            itemSelectedListener.onChatHeadRollOut(chatHead.getKey(), chatHead);
     }
 
     public void bringToFront(ChatHead chatHead) {
@@ -472,6 +500,50 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
 
     }
 
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        SavedState savedState = new SavedState(superState);
+        savedState.setActiveArrangement(activeArrangement.getClass());
+        savedState.setActiveArrangementBundle(activeArrangement.getRetainBundle());
+
+        LinkedHashMap<T, Boolean> chatHeadState = new LinkedHashMap<>();
+        ArrayList chatHeadSticky = new ArrayList();
+        for (ChatHead<T> chatHead : chatHeads) {
+            T key = chatHead.getKey();
+            boolean sticky = chatHead.isSticky();
+            chatHeadState.put(key, sticky);
+
+        }
+        savedState.setChatHeads(chatHeadState);
+        return savedState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (state instanceof SavedState) {
+            SavedState savedState = (SavedState) state;
+            final Class activeArrangementClass = savedState.getActiveArrangement();
+            final Bundle activeArrangementBundle = savedState.getActiveArrangementBundle();
+            final Map<? extends Serializable, Boolean> chatHeads = savedState.getChatHeads();
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    for (Map.Entry<? extends Serializable, Boolean> entry : chatHeads.entrySet()) {
+                        T key = (T) entry.getKey();
+                        Boolean sticky = entry.getValue();
+                        addChatHead(key, sticky, false);
+                    }
+                    setArrangement(activeArrangementClass, activeArrangementBundle, false);
+                }
+            });
+            super.onRestoreInstanceState(savedState.getSuperState());
+        } else {
+            super.onRestoreInstanceState(state);
+        }
+
+    }
+
     public interface OnItemSelectedListener<T> {
         /**
          * Will be called whenever a chat head is clicked.
@@ -483,5 +555,72 @@ public class ChatHeadContainer<T> extends FrameLayout implements ChatHeadCloseBu
          * @return true if you want to take control. false if you dont care.
          */
         boolean onChatHeadSelected(T key, ChatHead chatHead);
+
+        void onChatHeadRollOver(T key, ChatHead chatHead);
+
+        void onChatHeadRollOut(T key, ChatHead chatHead);
+    }
+
+    static class SavedState extends BaseSavedState {
+        private Class<? extends ChatHeadArrangement> activeArrangement;
+        private Bundle activeArrangementBundle;
+        private LinkedHashMap<? extends Serializable, Boolean> chatHeads;
+
+        public SavedState(Parcel source) {
+            super(source);
+            activeArrangement = (Class<? extends ChatHeadArrangement>) source.readSerializable();
+            activeArrangementBundle = source.readBundle();
+            chatHeads = (LinkedHashMap<? extends Serializable, Boolean>) source.readSerializable();
+        }
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        public void setActiveArrangement(Class<? extends ChatHeadArrangement> activeArrangement) {
+            this.activeArrangement = activeArrangement;
+        }
+
+        public Class<? extends ChatHeadArrangement> getActiveArrangement() {
+            return activeArrangement;
+        }
+
+        public void setActiveArrangementBundle(Bundle activeArrangementBundle) {
+            this.activeArrangementBundle = activeArrangementBundle;
+        }
+
+        public Bundle getActiveArrangementBundle() {
+            return activeArrangementBundle;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeSerializable(activeArrangement);
+            dest.writeBundle(activeArrangementBundle);
+            dest.writeSerializable(chatHeads);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+
+
+        public void setChatHeads(LinkedHashMap<? extends Serializable, Boolean> chatHeads) {
+            this.chatHeads = chatHeads;
+        }
+
+        public Map<? extends Serializable, Boolean> getChatHeads() {
+            return chatHeads;
+        }
     }
 }

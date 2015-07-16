@@ -2,6 +2,7 @@ package com.flipkart.chatheads.ui;
 
 import android.graphics.Point;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -63,7 +64,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     }
 
     @Override
-    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
         if (horizontalSpringChain != null || verticalSpringChain != null) {
             onDeactivate(maxWidth, maxHeight);
         }
@@ -138,13 +139,13 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     }
 
     @Override
-    public void onChatHeadAdded(ChatHead chatHead) {
+    public void onChatHeadAdded(ChatHead chatHead, boolean animated) {
         if (hero != null) {
             chatHead.getHorizontalSpring().setCurrentValue(hero.getHorizontalSpring().getCurrentValue() - currentDelta);
             chatHead.getVerticalSpring().setCurrentValue(hero.getVerticalSpring().getCurrentValue());
         }
 
-        onActivate(container, null, maxWidth, maxHeight);
+        onActivate(container, null, maxWidth, maxHeight, animated);
     }
 
     @Override
@@ -153,7 +154,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
             hero = null;
         }
 
-        onActivate(container, null, maxWidth, maxHeight);
+        onActivate(container, null, maxWidth, maxHeight, true);
     }
 
     @Override
@@ -239,9 +240,15 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     }
 
     private void deactivate() {
+        Bundle bundle = getBundleWithHero();
+        container.setArrangement(MaximizedArrangement.class, bundle);
+    }
+
+    @NonNull
+    private Bundle getBundleWithHero() {
         Bundle bundle = new Bundle();
         bundle.putInt(MaximizedArrangement.BUNDLE_HERO_INDEX_KEY, getHeroIndex());
-        container.setArrangement(MaximizedArrangement.class, bundle);
+        return bundle;
     }
 
     /**
@@ -264,6 +271,11 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public void onConfigChanged(ChatHeadConfig newConfig) {
 
+    }
+
+    @Override
+    public Bundle getRetainBundle() {
+        return getBundleWithHero();
     }
 
     @Override
@@ -351,9 +363,8 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     @Override
     public void bringToFront(ChatHead chatHead) {
         int index = container.getChatHeads().indexOf(chatHead);
-        Bundle b = new Bundle();
-        b.putInt(BUNDLE_HERO_INDEX_KEY, index);
-        onActivate(container, b, container.getMaxWidth(), container.getMaxHeight());
+        Bundle b = getBundleWithHero();
+        onActivate(container, b, container.getMaxWidth(), container.getMaxHeight(), true);
     }
 
     @Override

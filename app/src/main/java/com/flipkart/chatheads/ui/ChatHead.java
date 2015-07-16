@@ -21,11 +21,13 @@ import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 
+import java.io.Serializable;
+
 /**
  * Created by kirankumar on 10/02/15.
  */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class ChatHead<T> extends ImageView implements SpringListener {
+public class ChatHead<T extends Serializable> extends ImageView implements SpringListener {
 
     final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();

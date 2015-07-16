@@ -14,8 +14,8 @@ import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -33,9 +33,11 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private int RADIUS;
     private boolean isActive = false;
     private ChatHeadContainer container;
-    private ChatHead<T> currentChatHead;
+    private ChatHead<? extends Serializable> currentChatHead;
     private int maxWidth;
     private int maxHeight;
+    private RollState rollOverState; //whether we are over or out of a chat head
+    private ChatHead rollOverChatHead; //the chat head where we rolled over //will be non null if we are in roll over state. null if roll out state
 
 
     public CircularArrangement(ChatHeadContainer container) {
@@ -83,12 +85,17 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
+    public Bundle getRetainBundle() {
+        return null;
+    }
+
+    @Override
     public void setContainer(ChatHeadContainer container) {
         this.container = container;
     }
 
     @Override
-    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight) {
+    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
         List<ChatHead> chatHeads = container.getChatHeads();
         RADIUS = container.getConfig().getCircularFanOutRadius(maxWidth, maxHeight);
         int headHeight = container.getConfig().getHeadHeight();
@@ -128,7 +135,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
         isActive = true;
         this.container = container;
-        container.showOverlayView();
+        container.showOverlayView(true);
         container.getOverlayView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -173,6 +180,11 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                         container.getOverlayView().drawPath(pointerViewStatic.getTranslationX() + pointerViewStatic.getMeasuredWidth() / 2, pointerViewStatic.getTranslationY() + pointerViewStatic.getMeasuredHeight() / 2, chatHead.getTranslationX() + chatHead.getMeasuredHeight() / 2, chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
                     }
                     currentChatHead = chatHead;
+                    if (rollOverChatHead != chatHead) {
+                        container.onItemRollOver(chatHead);
+                        rollOverChatHead = chatHead;
+                    }
+                    rollOverState = RollState.OVER;
                     break;
                 }
             }
@@ -184,10 +196,12 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 pointerYSpring.setEndValue(event.getY());
                 pointerScaleSpring.setEndValue(0.5f);
                 container.getOverlayView().clearPath();
+                onRollOut();
                 currentChatHead = null;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             container.getOverlayView().clearPath();
+            onRollOut();
             if (currentChatHead != null) {
                 boolean handled = container.onItemSelected(currentChatHead);
                 if (!handled) {
@@ -197,8 +211,18 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                 deactivate();
             }
 
+        } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+            onRollOut();
         }
         return true;
+    }
+
+    private void onRollOut() {
+        if (rollOverState != RollState.OUT && rollOverChatHead != null) {
+            container.onItemRollOut(rollOverChatHead);
+            rollOverChatHead = null;
+        }
+        rollOverState = RollState.OUT;
     }
 
     /**
@@ -276,7 +300,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         isActive = false;
         pointerViewMovable.setVisibility(View.GONE);
         pointerViewStatic.setVisibility(View.GONE);
-        this.container.hideOverlayView();
+        this.container.hideOverlayView(true);
         currentChatHead = null;
     }
 
@@ -300,13 +324,13 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
-    public void onChatHeadAdded(ChatHead chatHead) {
-        onActivate(container, null, maxWidth, maxHeight);
+    public void onChatHeadAdded(ChatHead chatHead, boolean animated) {
+        onActivate(container, null, maxWidth, maxHeight, true);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        onActivate(container, null, maxWidth, maxHeight);
+        onActivate(container, null, maxWidth, maxHeight, true);
     }
 
     @Override
@@ -332,5 +356,10 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     @Override
     public boolean shouldShowCloseButton(ChatHead chatHead) {
         return false;
+    }
+
+    private enum RollState {
+        OVER, // over means that the finger is over the chat head
+        OUT; // out means that finger is outside the touch tolerance of chat head
     }
 }

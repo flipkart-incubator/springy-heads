@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.ui.ChatHead;
@@ -28,6 +29,7 @@ public class MainActivity extends ActionBarActivity {
     private View circularClickArea;
     private SharedPreferences chatHeadPreferences;
     private ChatHeadContainer chatContainer;
+    private TextView chatHeadLabel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +37,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         circularClickArea = findViewById(R.id.circular_click_area);
         chatHeadPreferences = getSharedPreferences("chat", MODE_PRIVATE);
+        chatHeadLabel = (TextView) findViewById(R.id.chat_head_label);
         chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
         chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
             @Override
@@ -78,16 +81,32 @@ public class MainActivity extends ActionBarActivity {
 //                System.out.println("fragment = " + fragment);
                 return false;
             }
-        });
-        chatContainer.setConfig(new CustomChatHeadConfig(this,getInitialX(),getInitialY()));
-        chatContainer.addChatHead("head0", false);
-        chatContainer.addChatHead("main", true);
-        chatContainer.post(new Runnable() {
+
             @Override
-            public void run() {
-                chatContainer.setArrangement(MinimizedArrangement.class, null);
+            public void onChatHeadRollOver(Object key, ChatHead chatHead) {
+                System.out.println("MainActivity.onChatHeadRollOver "+key+" : "+chatHead);
+                chatHeadLabel.setTranslationX(chatHead.getTranslationX()+chatHead.getMeasuredWidth()/2-chatHeadLabel.getMeasuredWidth()/2);
+                chatHeadLabel.setTranslationY(chatHead.getTranslationY()-chatHeadLabel.getMeasuredHeight());
+                chatHeadLabel.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onChatHeadRollOut(Object key, ChatHead chatHead) {
+                System.out.println("MainActivity.onChatHeadRollOut "+key+" : "+chatHead);
+                chatHeadLabel.setVisibility(View.INVISIBLE);
             }
         });
+        chatContainer.setConfig(new CustomChatHeadConfig(this,getInitialX(),getInitialY()));
+        if(savedInstanceState==null) {
+            chatContainer.addChatHead("head0", false, true);
+            chatContainer.addChatHead("main", true, true);
+            chatContainer.post(new Runnable() {
+                @Override
+                public void run() {
+                    chatContainer.setArrangement(MinimizedArrangement.class, null);
+                }
+            });
+        }
         Button addButton = (Button) findViewById(R.id.add);
         Button removeButton = (Button) findViewById(R.id.remove);
         Button reloadFragmentButton = (Button) findViewById(R.id.reload_fragment);
@@ -95,7 +114,7 @@ public class MainActivity extends ActionBarActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false);
+                ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false,true);
                 chatContainer.bringToFront(chatHead);
             }
         });
