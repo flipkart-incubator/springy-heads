@@ -240,25 +240,28 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
 
             if (isDragging) {
                 container.getCloseButton().pointTo(rawX, rawY);
-                double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
-                if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && showCloseButton) {
-                    setState(ChatHead.State.CAPTURED);
-                    activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                    activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                    int[] coords = container.getChatHeadCoordsForCloseButton(this);
-                    activeHorizontalSpring.setEndValue(coords[0]);
-                    activeVerticalSpring.setEndValue(coords[1]);
-                    container.getCloseButton().onCapture();
+                if(container.getActiveArrangement().canDrag(this)) {
+                    double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
+                    if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && showCloseButton) {
+                        setState(ChatHead.State.CAPTURED);
+                        activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                        activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                        int[] coords = container.getChatHeadCoordsForCloseButton(this);
+                        activeHorizontalSpring.setEndValue(coords[0]);
+                        activeVerticalSpring.setEndValue(coords[1]);
+                        container.getCloseButton().onCapture();
 
-                } else {
-                    setState(ChatHead.State.FREE);
-                    activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
-                    activeVerticalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
-                    activeHorizontalSpring.setCurrentValue(downTranslationX + offsetX);
-                    activeVerticalSpring.setCurrentValue(downTranslationY + offsetY);
-                    container.getCloseButton().onRelease();
+                    } else {
+                        setState(ChatHead.State.FREE);
+                        activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
+                        activeVerticalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
+                        activeHorizontalSpring.setCurrentValue(downTranslationX + offsetX);
+                        activeVerticalSpring.setCurrentValue(downTranslationY + offsetY);
+                        container.getCloseButton().onRelease();
+                    }
+
+                    velocityTracker.computeCurrentVelocity(1000);
                 }
-                velocityTracker.computeCurrentVelocity(1000);
 
             }
 

@@ -90,6 +90,11 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     }
 
     @Override
+    public boolean canDrag(ChatHead chatHead) {
+        return true;
+    }
+
+    @Override
     public void setContainer(ChatHeadContainer container) {
         this.container = container;
     }

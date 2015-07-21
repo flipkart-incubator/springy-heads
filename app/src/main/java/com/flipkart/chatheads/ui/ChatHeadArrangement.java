@@ -5,7 +5,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 
 import com.facebook.rebound.Spring;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
+
+import java.io.Serializable;
 
 /**
  * Created by kirankumar on 13/02/15.
@@ -46,4 +47,6 @@ public abstract class ChatHeadArrangement {
     public abstract void onConfigChanged(ChatHeadConfig newConfig);
 
     public abstract Bundle getRetainBundle();
+
+    public abstract boolean canDrag(ChatHead chatHead);
 }

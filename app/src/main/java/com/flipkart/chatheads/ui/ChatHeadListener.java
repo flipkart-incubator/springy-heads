@@ -5,4 +5,5 @@ package com.flipkart.chatheads.ui;
  */
 public interface ChatHeadListener<T> {
     void onChatHeadRemoved(T key, boolean userTriggered);
+    void onChatHeadArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement);
 }

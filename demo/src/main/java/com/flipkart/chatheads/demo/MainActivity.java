@@ -17,7 +17,7 @@ import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
-import com.flipkart.chatheads.ui.ChatHeadDefaultConfig;
+import com.flipkart.chatheads.ui.ChatHeadListener;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.CircularArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
@@ -84,16 +84,27 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public void onChatHeadRollOver(Object key, ChatHead chatHead) {
-                System.out.println("MainActivity.onChatHeadRollOver "+key+" : "+chatHead);
-                chatHeadLabel.setTranslationX(chatHead.getTranslationX()+chatHead.getMeasuredWidth()/2-chatHeadLabel.getMeasuredWidth()/2);
-                chatHeadLabel.setTranslationY(chatHead.getTranslationY()-chatHeadLabel.getMeasuredHeight());
+                System.out.println("MainActivity.onChatHeadRollOver " + key + " : " + chatHead);
+                chatHeadLabel.setTranslationX(chatHead.getTranslationX() + chatHead.getMeasuredWidth() / 2 - chatHeadLabel.getMeasuredWidth() / 2);
+                chatHeadLabel.setTranslationY(chatHead.getTranslationY() - chatHeadLabel.getMeasuredHeight());
                 chatHeadLabel.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onChatHeadRollOut(Object key, ChatHead chatHead) {
-                System.out.println("MainActivity.onChatHeadRollOut "+key+" : "+chatHead);
+                System.out.println("MainActivity.onChatHeadRollOut " + key + " : " + chatHead);
                 chatHeadLabel.setVisibility(View.INVISIBLE);
+            }
+        });
+        chatContainer.setListener(new ChatHeadListener() {
+            @Override
+            public void onChatHeadRemoved(Object key, boolean userTriggered) {
+
+            }
+
+            @Override
+            public void onChatHeadArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
+                System.out.println("MainActivity.onChatHeadArrangementChanged from "+oldArrangement+" to "+newArrangement);
             }
         });
         chatContainer.setConfig(new CustomChatHeadConfig(this,getInitialX(),getInitialY()));

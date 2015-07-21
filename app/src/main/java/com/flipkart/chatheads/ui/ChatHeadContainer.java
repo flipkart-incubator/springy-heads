@@ -12,9 +12,7 @@ import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.util.SimpleArrayMap;
 import android.util.AttributeSet;
-import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -28,7 +26,6 @@ import com.facebook.rebound.SpringSystem;
 import com.flipkart.chatheads.R;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -311,13 +308,17 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
 
     public void setArrangement(final Class<? extends ChatHeadArrangement> arrangement, Bundle extras, boolean animated) {
         ChatHeadArrangement chatHeadArrangement = arrangements.get(arrangement);
+        ChatHeadArrangement oldArrangement = null;
+        ChatHeadArrangement newArrangement = chatHeadArrangement;
         if (activeArrangement != null && chatHeadArrangement != activeArrangement) {
             activeArrangement.onDeactivate(maxWidth, maxHeight);
+            oldArrangement = activeArrangement;
         }
         activeArrangement = chatHeadArrangement;
         if (extras == null) extras = new Bundle();
         activeArrangementBundle = extras;
         chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight, animated);
+        if(listener!=null) listener.onChatHeadArrangementChanged(oldArrangement,newArrangement);
 
     }
 

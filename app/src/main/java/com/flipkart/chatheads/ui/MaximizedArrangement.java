@@ -96,6 +96,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         container.detachFragment(currentChatHead);
         hideView();
         container.hideOverlayView(true);
+        positions.clear();
     }
 
     @Override
@@ -225,7 +226,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
             int[] coords = container.getChatHeadCoordsForCloseButton(activeChatHead);
             double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + activeChatHead.getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + activeChatHead.getMeasuredHeight() / 2);
 
-            if (distanceCloseButtonFromHead < activeChatHead.CLOSE_ATTRACTION_THRESHOLD && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && activeVerticalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
+            if (distanceCloseButtonFromHead < activeChatHead.CLOSE_ATTRACTION_THRESHOLD && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && activeVerticalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && !activeChatHead.isSticky()) {
 
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
@@ -321,7 +322,9 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
-        container.removeChatHead(activeChatHead.getKey(), true);
+        if(!activeChatHead.isSticky()) {
+            container.removeChatHead(activeChatHead.getKey(), true);
+        }
     }
 
     @Override
@@ -378,6 +381,12 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     @Override
     public Bundle getRetainBundle() {
         return getBundleWithHero();
+    }
+
+    @Override
+    public boolean canDrag(ChatHead chatHead) {
+        if(chatHead.isSticky()) return false;
+        return true;
     }
 
 

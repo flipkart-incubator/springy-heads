@@ -279,6 +279,11 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     }
 
     @Override
+    public boolean canDrag(ChatHead chatHead) {
+        return true; //all chat heads are draggable
+    }
+
+    @Override
     public void onSpringUpdate(ChatHead activeChatHead, boolean isDragging, int maxWidth, int maxHeight, Spring spring, Spring activeHorizontalSpring, Spring activeVerticalSpring, int totalVelocity) {
         /** This method does a bounds Check **/
         double xVelocity = activeHorizontalSpring.getVelocity();
