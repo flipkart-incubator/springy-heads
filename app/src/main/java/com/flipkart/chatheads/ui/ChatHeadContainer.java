@@ -310,12 +310,14 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
         ChatHeadArrangement chatHeadArrangement = arrangements.get(arrangement);
         ChatHeadArrangement oldArrangement = null;
         ChatHeadArrangement newArrangement = chatHeadArrangement;
+        if (extras == null) extras = new Bundle();
+
         if (activeArrangement != null && chatHeadArrangement != activeArrangement) {
+            extras.putAll(activeArrangement.getRetainBundle());
             activeArrangement.onDeactivate(maxWidth, maxHeight);
             oldArrangement = activeArrangement;
         }
         activeArrangement = chatHeadArrangement;
-        if (extras == null) extras = new Bundle();
         activeArrangementBundle = extras;
         chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight, animated);
         if(listener!=null) listener.onChatHeadArrangementChanged(oldArrangement,newArrangement);

@@ -38,6 +38,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private int maxHeight;
     private RollState rollOverState; //whether we are over or out of a chat head
     private ChatHead rollOverChatHead; //the chat head where we rolled over //will be non null if we are in roll over state. null if roll out state
+    private Bundle retainBundle;
 
 
     public CircularArrangement(ChatHeadContainer container) {
@@ -86,7 +87,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public Bundle getRetainBundle() {
-        return null;
+        return retainBundle;
     }
 
     @Override
@@ -162,6 +163,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         pointerViewStatic.setScaleX(0.5f);
         pointerViewStatic.setScaleY(0.5f);
         currentChatHead = null;
+        retainBundle = extras;
 
     }
 

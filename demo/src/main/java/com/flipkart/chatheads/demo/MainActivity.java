@@ -1,5 +1,7 @@
 package com.flipkart.chatheads.demo;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
@@ -10,6 +12,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -83,10 +86,27 @@ public class MainActivity extends ActionBarActivity {
             }
 
             @Override
-            public void onChatHeadRollOver(Object key, ChatHead chatHead) {
+            public void onChatHeadRollOver(Object key, final ChatHead chatHead) {
                 System.out.println("MainActivity.onChatHeadRollOver " + key + " : " + chatHead);
                 chatHeadLabel.setTranslationX(chatHead.getTranslationX() + chatHead.getMeasuredWidth() / 2 - chatHeadLabel.getMeasuredWidth() / 2);
-                chatHeadLabel.setTranslationY(chatHead.getTranslationY() - chatHeadLabel.getMeasuredHeight());
+                float yStart = chatHead.getTranslationY() + chatHead.getMeasuredHeight()/2 - chatHeadLabel.getMeasuredHeight();
+                float yEnd = chatHead.getTranslationY() - chatHeadLabel.getMeasuredHeight();
+                ObjectAnimator objectAnimatorTranslationY = ObjectAnimator.ofFloat(chatHeadLabel,"translationY",yStart,yEnd);
+                ValueAnimator valueAnimator = ValueAnimator.ofFloat(0,1);
+                valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        Float animatedValue = (Float) animation.getAnimatedValue();
+                        chatHeadLabel.setScaleX(animatedValue);
+                        chatHeadLabel.setScaleY(animatedValue);
+                    }
+                });
+                valueAnimator.setDuration(500);
+                valueAnimator.setInterpolator(new OvershootInterpolator());
+                valueAnimator.start();
+                objectAnimatorTranslationY.setDuration(500);
+                objectAnimatorTranslationY.setInterpolator(new OvershootInterpolator());
+                objectAnimatorTranslationY.start();
                 chatHeadLabel.setVisibility(View.VISIBLE);
             }
 
