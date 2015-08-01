@@ -5,10 +5,10 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:orientation="horizontal"
         android:id="@+id/circular_click_area"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:orientation="horizontal" />
 
     <com.flipkart.chatheads.ui.ChatHeadContainer
         android:id="@+id/chat_container"
@@ -17,11 +17,12 @@
 
     <TextView
         android:id="@+id/chat_head_label"
-        android:background="@drawable/black_bg"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/black_bg"
         android:text="Chat head label"
-        android:textColor="@android:color/white"
-        android:layout_height="wrap_content" />
+        android:textColor="@android:color/white" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -45,6 +46,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Reload fragment" />
+
+        <Button
+            android:id="@+id/bring_front"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bring next to front" />
     </LinearLayout>
 
 

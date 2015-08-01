@@ -16,7 +16,6 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.facebook.rebound.ui.SpringConfiguratorView;
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
@@ -24,6 +23,8 @@ import com.flipkart.chatheads.ui.ChatHeadListener;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.CircularArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
+
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -139,6 +140,7 @@ public class MainActivity extends ActionBarActivity {
             });
         }
         Button addButton = (Button) findViewById(R.id.add);
+        Button bringFrontButton = (Button) findViewById(R.id.bring_front);
         Button removeButton = (Button) findViewById(R.id.remove);
         Button reloadFragmentButton = (Button) findViewById(R.id.reload_fragment);
 
@@ -146,7 +148,6 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false,true);
-                chatContainer.bringToFront(chatHead);
             }
         });
         removeButton.setOnClickListener(new View.OnClickListener() {
@@ -167,6 +168,18 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        bringFrontButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List chatHeads = chatContainer.getChatHeads();
+                if(chatHeads.size()>0)
+                {
+                    double rand = Math.random() * (float) chatHeads.size();
+                    ChatHead chatHead = (ChatHead) chatHeads.get((int) rand);
+                    chatContainer.bringToFront(chatHead);
+                }
+            }
+        });
 
         circularClickArea.setOnTouchListener(new View.OnTouchListener() {
 
@@ -192,8 +205,8 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
         });
-        SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
-        chatContainer.addView(configuratorView, 0);
+        //SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
+        //chatContainer.addView(configuratorView, 0);
 
     }
 

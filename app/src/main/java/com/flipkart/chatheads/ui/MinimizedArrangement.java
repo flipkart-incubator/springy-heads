@@ -150,6 +150,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
+        container.removeFragment(removed);
         if (removed == hero) {
             hero = null;
         }
@@ -186,6 +187,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 spring.destroy();
             }
         }
+
         horizontalSpringChain = null;
         verticalSpringChain = null;
     }
@@ -246,8 +248,12 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @NonNull
     private Bundle getBundleWithHero() {
+        return getBundle(getHeroIndex());
+    }
+
+    private Bundle getBundle(int heroIndex) {
         Bundle bundle = new Bundle();
-        bundle.putInt(MaximizedArrangement.BUNDLE_HERO_INDEX_KEY, getHeroIndex());
+        bundle.putInt(MaximizedArrangement.BUNDLE_HERO_INDEX_KEY, heroIndex);
         return bundle;
     }
 
@@ -256,6 +262,10 @@ public class MinimizedArrangement extends ChatHeadArrangement {
      */
     @Override
     public Integer getHeroIndex() {
+        return getHeroIndex(hero);
+    }
+
+    private Integer getHeroIndex(ChatHead hero) {
         int heroIndex = 0;
         List<ChatHead> chatHeads = container.getChatHeads();
         int i = 0;
@@ -329,7 +339,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                     activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                     activeVerticalSpring.setEndValue(0);
                 } else {
-                    //within boundt
+                    //within bound
                 }
 
             }
@@ -367,8 +377,7 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
     @Override
     public void bringToFront(ChatHead chatHead) {
-        int index = container.getChatHeads().indexOf(chatHead);
-        Bundle b = getBundleWithHero();
+        Bundle b = getBundle(getHeroIndex(chatHead));
         onActivate(container, b, container.getMaxWidth(), container.getMaxHeight(), true);
     }
 

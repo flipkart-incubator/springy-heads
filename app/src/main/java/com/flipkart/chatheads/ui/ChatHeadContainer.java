@@ -147,7 +147,9 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        activeArrangement.handleRawTouchEvent(ev);
+        if(activeArrangement!=null) {
+            activeArrangement.handleRawTouchEvent(ev);
+        }
         return super.dispatchTouchEvent(ev);
     }
 
