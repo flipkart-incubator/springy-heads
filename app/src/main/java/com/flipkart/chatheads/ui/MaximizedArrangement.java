@@ -268,7 +268,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         arrowLayout.setVisibility(View.VISIBLE);
         arrowLayout.setTranslationX((float) dx);
         arrowLayout.setTranslationY((float) dy);
-        //arrowLayout.setAlpha(1f - ((float) distanceFromOriginal / (float) maxDistanceFromOriginal));
+        arrowLayout.setAlpha(1f - ((float) distanceFromOriginal / (float) maxDistanceFromOriginal));
     }
 
     private void pointTo(ChatHead<T> activeChatHead) {
