@@ -54,6 +54,7 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     private ChatHeadConfig config;
     private ChatHeadListener listener;
     private Bundle activeArrangementBundle;
+    private ArrangementChangeRequest requestedArrangement;
 
     public ChatHeadContainer(Context context) {
         super(context);
@@ -99,11 +100,19 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     }
 
     public Class<? extends ChatHeadArrangement> getArrangementType() {
-        return activeArrangement.getClass();
+        if (activeArrangement != null) {
+            return activeArrangement.getClass();
+        } else if (requestedArrangement != null) {
+            return requestedArrangement.getArrangement();
+        }
+        return null;
     }
 
     public ChatHeadArrangement getActiveArrangement() {
-        return activeArrangement;
+        if (activeArrangement != null) {
+            return activeArrangement;
+        }
+        return null;
     }
 
     @Override
@@ -142,12 +151,14 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         maxWidth = getMeasuredWidth();
         maxHeight = getMeasuredHeight();
+        if (requestedArrangement != null) setArrangementImpl(requestedArrangement);
+        requestedArrangement = null;
 
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        if(activeArrangement!=null) {
+        if (activeArrangement != null) {
             activeArrangement.handleRawTouchEvent(ev);
         }
         return super.dispatchTouchEvent(ev);
@@ -309,9 +320,20 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     }
 
     public void setArrangement(final Class<? extends ChatHeadArrangement> arrangement, Bundle extras, boolean animated) {
-        ChatHeadArrangement chatHeadArrangement = arrangements.get(arrangement);
+        this.requestedArrangement = new ArrangementChangeRequest(arrangement, extras, animated);
+        requestLayout();
+    }
+
+    /**
+     * Should only be called after onMeasure
+     *
+     * @param requestedArrangement
+     */
+    private void setArrangementImpl(ArrangementChangeRequest requestedArrangement) {
+        ChatHeadArrangement chatHeadArrangement = arrangements.get(requestedArrangement.getArrangement());
         ChatHeadArrangement oldArrangement = null;
         ChatHeadArrangement newArrangement = chatHeadArrangement;
+        Bundle extras = requestedArrangement.getExtras();
         if (extras == null) extras = new Bundle();
 
         if (activeArrangement != null && chatHeadArrangement != activeArrangement) {
@@ -321,9 +343,8 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
         }
         activeArrangement = chatHeadArrangement;
         activeArrangementBundle = extras;
-        chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight, animated);
-        if(listener!=null) listener.onChatHeadArrangementChanged(oldArrangement,newArrangement);
-
+        chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight, requestedArrangement.isAnimated());
+        if (listener != null) listener.onChatHeadArrangementChanged(oldArrangement, newArrangement);
     }
 
     public void hideOverlayView(boolean animated) {
@@ -567,6 +588,18 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     }
 
     static class SavedState extends BaseSavedState {
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
         private Class<? extends ChatHeadArrangement> activeArrangement;
         private Bundle activeArrangementBundle;
         private LinkedHashMap<? extends Serializable, Boolean> chatHeads;
@@ -582,20 +615,20 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
             super(superState);
         }
 
-        public void setActiveArrangement(Class<? extends ChatHeadArrangement> activeArrangement) {
-            this.activeArrangement = activeArrangement;
-        }
-
         public Class<? extends ChatHeadArrangement> getActiveArrangement() {
             return activeArrangement;
         }
 
-        public void setActiveArrangementBundle(Bundle activeArrangementBundle) {
-            this.activeArrangementBundle = activeArrangementBundle;
+        public void setActiveArrangement(Class<? extends ChatHeadArrangement> activeArrangement) {
+            this.activeArrangement = activeArrangement;
         }
 
         public Bundle getActiveArrangementBundle() {
             return activeArrangementBundle;
+        }
+
+        public void setActiveArrangementBundle(Bundle activeArrangementBundle) {
+            this.activeArrangementBundle = activeArrangementBundle;
         }
 
         @Override
@@ -606,26 +639,36 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
             dest.writeSerializable(chatHeads);
         }
 
-        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
-
-            @Override
-            public SavedState createFromParcel(Parcel source) {
-                return new SavedState(source);
-            }
-
-            @Override
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
-        };
-
+        public Map<? extends Serializable, Boolean> getChatHeads() {
+            return chatHeads;
+        }
 
         public void setChatHeads(LinkedHashMap<? extends Serializable, Boolean> chatHeads) {
             this.chatHeads = chatHeads;
         }
+    }
 
-        public Map<? extends Serializable, Boolean> getChatHeads() {
-            return chatHeads;
+    private class ArrangementChangeRequest {
+        private final Bundle extras;
+        private final Class<? extends ChatHeadArrangement> arrangement;
+        private final boolean animated;
+
+        public ArrangementChangeRequest(Class<? extends ChatHeadArrangement> arrangement, Bundle extras, boolean animated) {
+            this.arrangement = arrangement;
+            this.extras = extras;
+            this.animated = animated;
+        }
+
+        public Bundle getExtras() {
+            return extras;
+        }
+
+        public Class<? extends ChatHeadArrangement> getArrangement() {
+            return arrangement;
+        }
+
+        public boolean isAnimated() {
+            return animated;
         }
     }
 }
