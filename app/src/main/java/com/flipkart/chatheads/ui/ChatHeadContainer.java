@@ -530,16 +530,15 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     protected Parcelable onSaveInstanceState() {
         Parcelable superState = super.onSaveInstanceState();
         SavedState savedState = new SavedState(superState);
-        savedState.setActiveArrangement(activeArrangement.getClass());
-        savedState.setActiveArrangementBundle(activeArrangement.getRetainBundle());
-
+        if (activeArrangement != null) {
+            savedState.setActiveArrangement(activeArrangement.getClass());
+            savedState.setActiveArrangementBundle(activeArrangement.getRetainBundle());
+        }
         LinkedHashMap<T, Boolean> chatHeadState = new LinkedHashMap<>();
-        ArrayList chatHeadSticky = new ArrayList();
         for (ChatHead<T> chatHead : chatHeads) {
             T key = chatHead.getKey();
             boolean sticky = chatHead.isSticky();
             chatHeadState.put(key, sticky);
-
         }
         savedState.setChatHeads(chatHeadState);
         return savedState;
@@ -552,17 +551,14 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
             final Class activeArrangementClass = savedState.getActiveArrangement();
             final Bundle activeArrangementBundle = savedState.getActiveArrangementBundle();
             final Map<? extends Serializable, Boolean> chatHeads = savedState.getChatHeads();
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    for (Map.Entry<? extends Serializable, Boolean> entry : chatHeads.entrySet()) {
-                        T key = (T) entry.getKey();
-                        Boolean sticky = entry.getValue();
-                        addChatHead(key, sticky, false);
-                    }
-                    setArrangement(activeArrangementClass, activeArrangementBundle, false);
-                }
-            });
+            for (Map.Entry<? extends Serializable, Boolean> entry : chatHeads.entrySet()) {
+                T key = (T) entry.getKey();
+                Boolean sticky = entry.getValue();
+                addChatHead(key, sticky, false);
+            }
+            if (activeArrangementClass != null) {
+                setArrangement(activeArrangementClass, activeArrangementBundle, false);
+            }
             super.onRestoreInstanceState(savedState.getSuperState());
         } else {
             super.onRestoreInstanceState(state);

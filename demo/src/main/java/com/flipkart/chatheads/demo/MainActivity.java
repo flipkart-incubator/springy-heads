@@ -3,7 +3,9 @@ package com.flipkart.chatheads.demo;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -26,6 +28,7 @@ import com.flipkart.chatheads.ui.CircularArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 
 import java.util.List;
+import java.util.Random;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -57,10 +60,9 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public Drawable getChatHeadDrawable(Object key) {
-                if (key.equals("main")) {
-                    return getResources().getDrawable(R.drawable.circular_view_main);
-                } else
-                    return getResources().getDrawable(R.drawable.circular_view);
+                Random rnd = new Random();
+                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                return new ColorDrawable(color);
             }
 
             @Override
@@ -172,8 +174,9 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 List chatHeads = chatContainer.getChatHeads();
                 if (chatHeads.size() > 0) {
+                    ChatHead chatHead;
                     double rand = Math.random() * (float) chatHeads.size();
-                    ChatHead chatHead = (ChatHead) chatHeads.get((int) rand);
+                    chatHead = (ChatHead) chatHeads.get((int) rand);
                     chatContainer.bringToFront(chatHead);
                 }
             }

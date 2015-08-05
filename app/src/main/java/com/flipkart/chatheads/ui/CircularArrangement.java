@@ -16,6 +16,7 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -112,7 +113,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
         Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
         int radius = RADIUS;
-        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0 + headWidth, 0, maxWidth - headWidth, maxHeight - (headHeight * 2));
+        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
         double totalSweepArea = (chatHeads.size() - 1) * Math.PI / 4;
         int i = 0;
         for (ChatHead chatHead : chatHeads) {
@@ -135,7 +136,6 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
             double yValue = pointTo.y + radius * Math.sin(angle);
             yValue -= container.getConfig().getHeadHeight() / 2;
             chatHead.getVerticalSpring().setEndValue(yValue);
-
             i++;
         }
 
@@ -245,43 +245,50 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
      * @return
      */
     private Pair<Float, Float> calculateStartEndAngles(Point pointTo, float radius, int left, int top, int right, int bottom) {
-        float fullAngle = (float) (Math.PI * 2);
-        double startAngle = -Math.PI;
-        double endAngle = Math.PI;
-        Rect rect = new Rect(left, top, right, bottom);
-        int outside = 2;
-        int inside = 1;
-        int current = 0;
-        boolean finishedFullsweep = false;
-        for (double sweep = -Math.PI; sweep <= 3 * Math.PI; sweep += Math.PI / 4) {
-            int x = pointTo.x + (int) (radius * Math.cos(sweep));
-            int y = pointTo.y + (int) (radius * Math.sin(sweep));
-
-            if (!rect.contains(x, y)) {
-                current = outside;
-            }
-            if (rect.contains(x, y)) {
-                if (current == outside) {
-                    startAngle = sweep;
+        Rect circleRect = new Rect((pointTo.x - (int) radius), (pointTo.y - (int) radius), (pointTo.x + (int) radius), (pointTo.y + (int) radius));
+        Rect screenRect = new Rect(left, top, right, bottom);
+        List<Quadrant> quadrants = findContainingQuadrants(circleRect, screenRect);
+        float minAngle = Float.MAX_VALUE, maxAngle = Float.MIN_VALUE;
+        if (quadrants.contains(Quadrant.IV) && quadrants.contains(Quadrant.I) && quadrants.size() == 2) {
+            //TODO this is a hack until a better way if figured out
+            minAngle = (float) (-Math.PI / 2);
+            maxAngle = (float) (Math.PI / 2);
+        } else {
+            if (quadrants.size() < 4) {
+                for (Quadrant quadrant : quadrants) {
+                    double angle2 = (quadrant.getStartAngle());
+                    minAngle = (float) Math.min(minAngle, angle2);
+                    double angle4 = (quadrant.getEndAngle());
+                    maxAngle = (float) Math.max(maxAngle, angle4);
                 }
-                endAngle = sweep;
-                current = inside;
-            }
-            if (sweep >= Math.PI) {
-                finishedFullsweep = true;
-            }
-            if (finishedFullsweep && current == outside) {
-                break;
+            } else {
+                minAngle = (float) Math.PI;
+                maxAngle = (float) (Math.PI * 2);
             }
         }
-        float finalStartAngle = (float) startAngle;
+        return new Pair<>(minAngle, maxAngle);
+    }
 
-        if (endAngle < startAngle) {
-            endAngle += fullAngle;
+    private double convert(double angle) {
+        return ((angle + Math.PI) % (Math.PI * 2f)) - Math.PI;
+    }
+
+    /**
+     * Returns the quadrants which the second rect contains in itself fully.
+     */
+    private List<Quadrant> findContainingQuadrants(Rect firstRect, Rect secondRect) {
+        List<Quadrant> quadrants = new ArrayList<>();
+        int radiusX = (firstRect.right - firstRect.left) / 2;
+        int radiusY = (firstRect.bottom - firstRect.top) / 2;
+        for (Quadrant quadrant : Quadrant.values()) {
+            int x = firstRect.centerX() + quadrant.getxSign() * radiusX;
+            int y = firstRect.centerY() + quadrant.getySign() * radiusY;
+            Rect quadrantRect = new Rect(Math.min(x, firstRect.centerX()), Math.min(y, firstRect.centerY()), Math.max(firstRect.centerX(), x), Math.max(firstRect.centerY(), y));
+            if (secondRect.contains(quadrantRect)) {
+                quadrants.add(quadrant);
+            }
         }
-
-        float finalEndAngle = (float) endAngle;
-        return new Pair<>(finalStartAngle, finalEndAngle);
+        return quadrants;
     }
 
     private void deactivate() {
@@ -301,6 +308,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         }
         return heroIndex;
     }
+
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
@@ -368,5 +376,44 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private enum RollState {
         OVER, // over means that the finger is over the chat head
         OUT; // out means that finger is outside the touch tolerance of chat head
+    }
+
+
+//    II  |   I
+//        |
+// <------+------>x
+//        |
+//   III  |  IV
+
+    private enum Quadrant {
+        IV(+1, +1, 0, Math.PI / 2), III(-1, +1, Math.PI / 2, Math.PI), II(-1, -1, Math.PI, 1.5 * Math.PI), I(+1, -1, 1.5 * Math.PI, 2 * Math.PI);
+
+        public double getStartAngle() {
+            return startAngle;
+        }
+
+        public double getEndAngle() {
+            return endAngle;
+        }
+
+        public int getySign() {
+            return ySign;
+        }
+
+        public int getxSign() {
+            return xSign;
+        }
+
+        private final double startAngle;
+        private final double endAngle;
+        private final int ySign;
+        private final int xSign;
+
+        Quadrant(int xSign, int ySign, double startAngle, double endAngle) {
+            this.startAngle = startAngle;
+            this.endAngle = endAngle;
+            this.xSign = xSign;
+            this.ySign = ySign;
+        }
     }
 }
