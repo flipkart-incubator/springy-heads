@@ -114,7 +114,14 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
         int radius = RADIUS;
         Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
-        double totalSweepArea = (chatHeads.size() - 1) * Math.PI / 4;
+        double totalSweepArea = (angles.second - angles.first);
+        if (chatHeads.size() > 0) {
+            double perHeadSweep = totalSweepArea / chatHeads.size();
+            if (perHeadSweep > Math.PI / 5) {
+                perHeadSweep = Math.PI / 5;
+                totalSweepArea = perHeadSweep * chatHeads.size();
+            }
+        }
         int i = 0;
         for (ChatHead chatHead : chatHeads) {
             /** Horizontal **/

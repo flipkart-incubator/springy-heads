@@ -135,13 +135,9 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     private void selectTab(final ChatHead<T> activeChatHead) {
         currentChatHead = activeChatHead;
-        container.post(new Runnable() {
-            @Override
-            public void run() {
-                pointTo(activeChatHead);
-                showView(activeChatHead, 0, 0, 0);
-            }
-        });
+        pointTo(activeChatHead);
+        showView(activeChatHead, 0, 0, 0);
+
     }
 
     private void positionToOriginal(ChatHead activeChatHead, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
@@ -322,7 +318,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
-        if(!activeChatHead.isSticky()) {
+        if (!activeChatHead.isSticky()) {
             container.removeChatHead(activeChatHead.getKey(), true);
         }
     }
@@ -385,7 +381,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public boolean canDrag(ChatHead chatHead) {
-        if(chatHead.isSticky()) return false;
+        if (chatHead.isSticky()) return false;
         return true;
     }
 
