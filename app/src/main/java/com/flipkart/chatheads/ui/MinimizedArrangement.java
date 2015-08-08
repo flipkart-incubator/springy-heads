@@ -196,24 +196,24 @@ public class MinimizedArrangement extends ChatHeadArrangement {
     public boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring
             activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging) {
 
-        if (Math.abs(xVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 50)) {
-            if (activeHorizontalSpring.getCurrentValue() < (maxWidth - activeHorizontalSpring.getCurrentValue())) {
-                xVelocity = -1;
-            } else {
-                xVelocity = 1;
-            }
-        }
-        if (xVelocity < 0) {
-            int newVelocity = (int) (-activeHorizontalSpring.getCurrentValue() * SpringConfigsHolder.DRAGGING.friction);
-            if (xVelocity > newVelocity)
-                xVelocity = (newVelocity);
-
-        } else if (xVelocity > 0) {
-            int newVelocity = (int) ((maxWidth - activeHorizontalSpring.getCurrentValue() - activeChatHead.getMeasuredWidth()) * SpringConfigsHolder.DRAGGING.friction);
-            if (newVelocity > xVelocity)
-                xVelocity = (newVelocity);
-        }
         if (activeChatHead.getState() == ChatHead.State.FREE) {
+            if (Math.abs(xVelocity) < ChatHeadUtils.dpToPx(container.getContext(), 50)) {
+                if (activeHorizontalSpring.getCurrentValue() < (maxWidth - activeHorizontalSpring.getCurrentValue())) {
+                    xVelocity = -1;
+                } else {
+                    xVelocity = 1;
+                }
+            }
+            if (xVelocity < 0) {
+                int newVelocity = (int) (-activeHorizontalSpring.getCurrentValue() * SpringConfigsHolder.DRAGGING.friction);
+                if (xVelocity > newVelocity)
+                    xVelocity = (newVelocity);
+
+            } else if (xVelocity > 0) {
+                int newVelocity = (int) ((maxWidth - activeHorizontalSpring.getCurrentValue() - activeChatHead.getMeasuredWidth()) * SpringConfigsHolder.DRAGGING.friction);
+                if (newVelocity > xVelocity)
+                    xVelocity = (newVelocity);
+            }
             if (Math.abs(xVelocity) <= 1) {
                 // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
                 // so we give a a negligible velocity to artificially fire onSpringUpdate
@@ -223,13 +223,12 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                     xVelocity = 1;
             }
 
-            if(yVelocity == 0)
+            if (yVelocity == 0)
                 yVelocity = 1;
 
-
-            activeHorizontalSpring.setVelocity(xVelocity);
-            activeVerticalSpring.setVelocity(yVelocity);
         }
+        activeHorizontalSpring.setVelocity(xVelocity);
+        activeVerticalSpring.setVelocity(yVelocity);
 
         if (!wasDragging) {
             boolean handled = container.onItemSelected(activeChatHead);
@@ -355,11 +354,13 @@ public class MinimizedArrangement extends ChatHeadArrangement {
 
             if (distanceCloseButtonFromHead < activeChatHead.CLOSE_ATTRACTION_THRESHOLD && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && activeVerticalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
 
+
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeHorizontalSpring.setEndValue(coords[0]);
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeVerticalSpring.setEndValue(coords[1]);
                 activeChatHead.setState(ChatHead.State.CAPTURED);
+
             }
             if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeVerticalSpring.isAtRest()) {
                 container.getCloseButton().disappear(false, true);

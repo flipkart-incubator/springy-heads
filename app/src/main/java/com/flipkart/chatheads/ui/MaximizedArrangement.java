@@ -110,9 +110,9 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 xVelocity = 1;
                 yVelocity = 1;
             }
-            activeHorizontalSpring.setVelocity(xVelocity);
-            activeVerticalSpring.setVelocity(yVelocity);
         }
+        activeHorizontalSpring.setVelocity(xVelocity);
+        activeVerticalSpring.setVelocity(yVelocity);
 
 
         if (wasDragging) {
@@ -229,6 +229,8 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 activeChatHead.setState(ChatHead.State.CAPTURED);
             }
             if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
+                activeHorizontalSpring.setVelocity(0);
+                activeVerticalSpring.setVelocity(0);
                 activeHorizontalSpring.setEndValue(coords[0]);
                 activeVerticalSpring.setEndValue(coords[1]);
 
