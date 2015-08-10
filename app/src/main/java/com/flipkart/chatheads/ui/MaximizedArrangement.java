@@ -26,6 +26,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     private UpArrowLayout arrowLayout;
     private int maxDistanceFromOriginal;
     private int topPadding;
+    private boolean isActive = false;
 
 
     public MaximizedArrangement(ChatHeadContainer<T> container) {
@@ -43,10 +44,14 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         this.container = container;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
+        isActive = true;
         List<ChatHead> chatHeads = container.getChatHeads();
         int heroIndex = 0;
         if (extras != null)
             heroIndex = extras.getInt(BUNDLE_HERO_INDEX_KEY, -1);
+        if (heroIndex < 0 && currentChatHead != null) {
+            heroIndex = getHeroIndex(); //this means we have a current chat head and we carry it forward
+        }
         if (heroIndex < 0 || heroIndex > chatHeads.size() - 1) {
             heroIndex = 0;
         }
@@ -97,20 +102,21 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         hideView();
         container.hideOverlayView(true);
         positions.clear();
+        isActive = false;
     }
+
 
     @Override
     public boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging) {
 
 
-        if (activeChatHead.getState() == ChatHead.State.FREE) {
-            if (xVelocity == 0 && yVelocity == 0) {
-                // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
-                // so we give a a negligible velocity to artificially fire onSpringUpdate
-                xVelocity = 1;
-                yVelocity = 1;
-            }
+        if (xVelocity == 0 && yVelocity == 0) {
+            // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
+            // so we give a a negligible velocity to artificially fire onSpringUpdate
+            xVelocity = 1;
+            yVelocity = 1;
         }
+
         activeHorizontalSpring.setVelocity(xVelocity);
         activeVerticalSpring.setVelocity(yVelocity);
 
@@ -136,7 +142,6 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     private void selectTab(final ChatHead<T> activeChatHead) {
         currentChatHead = activeChatHead;
         pointTo(activeChatHead);
-        showView(activeChatHead, 0, 0, 0);
 
     }
 
@@ -229,8 +234,6 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 activeChatHead.setState(ChatHead.State.CAPTURED);
             }
             if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
-                activeHorizontalSpring.setVelocity(0);
-                activeVerticalSpring.setVelocity(0);
                 activeHorizontalSpring.setEndValue(coords[0]);
                 activeVerticalSpring.setEndValue(coords[1]);
 
@@ -391,6 +394,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     @Override
     public void bringToFront(ChatHead chatHead) {
         //nothing to do, everything is in front.
+        selectChatHead(chatHead);
     }
 
     @Override

@@ -214,19 +214,21 @@ public class MinimizedArrangement extends ChatHeadArrangement {
                 if (newVelocity > xVelocity)
                     xVelocity = (newVelocity);
             }
-            if (Math.abs(xVelocity) <= 1) {
-                // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
-                // so we give a a negligible velocity to artificially fire onSpringUpdate
-                if (xVelocity < 0)
-                    xVelocity = -1;
-                else
-                    xVelocity = 1;
-            }
 
-            if (yVelocity == 0)
-                yVelocity = 1;
 
         }
+        if (Math.abs(xVelocity) <= 1) {
+            // this is a hack. If both velocities are 0, onSprintUpdate is not called and the chat head remains whereever it is
+            // so we give a a negligible velocity to artificially fire onSpringUpdate
+            if (xVelocity < 0)
+                xVelocity = -1;
+            else
+                xVelocity = 1;
+        }
+
+        if (yVelocity == 0)
+            yVelocity = 1;
+
         activeHorizontalSpring.setVelocity(xVelocity);
         activeVerticalSpring.setVelocity(yVelocity);
 
