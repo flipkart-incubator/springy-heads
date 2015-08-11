@@ -11,14 +11,12 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
-import com.flipkart.chatheads.reboundextensions.ChatHeadSpringsHolder;
 import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 
 import java.io.Serializable;
@@ -288,6 +286,8 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
         getHorizontalSpring().destroy();
         getVerticalSpring().removeAllListeners();
         getVerticalSpring().destroy();
+        scaleSpring.removeAllListeners();
+        scaleSpring.destroy();
     }
 
     public void setImageDrawable(Drawable chatHeadDrawable) {

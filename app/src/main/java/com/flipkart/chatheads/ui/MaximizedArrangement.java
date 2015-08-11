@@ -308,6 +308,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
         container.removeFragment(removed);
+        positions.remove(removed);
         boolean isEmpty = false;
         if (currentChatHead == removed) {
             ChatHead nextBestChatHead = getNextBestChatHead();
