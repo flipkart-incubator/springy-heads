@@ -67,6 +67,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 ChatHead chatHead = chatHeads.get(i);
                 Spring horizontalSpring = chatHead.getHorizontalSpring();
                 int xPos = leftIndent + (i * (widthPerHead + spacing));//align right
+                positions.put(chatHead, new Point(xPos, topPadding));
                 horizontalSpring.setAtRest();
                 horizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 horizontalSpring.setEndValue(xPos);
@@ -80,7 +81,6 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 if (!animated) {
                     verticalSpring.setCurrentValue(topPadding);
                 }
-                positions.put(chatHead, new Point(xPos, topPadding));
 
             }
             container.getCloseButton().setEnabled(true);
@@ -142,7 +142,6 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     private void selectTab(final ChatHead<T> activeChatHead) {
         currentChatHead = activeChatHead;
         pointTo(activeChatHead);
-
     }
 
     private void positionToOriginal(ChatHead activeChatHead, Spring activeHorizontalSpring, Spring activeVerticalSpring) {
@@ -203,7 +202,6 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
 
         if (spring == activeVerticalSpring || spring == activeHorizontalSpring) {
-
             if (currentChatHead == activeChatHead) {
                 Point point = positions.get(activeChatHead);
                 if (point != null) {
@@ -256,6 +254,14 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
         }
         return arrowLayout;
+    }
+
+    private boolean isViewHidden() {
+        UpArrowLayout arrowLayout = getArrowLayout();
+        if (arrowLayout != null) {
+            return arrowLayout.getVisibility() == View.GONE;
+        }
+        return true;
     }
 
     private void hideView() {
