@@ -194,7 +194,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
                         container.getOverlayView().drawPath(pointerViewStatic.getTranslationX() + pointerViewStatic.getMeasuredWidth() / 2, pointerViewStatic.getTranslationY() + pointerViewStatic.getMeasuredHeight() / 2, chatHead.getTranslationX() + chatHead.getMeasuredHeight() / 2, chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
                     }
                     currentChatHead = chatHead;
-                    if (rollOverChatHead != chatHead) {
+                    if (rollOverChatHead != chatHead && isActive) {
                         container.onItemRollOver(chatHead);
                         rollOverChatHead = chatHead;
                     }
@@ -319,6 +319,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
+        onRollOut();
         isActive = false;
         pointerViewMovable.setVisibility(View.GONE);
         pointerViewStatic.setVisibility(View.GONE);
