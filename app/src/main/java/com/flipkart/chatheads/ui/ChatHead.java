@@ -159,14 +159,15 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
 
     @Override
     public void onSpringUpdate(Spring spring) {
-        Spring activeHorizontalSpring = xPositionSpring;
-        Spring activeVerticalSpring = yPositionSpring;
-        if (spring != activeHorizontalSpring && spring != activeVerticalSpring)
-            return;
-        int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
-        if (container.getActiveArrangement() != null)
-            container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
-
+        if (xPositionSpring != null && yPositionSpring != null) {
+            Spring activeHorizontalSpring = xPositionSpring;
+            Spring activeVerticalSpring = yPositionSpring;
+            if (spring != activeHorizontalSpring && spring != activeVerticalSpring)
+                return;
+            int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
+            if (container.getActiveArrangement() != null)
+                container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
+        }
     }
 
     @Override
@@ -238,7 +239,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
 
             if (isDragging) {
                 container.getCloseButton().pointTo(rawX, rawY);
-                if(container.getActiveArrangement().canDrag(this)) {
+                if (container.getActiveArrangement().canDrag(this)) {
                     double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
                     if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && showCloseButton) {
                         setState(ChatHead.State.CAPTURED);
@@ -282,12 +283,15 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
     }
 
     public void onRemove() {
-        getHorizontalSpring().removeAllListeners();
-        getHorizontalSpring().destroy();
-        getVerticalSpring().removeAllListeners();
-        getVerticalSpring().destroy();
+        xPositionSpring.removeAllListeners();
+        xPositionSpring.destroy();
+        xPositionSpring = null;
+        yPositionSpring.removeAllListeners();
+        yPositionSpring.destroy();
+        yPositionSpring = null;
         scaleSpring.removeAllListeners();
         scaleSpring.destroy();
+        scaleSpring = null;
     }
 
     public void setImageDrawable(Drawable chatHeadDrawable) {

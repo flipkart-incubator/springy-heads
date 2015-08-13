@@ -172,23 +172,27 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
      * @return
      */
     public ChatHead<T> addChatHead(T key, boolean isSticky, boolean animated) {
-        final ChatHead<T> chatHead = new ChatHead<T>(this, springSystem, getContext(), isSticky);
-        chatHead.setKey(key);
-        chatHeads.add(chatHead);
-        addView(chatHead);
-        if (chatHeads.size() > config.getMaxChatHeads(maxWidth, maxHeight)) {
-            removeOldestChatHead();
+        ChatHead<T> chatHead = findChatHeadByKey(key);
+        if (chatHead == null) {
+            chatHead = new ChatHead<T>(this, springSystem, getContext(), isSticky);
+            chatHead.setKey(key);
+            chatHeads.add(chatHead);
+            addView(chatHead);
+            if (chatHeads.size() > config.getMaxChatHeads(maxWidth, maxHeight)) {
+                removeOldestChatHead();
+            }
+            reloadDrawable(key);
+            if (activeArrangement != null)
+                activeArrangement.onChatHeadAdded(chatHead, animated);
+            else {
+                chatHead.getHorizontalSpring().setCurrentValue(-100);
+                chatHead.getVerticalSpring().setCurrentValue(-100);
+            }
+            if (listener != null) {
+                listener.onChatHeadAdded(key);
+            }
+            closeButtonShadow.bringToFront();
         }
-        reloadDrawable(key);
-
-        if (activeArrangement != null)
-            activeArrangement.onChatHeadAdded(chatHead, animated);
-        else {
-            chatHead.getHorizontalSpring().setCurrentValue(-100);
-            chatHead.getVerticalSpring().setCurrentValue(-100);
-        }
-
-        closeButtonShadow.bringToFront();
         return chatHead;
     }
 

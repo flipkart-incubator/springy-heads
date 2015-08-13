@@ -141,6 +141,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     private void selectTab(final ChatHead<T> activeChatHead) {
         currentChatHead = activeChatHead;
+        showOrHideView(activeChatHead);
         pointTo(activeChatHead);
     }
 
@@ -200,28 +201,12 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
         }
 
+        if (activeChatHead == currentChatHead)
 
-        if (spring == activeVerticalSpring || spring == activeHorizontalSpring) {
-            if (currentChatHead == activeChatHead) {
-                Point point = positions.get(activeChatHead);
-                if (point != null) {
-                    double dx = activeHorizontalSpring.getCurrentValue() - point.x;
-                    double dy = activeVerticalSpring.getCurrentValue() - point.y;
-                    double distanceFromOriginal = Math.hypot(dx, dy);
-                    if (distanceFromOriginal < maxDistanceFromOriginal) {
-                        showView(activeChatHead, dx, dy, distanceFromOriginal);
-                    } else {
-                        hideView();
-                    }
-                }
-            }
-        }
+            showOrHideView(activeChatHead);
 
         if (!isDragging) {
-
             /** Capturing check **/
-
-
             int[] coords = container.getChatHeadCoordsForCloseButton(activeChatHead);
             double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + activeChatHead.getMeasuredWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + activeChatHead.getMeasuredHeight() / 2);
 
@@ -230,6 +215,8 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeChatHead.setState(ChatHead.State.CAPTURED);
+            } else {
+                activeChatHead.setState(ChatHead.State.FREE);
             }
             if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
                 activeHorizontalSpring.setEndValue(coords[0]);
@@ -246,6 +233,21 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 container.getCloseButton().disappear(true, true);
             }
         }
+    }
+
+    private void showOrHideView(ChatHead activeChatHead) {
+        Point point = positions.get(activeChatHead);
+        if (point != null) {
+            double dx = activeChatHead.getHorizontalSpring().getCurrentValue() - point.x;
+            double dy = activeChatHead.getVerticalSpring().getCurrentValue() - point.y;
+            double distanceFromOriginal = Math.hypot(dx, dy);
+            if (distanceFromOriginal < maxDistanceFromOriginal) {
+                showView(activeChatHead, dx, dy, distanceFromOriginal);
+            } else {
+                hideView();
+            }
+        }
+
     }
 
     private UpArrowLayout getArrowLayout() {

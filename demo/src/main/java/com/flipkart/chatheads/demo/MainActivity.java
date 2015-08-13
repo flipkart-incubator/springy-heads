@@ -122,8 +122,13 @@ public class MainActivity extends ActionBarActivity {
         });
         chatContainer.setListener(new ChatHeadListener() {
             @Override
-            public void onChatHeadRemoved(Object key, boolean userTriggered) {
+            public void onChatHeadAdded(Object key) {
+                System.out.println("MainActivity.onChatHeadAdded " + key);
+            }
 
+            @Override
+            public void onChatHeadRemoved(Object key, boolean userTriggered) {
+                System.out.println("MainActivity.onChatHeadRemoved " + key);
             }
 
             @Override
@@ -148,7 +153,6 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false, true);
-                chatContainer.bringToFront(chatHead);
             }
         });
         removeButton.setOnClickListener(new View.OnClickListener() {
