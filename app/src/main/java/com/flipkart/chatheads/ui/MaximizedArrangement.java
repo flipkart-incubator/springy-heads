@@ -215,8 +215,6 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeChatHead.setState(ChatHead.State.CAPTURED);
-            } else {
-                activeChatHead.setState(ChatHead.State.FREE);
             }
             if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
                 activeHorizontalSpring.setEndValue(coords[0]);
