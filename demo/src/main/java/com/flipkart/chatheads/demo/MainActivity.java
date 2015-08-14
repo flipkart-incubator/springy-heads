@@ -25,6 +25,7 @@ import com.flipkart.chatheads.ui.ChatHeadContainer;
 import com.flipkart.chatheads.ui.ChatHeadListener;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.CircularArrangement;
+import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 
 import java.util.List;
@@ -135,18 +136,28 @@ public class MainActivity extends ActionBarActivity {
             public void onChatHeadArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
                 System.out.println("MainActivity.onChatHeadArrangementChanged from " + oldArrangement + " to " + newArrangement);
             }
+
+            @Override
+            public void onChatHeadAnimateStart(ChatHead chatHead) {
+
+            }
+
+            @Override
+            public void onChatHeadAnimateEnd(ChatHead chatHead) {
+
+            }
         });
         chatContainer.setConfig(new CustomChatHeadConfig(this, getInitialX(), getInitialY()));
         if (savedInstanceState == null) {
-            chatContainer.addChatHead("head0", false, true);
-            ChatHead chatHead = chatContainer.addChatHead("main", true, true);
-            chatContainer.bringToFront(chatHead);
+            //chatContainer.addChatHead("head0", false, true);
+            //ChatHead chatHead = chatContainer.addChatHead("main", true, true);
+            //chatContainer.bringToFront(chatHead);
             chatContainer.setArrangement(MinimizedArrangement.class, null);
 
         }
         Button addButton = (Button) findViewById(R.id.add);
         Button bringFrontButton = (Button) findViewById(R.id.bring_front);
-        Button removeButton = (Button) findViewById(R.id.remove);
+        Button toggleButton = (Button) findViewById(R.id.arrangement_toggle);
         Button reloadFragmentButton = (Button) findViewById(R.id.reload_fragment);
 
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -155,15 +166,14 @@ public class MainActivity extends ActionBarActivity {
                 ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false, true);
             }
         });
-        removeButton.setOnClickListener(new View.OnClickListener() {
+        toggleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Set<Object> keys = chatContainer.getChatHeads().keySet();
-//                Object[] objects = keys.toArray();
-//                if (objects.length > 0) {
-//                    Object object = objects[objects.length - 1];
-//                    chatContainer.removeChatHead(object);
-//                }
+                if (chatContainer.getArrangementType() == MinimizedArrangement.class) {
+                    chatContainer.setArrangement(MaximizedArrangement.class, new Bundle());
+                } else {
+                    chatContainer.setArrangement(MinimizedArrangement.class, new Bundle());
+                }
             }
         });
         reloadFragmentButton.setOnClickListener(new View.OnClickListener() {

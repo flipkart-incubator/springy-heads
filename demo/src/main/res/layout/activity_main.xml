@@ -13,7 +13,9 @@
     <com.flipkart.chatheads.ui.ChatHeadContainer
         android:id="@+id/chat_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+    </com.flipkart.chatheads.ui.ChatHeadContainer>
 
     <TextView
         android:id="@+id/chat_head_label"
@@ -21,7 +23,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/black_bg"
         android:text="Chat head label"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,10 +39,10 @@
             android:text="Add head" />
 
         <Button
-            android:id="@+id/remove"
+            android:id="@+id/arrangement_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Remove head" />
+            android:text="Toggle arrangement" />
 
         <Button
             android:id="@+id/reload_fragment"

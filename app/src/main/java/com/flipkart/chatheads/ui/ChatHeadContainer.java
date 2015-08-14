@@ -71,6 +71,10 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
         init(context, new ChatHeadDefaultConfig(context));
     }
 
+    public ChatHeadListener getListener() {
+        return listener;
+    }
+
     public void setListener(ChatHeadListener listener) {
         this.listener = listener;
     }
@@ -132,7 +136,9 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
 
     public void selectChatHead(T key) {
         ChatHead chatHead = findChatHeadByKey(key);
-        selectChatHead(chatHead);
+        if (chatHead != null) {
+            selectChatHead(chatHead);
+        }
     }
 
     /**
@@ -492,7 +498,11 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
 
 
     Fragment getFragment(ChatHead<T> activeChatHead, boolean createIfRequired) {
-        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
+        String tag = "";
+        if (activeChatHead != null) {
+            tag = activeChatHead.getKey().toString();
+        }
+        Fragment fragment = getFragmentManager().findFragmentByTag(tag);
         if (fragment == null && createIfRequired) {
             fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
         }

@@ -98,7 +98,9 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
-        container.detachFragment(currentChatHead);
+        if(currentChatHead!=null) {
+            container.detachFragment(currentChatHead);
+        }
         hideView();
         container.hideOverlayView(true);
         positions.clear();
@@ -296,13 +298,8 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         spring.setCurrentValue(maxWidth).setAtRest();
         spring = chatHead.getVerticalSpring();
         spring.setCurrentValue(topPadding).setAtRest();
+        onActivate(container, getBundleWithHero(), maxWidth, maxHeight, animated);
 
-        container.post(new Runnable() {
-            @Override
-            public void run() {
-                onActivate(container, getBundleWithHero(), maxWidth, maxHeight, animated);
-            }
-        });
     }
 
     @Override

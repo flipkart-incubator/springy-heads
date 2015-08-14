@@ -172,12 +172,14 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
 
     @Override
     public void onSpringAtRest(Spring spring) {
-
+        if (container.getListener() != null)
+            container.getListener().onChatHeadAnimateEnd(this);
     }
 
     @Override
     public void onSpringActivate(Spring spring) {
-
+        if (container.getListener() != null)
+            container.getListener().onChatHeadAnimateStart(this);
     }
 
     @Override
@@ -275,7 +277,9 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
                 int yVelocity = (int) velocityTracker.getYVelocity();
                 velocityTracker.recycle();
                 velocityTracker = null;
-                boolean touchUpHandled = container.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
+                if(xPositionSpring!=null && yPositionSpring!=null) {
+                    boolean touchUpHandled = container.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
+                }
             }
         }
 
@@ -283,12 +287,15 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
     }
 
     public void onRemove() {
+        xPositionSpring.setAtRest();
         xPositionSpring.removeAllListeners();
         xPositionSpring.destroy();
         xPositionSpring = null;
+        yPositionSpring.setAtRest();
         yPositionSpring.removeAllListeners();
         yPositionSpring.destroy();
         yPositionSpring = null;
+        scaleSpring.setAtRest();
         scaleSpring.removeAllListeners();
         scaleSpring.destroy();
         scaleSpring = null;
