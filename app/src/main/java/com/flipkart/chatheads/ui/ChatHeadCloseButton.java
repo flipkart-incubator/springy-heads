@@ -3,7 +3,6 @@ package com.flipkart.chatheads.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -14,7 +13,6 @@ import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringSystem;
 import com.facebook.rebound.SpringUtil;
 import com.flipkart.chatheads.R;
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadCloseButton extends ImageView {
@@ -114,9 +112,13 @@ public class ChatHeadCloseButton extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        onParentHeightRefreshed();
+        disappear(true, false);
+    }
+
+    public void onParentHeightRefreshed() {
         mParentWidth = ((View) getParent()).getMeasuredWidth();
         mParentHeight = ((View) getParent()).getMeasuredHeight();
-        disappear(true, false);
     }
 
     public void pointTo(float x, float y) {

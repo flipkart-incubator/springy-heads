@@ -403,7 +403,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onReloadFragment(ChatHead chatHead) {
-        if (chatHead == currentChatHead) {
+        if (currentChatHead!=null && chatHead == currentChatHead) {
             container.addFragment(chatHead, getArrowLayout());
         }
     }

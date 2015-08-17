@@ -110,67 +110,70 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         CLOSE_ATTRACTION_THRESHOLD = (int) (RADIUS * 0.5);
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
+        if(container.getChatHeads().size()>0) {
 
-        Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
-        int radius = RADIUS;
-        Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
-        double totalSweepArea = (angles.second - angles.first);
-        if (chatHeads.size() > 0) {
-            double perHeadSweep = totalSweepArea / chatHeads.size();
-            if (perHeadSweep > Math.PI / 5) {
-                perHeadSweep = Math.PI / 5;
-                totalSweepArea = perHeadSweep * chatHeads.size();
+            Point pointTo = new Point(extras.getInt(BUNDLE_KEY_X), extras.getInt(BUNDLE_KEY_Y));
+            int radius = RADIUS;
+            Pair<Float, Float> angles = calculateStartEndAngles(pointTo, (float) (radius), 0, 0, maxWidth, maxHeight);
+            double totalSweepArea = (angles.second - angles.first);
+            if (chatHeads.size() > 0) {
+                double perHeadSweep = totalSweepArea / chatHeads.size();
+                if (perHeadSweep > Math.PI / 5) {
+                    perHeadSweep = Math.PI / 5;
+                    totalSweepArea = perHeadSweep * chatHeads.size();
+                }
             }
+            int i = 0;
+            for (ChatHead chatHead : chatHeads) {
+                /** Horizontal **/
+                chatHead.getHorizontalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
+                if (chatHeads.size() > 1) {
+                    angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
+                }
+                double xValue = pointTo.x + radius * Math.cos(angle);
+                xValue -= container.getConfig().getHeadWidth() / 2;
+                chatHead.getHorizontalSpring().setEndValue(xValue);
+
+                /** Vertical **/
+                chatHead.getVerticalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
+                angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
+                if (chatHeads.size() > 1) {
+                    angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
+                }
+                double yValue = pointTo.y + radius * Math.sin(angle);
+                yValue -= container.getConfig().getHeadHeight() / 2;
+                chatHead.getVerticalSpring().setEndValue(yValue);
+                i++;
+            }
+
+            isActive = true;
+            this.container = container;
+            container.showOverlayView(true);
+            container.getOverlayView().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    deactivate();
+                }
+            });
+            Drawable pointerDrawable = container.getViewAdapter().getPointerDrawable();
+            pointerViewMovable.setImageDrawable(pointerDrawable);
+            Drawable pointerDrawable2 = container.getViewAdapter().getPointerDrawable();
+            pointerViewStatic.setImageDrawable(pointerDrawable2);
+            pointerViewMovable.setVisibility(View.VISIBLE);
+            pointerViewStatic.setVisibility(View.VISIBLE);
+
+            pointerXSpring.setCurrentValue(pointTo.x);
+            pointerYSpring.setCurrentValue(pointTo.y);
+            pointerScaleSpring.setCurrentValue(0.5f);
+            pointerViewStatic.setTranslationX(pointTo.x - pointerViewStatic.getMeasuredWidth() / 2);
+            pointerViewStatic.setTranslationY(pointTo.y - pointerViewStatic.getMeasuredHeight() / 2);
+            pointerViewStatic.setScaleX(0.5f);
+            pointerViewStatic.setScaleY(0.5f);
+            currentChatHead = null;
         }
-        int i = 0;
-        for (ChatHead chatHead : chatHeads) {
-            /** Horizontal **/
-            chatHead.getHorizontalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            double angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
-            if (chatHeads.size() > 1) {
-                angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
-            }
-            double xValue = pointTo.x + radius * Math.cos(angle);
-            xValue -= container.getConfig().getHeadWidth() / 2;
-            chatHead.getHorizontalSpring().setEndValue(xValue);
-
-            /** Vertical **/
-            chatHead.getVerticalSpring().setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-            angle = angles.first + (angles.second - angles.first) / 2 - (totalSweepArea / 2);
-            if (chatHeads.size() > 1) {
-                angle += (float) i / ((float) chatHeads.size() - 1) * totalSweepArea;
-            }
-            double yValue = pointTo.y + radius * Math.sin(angle);
-            yValue -= container.getConfig().getHeadHeight() / 2;
-            chatHead.getVerticalSpring().setEndValue(yValue);
-            i++;
-        }
-
-        isActive = true;
-        this.container = container;
-        container.showOverlayView(true);
-        container.getOverlayView().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deactivate();
-            }
-        });
-        Drawable pointerDrawable = container.getViewAdapter().getPointerDrawable();
-        pointerViewMovable.setImageDrawable(pointerDrawable);
-        Drawable pointerDrawable2 = container.getViewAdapter().getPointerDrawable();
-        pointerViewStatic.setImageDrawable(pointerDrawable2);
-        pointerViewMovable.setVisibility(View.VISIBLE);
-        pointerViewStatic.setVisibility(View.VISIBLE);
-
-        pointerXSpring.setCurrentValue(pointTo.x);
-        pointerYSpring.setCurrentValue(pointTo.y);
-        pointerScaleSpring.setCurrentValue(0.5f);
-        pointerViewStatic.setTranslationX(pointTo.x - pointerViewStatic.getMeasuredWidth() / 2);
-        pointerViewStatic.setTranslationY(pointTo.y - pointerViewStatic.getMeasuredHeight() / 2);
-        pointerViewStatic.setScaleX(0.5f);
-        pointerViewStatic.setScaleY(0.5f);
-        currentChatHead = null;
         retainBundle = extras;
+
 
     }
 
