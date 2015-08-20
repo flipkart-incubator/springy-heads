@@ -19,5 +19,8 @@
         android:id="@+id/text_view"
         android:gravity="center"
         android:text="Hello world" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" ><requestFocus/></EditText>
 
 </LinearLayout>

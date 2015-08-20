@@ -179,7 +179,13 @@ public class MainActivity extends ActionBarActivity {
         reloadFragmentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chatContainer.reloadFragment("main");
+                Class arrangementType = chatContainer.getArrangementType();
+                if(arrangementType == MaximizedArrangement.class) {
+                    ChatHeadArrangement activeArrangement = chatContainer.getActiveArrangement();
+                    Integer heroIndex = activeArrangement.getHeroIndex();
+                    ChatHead hero = (ChatHead) chatContainer.getChatHeads().get(heroIndex);
+                    chatContainer.reloadFragment(hero.getKey());
+                }
             }
         });
 

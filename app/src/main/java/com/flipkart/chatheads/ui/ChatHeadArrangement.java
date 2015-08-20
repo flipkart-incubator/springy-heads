@@ -6,8 +6,6 @@ import android.view.MotionEvent;
 
 import com.facebook.rebound.Spring;
 
-import java.io.Serializable;
-
 /**
  * Created by kirankumar on 13/02/15.
  */
@@ -49,4 +47,6 @@ public abstract class ChatHeadArrangement {
     public abstract Bundle getRetainBundle();
 
     public abstract boolean canDrag(ChatHead chatHead);
+
+    public abstract void removeOldestChatHead();
 }

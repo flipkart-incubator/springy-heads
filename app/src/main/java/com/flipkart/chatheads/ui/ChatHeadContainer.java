@@ -13,11 +13,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -55,6 +57,7 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     private ChatHeadListener listener;
     private Bundle activeArrangementBundle;
     private ArrangementChangeRequest requestedArrangement;
+    private DisplayMetrics displayMetrics;
 
     public ChatHeadContainer(Context context) {
         super(context);
@@ -69,6 +72,10 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     public ChatHeadContainer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, new ChatHeadDefaultConfig(context));
+    }
+
+    public DisplayMetrics getDisplayMetrics() {
+        return displayMetrics;
     }
 
     public ChatHeadListener getListener() {
@@ -185,7 +192,7 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
             chatHeads.add(chatHead);
             addView(chatHead);
             if (chatHeads.size() > config.getMaxChatHeads(maxWidth, maxHeight)) {
-                removeOldestChatHead();
+                activeArrangement.removeOldestChatHead();
             }
             reloadDrawable(key);
             if (activeArrangement != null)
@@ -200,16 +207,6 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
             closeButtonShadow.bringToFront();
         }
         return chatHead;
-    }
-
-    private void removeOldestChatHead() {
-        for (ChatHead<T> chatHead : chatHeads) {
-            if (!chatHead.isSticky()) {
-                removeChatHead(chatHead.getKey(), false);
-                break;
-            }
-        }
-
     }
 
     public ChatHead<T> findChatHeadByKey(T key) {
@@ -273,6 +270,10 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     }
 
     private void init(Context context, ChatHeadConfig chatHeadDefaultConfig) {
+        DisplayMetrics metrics = new DisplayMetrics();
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(metrics);
+        this.displayMetrics = metrics;
         setConfig(chatHeadDefaultConfig);
         chatHeads = new ArrayList<>(5);
         LayoutInflater.from(context).inflate(R.layout.arrow_layout, this, true);
@@ -580,6 +581,14 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
 
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (closeButton != null) {
+            closeButton.onParentHeightRefreshed();
+        }
+    }
+
     public interface OnItemSelectedListener<T> {
         /**
          * Will be called whenever a chat head is clicked.
@@ -679,14 +688,6 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
 
         public boolean isAnimated() {
             return animated;
-        }
-    }
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        if (closeButton != null) {
-            closeButton.onParentHeightRefreshed();
         }
     }
 }

@@ -199,6 +199,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         super.onTouchEvent(event);
 
+        if(xPositionSpring==null || yPositionSpring==null) return false;
         //Chathead view will set the correct active springs on touch
         Spring activeHorizontalSpring = xPositionSpring;
         Spring activeVerticalSpring = yPositionSpring;

@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Created by kiran.kumar on 07/04/15.
  */
-public class CircularArrangement<T> extends ChatHeadArrangement {
+public class CircularArrangement<T extends Serializable> extends ChatHeadArrangement {
     public static final String BUNDLE_KEY_X = "X";
     public static final String BUNDLE_KEY_Y = "Y";
     private final ImageView pointerViewMovable;
@@ -33,8 +33,8 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     private final ImageView pointerViewStatic;
     private int RADIUS;
     private boolean isActive = false;
-    private ChatHeadContainer container;
-    private ChatHead<? extends Serializable> currentChatHead;
+    private ChatHeadContainer<T> container;
+    private ChatHead<T> currentChatHead;
     private int maxWidth;
     private int maxHeight;
     private RollState rollOverState; //whether we are over or out of a chat head
@@ -94,6 +94,16 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     @Override
     public boolean canDrag(ChatHead chatHead) {
         return true;
+    }
+
+    @Override
+    public void removeOldestChatHead() {
+        for (ChatHead<T> chatHead : container.getChatHeads()) {
+            if (!chatHead.isSticky()) {
+                container.removeChatHead(chatHead.getKey(), false);
+                break;
+            }
+        }
     }
 
     @Override
@@ -183,7 +193,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
         super.handleRawTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
             boolean foundSpring = false;
-            List<ChatHead> chatHeads = container.getChatHeads();
+            List<ChatHead<T>> chatHeads = container.getChatHeads();
             for (ChatHead chatHead : chatHeads) {
                 double distance = Math.hypot(event.getX() - pointerViewMovable.getMeasuredWidth() / 2 - chatHead.getTranslationX(), event.getY() - pointerViewMovable.getMeasuredHeight() / 2 - chatHead.getTranslationY());
                 if (distance < CLOSE_ATTRACTION_THRESHOLD) {
@@ -308,7 +318,7 @@ public class CircularArrangement<T> extends ChatHeadArrangement {
     @Override
     public Integer getHeroIndex() {
         int heroIndex = 0;
-        List<ChatHead> chatHeads = container.getChatHeads();
+        List<ChatHead<T>> chatHeads = container.getChatHeads();
         int i = 0;
         for (ChatHead chatHead : chatHeads) {
             if (currentChatHead == chatHead) {
