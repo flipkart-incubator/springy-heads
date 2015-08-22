@@ -157,7 +157,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead, boolean animated) {
-        if (hero != null) {
+        if (hero != null && hero.getHorizontalSpring()!=null && hero.getVerticalSpring()!=null) {
             chatHead.getHorizontalSpring().setCurrentValue(hero.getHorizontalSpring().getCurrentValue() - currentDelta);
             chatHead.getVerticalSpring().setCurrentValue(hero.getVerticalSpring().getCurrentValue());
         }
@@ -383,13 +383,18 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
             double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead((float) activeHorizontalSpring.getCurrentValue() + container.getConfig().getHeadWidth() / 2, (float) activeVerticalSpring.getCurrentValue() + container.getConfig().getHeadHeight() / 2);
 
             if (distanceCloseButtonFromHead < activeChatHead.CLOSE_ATTRACTION_THRESHOLD && activeHorizontalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING && activeVerticalSpring.getSpringConfig() == SpringConfigsHolder.DRAGGING) {
-
-
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                activeHorizontalSpring.setEndValue(coords[0]);
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                activeVerticalSpring.setEndValue(coords[1]);
                 activeChatHead.setState(ChatHead.State.CAPTURED);
+
+            }
+            if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeHorizontalSpring.getSpringConfig()!= SpringConfigsHolder.CAPTURING) {
+                activeHorizontalSpring.setAtRest();
+                activeVerticalSpring.setAtRest();
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CAPTURING);
+                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CAPTURING);
+                activeHorizontalSpring.setEndValue(coords[0]);
+                activeVerticalSpring.setEndValue(coords[1]);
 
             }
             if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeVerticalSpring.isAtRest()) {

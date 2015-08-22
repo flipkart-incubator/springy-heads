@@ -102,7 +102,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
-        if(currentChatHead!=null) {
+        if (currentChatHead != null) {
             container.detachFragment(currentChatHead);
         }
         hideView();
@@ -222,7 +222,11 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                 activeChatHead.setState(ChatHead.State.CAPTURED);
             }
-            if (activeChatHead.getState() == ChatHead.State.CAPTURED) {
+            if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeHorizontalSpring.getSpringConfig()!= SpringConfigsHolder.CAPTURING) {
+                activeHorizontalSpring.setAtRest();
+                activeVerticalSpring.setAtRest();
+                activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CAPTURING);
+                activeVerticalSpring.setSpringConfig(SpringConfigsHolder.CAPTURING);
                 activeHorizontalSpring.setEndValue(coords[0]);
                 activeVerticalSpring.setEndValue(coords[1]);
 
@@ -402,7 +406,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     public void removeOldestChatHead() {
         for (ChatHead<T> chatHead : container.getChatHeads()) {
             //we dont remove sticky chat heads as well as the currently selected chat head
-            if (!chatHead.isSticky() && chatHead!=currentChatHead) {
+            if (!chatHead.isSticky() && chatHead != currentChatHead) {
                 container.removeChatHead(chatHead.getKey(), false);
                 break;
             }
@@ -423,7 +427,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onReloadFragment(ChatHead chatHead) {
-        if (currentChatHead!=null && chatHead == currentChatHead) {
+        if (currentChatHead != null && chatHead == currentChatHead) {
             container.addFragment(chatHead, getArrowLayout());
         }
     }
