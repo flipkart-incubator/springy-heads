@@ -361,12 +361,12 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead, boolean animated) {
-        onActivate(container, null, maxWidth, maxHeight, true);
+        onActivate(container, retainBundle, maxWidth, maxHeight, true);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        onActivate(container, null, maxWidth, maxHeight, true);
+        onActivate(container, retainBundle, maxWidth, maxHeight, true);
     }
 
     @Override
