@@ -1,26 +1,17 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_green_light"
+    android:background="@drawable/rounded_white"
     android:orientation="vertical"
     tools:context="com.flipkart.chatheads.demo.TestFragment">
 
-    <android.support.v7.widget.Toolbar
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:minHeight="?attr/actionBarSize"
-        android:title="Welcome" />
-
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/text_view"
-        android:gravity="center"
-        android:text="Hello world" />
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" ><requestFocus/></EditText>
+        android:id="@+id/identifier"
+        android:textSize="50sp"
+        android:text="id"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
-</LinearLayout>
+</FrameLayout>

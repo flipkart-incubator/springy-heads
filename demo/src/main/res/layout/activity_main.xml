@@ -26,36 +26,4 @@
         android:textColor="@android:color/white"
         android:visibility="gone" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add head" />
-
-        <Button
-            android:id="@+id/arrangement_toggle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Toggle arrangement" />
-
-        <Button
-            android:id="@+id/reload_fragment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Reload fragment" />
-
-        <Button
-            android:id="@+id/bring_front"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bring next to front" />
-    </LinearLayout>
-
-
 </RelativeLayout>

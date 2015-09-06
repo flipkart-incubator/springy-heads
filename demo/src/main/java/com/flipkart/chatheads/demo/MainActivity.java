@@ -3,9 +3,7 @@ package com.flipkart.chatheads.demo;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,10 +11,12 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.flipkart.chatheads.ui.ChatHead;
@@ -29,7 +29,6 @@ import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 
 import java.util.List;
-import java.util.Random;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -39,6 +38,43 @@ public class MainActivity extends ActionBarActivity {
     private SharedPreferences chatHeadPreferences;
     private ChatHeadContainer chatContainer;
     private TextView chatHeadLabel;
+    private int id = 0;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add_head:
+                addChatHead();
+                break;
+            case R.id.toggle:
+                if (chatContainer.getArrangementType() == MinimizedArrangement.class) {
+                    chatContainer.setArrangement(MaximizedArrangement.class, new Bundle());
+                } else {
+                    chatContainer.setArrangement(MinimizedArrangement.class, new Bundle());
+                }
+                break;
+            case R.id.select_random:
+                List chatHeads = chatContainer.getChatHeads();
+                if (chatHeads.size() > 0) {
+                    double rand = Math.random() * (float) chatHeads.size();
+                    ChatHead chatHead = (ChatHead) chatHeads.get((int) rand);
+                    chatContainer.bringToFront(chatHead);
+                }
+                break;
+        }
+        return true;
+    }
+
+    private void addChatHead() {
+        chatContainer.addChatHead("head" + Math.random(), false, true);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +92,13 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public Fragment instantiateFragment(Object key, ChatHead chatHead) {
-                return TestFragment.newInstance(key);
+                id++;
+                return TestFragment.newInstance(id);
             }
 
             @Override
             public Drawable getChatHeadDrawable(Object key) {
-                Random rnd = new Random();
-                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-                return new ColorDrawable(color);
+                return getResources().getDrawable(R.drawable.head);
             }
 
             @Override
@@ -79,20 +114,11 @@ public class MainActivity extends ActionBarActivity {
         chatContainer.setOnItemSelectedListener(new ChatHeadContainer.OnItemSelectedListener() {
             @Override
             public boolean onChatHeadSelected(Object key, ChatHead chatHead) {
-                if (chatContainer.getArrangementType() == CircularArrangement.class) {
-                    System.out.println("Clicked on " + key + " " +
-                            "when arrangement was circular");
-                }
-//                chatContainer.setArrangement(MaximizedArrangement.class, null);
-//                Fragment fragment = chatContainer.instantiateFragment(key,true);
-//                //fragment.setArguments(new Bundle());
-//                System.out.println("fragment = " + fragment);
                 return false;
             }
 
             @Override
             public void onChatHeadRollOver(Object key, final ChatHead chatHead) {
-                System.out.println("MainActivity.onChatHeadRollOver " + key + " : " + chatHead);
                 chatHeadLabel.setTranslationX(chatHead.getTranslationX() + chatHead.getMeasuredWidth() / 2 - chatHeadLabel.getMeasuredWidth() / 2);
                 float yStart = chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2 - chatHeadLabel.getMeasuredHeight();
                 float yEnd = chatHead.getTranslationY() - chatHeadLabel.getMeasuredHeight();
@@ -112,29 +138,26 @@ public class MainActivity extends ActionBarActivity {
                 objectAnimatorTranslationY.setDuration(500);
                 objectAnimatorTranslationY.setInterpolator(new OvershootInterpolator());
                 objectAnimatorTranslationY.start();
-                chatHeadLabel.setVisibility(View.VISIBLE);
+                //chatHeadLabel.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onChatHeadRollOut(Object key, ChatHead chatHead) {
-                System.out.println("MainActivity.onChatHeadRollOut " + key + " : " + chatHead);
                 chatHeadLabel.setVisibility(View.INVISIBLE);
             }
         });
         chatContainer.setListener(new ChatHeadListener() {
             @Override
             public void onChatHeadAdded(Object key) {
-                System.out.println("MainActivity.onChatHeadAdded " + key);
             }
 
             @Override
             public void onChatHeadRemoved(Object key, boolean userTriggered) {
-                System.out.println("MainActivity.onChatHeadRemoved " + key);
             }
 
             @Override
             public void onChatHeadArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
-                System.out.println("MainActivity.onChatHeadArrangementChanged from " + oldArrangement + " to " + newArrangement);
+                setTitle(newArrangement.getClass().getSimpleName());
             }
 
             @Override
@@ -149,59 +172,9 @@ public class MainActivity extends ActionBarActivity {
         });
         chatContainer.setConfig(new CustomChatHeadConfig(this, getInitialX(), getInitialY()));
         if (savedInstanceState == null) {
-            //chatContainer.addChatHead("head0", false, true);
-            //ChatHead chatHead = chatContainer.addChatHead("main", true, true);
-            //chatContainer.bringToFront(chatHead);
             chatContainer.setArrangement(MinimizedArrangement.class, null);
 
         }
-        Button addButton = (Button) findViewById(R.id.add);
-        Button bringFrontButton = (Button) findViewById(R.id.bring_front);
-        Button toggleButton = (Button) findViewById(R.id.arrangement_toggle);
-        Button reloadFragmentButton = (Button) findViewById(R.id.reload_fragment);
-
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ChatHead chatHead = chatContainer.addChatHead("head" + Math.random(), false, true);
-            }
-        });
-        toggleButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (chatContainer.getArrangementType() == MinimizedArrangement.class) {
-                    chatContainer.setArrangement(MaximizedArrangement.class, new Bundle());
-                } else {
-                    chatContainer.setArrangement(MinimizedArrangement.class, new Bundle());
-                }
-            }
-        });
-        reloadFragmentButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Class arrangementType = chatContainer.getArrangementType();
-                if(arrangementType == MaximizedArrangement.class) {
-                    ChatHeadArrangement activeArrangement = chatContainer.getActiveArrangement();
-                    Integer heroIndex = activeArrangement.getHeroIndex();
-                    ChatHead hero = (ChatHead) chatContainer.getChatHeads().get(heroIndex);
-                    chatContainer.reloadFragment(hero.getKey());
-                }
-            }
-        });
-
-        bringFrontButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List chatHeads = chatContainer.getChatHeads();
-                if (chatHeads.size() > 0) {
-                    ChatHead chatHead;
-                    double rand = Math.random() * (float) chatHeads.size();
-                    chatHead = (ChatHead) chatHeads.get((int) rand);
-                    chatContainer.bringToFront(chatHead);
-                }
-            }
-        });
-
         circularClickArea.setOnTouchListener(new View.OnTouchListener() {
 
             Bundle bundle = new Bundle();
@@ -226,9 +199,9 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
         });
-        //SpringConfiguratorView configuratorView = new SpringConfiguratorView(this);
-        //chatContainer.addView(configuratorView, 0);
-
+        chatContainer.setArrangement(MinimizedArrangement.class, new Bundle());
+        addChatHead();
+        addChatHead();
     }
 
     private int getInitialX() {
@@ -247,7 +220,7 @@ public class MainActivity extends ActionBarActivity {
         display.getSize(size);
         int width = size.x;
         int height = size.y;
-        float defaultChatHeadYPosition = height * 0.70f;
+        float defaultChatHeadYPosition = height * 0.50f;
         return chatHeadPreferences.getInt("initialY", (int) defaultChatHeadYPosition);
     }
 

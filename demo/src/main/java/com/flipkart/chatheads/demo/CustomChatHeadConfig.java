@@ -14,14 +14,18 @@ public class CustomChatHeadConfig extends ChatHeadDefaultConfig {
         super(context);
         setHeadHorizontalSpacing(ChatHeadUtils.dpToPx(context, -2));
         setHeadVerticalSpacing(ChatHeadUtils.dpToPx(context, 2));
-        setHeadWidth(ChatHeadUtils.dpToPx(context, 100));
-        setHeadHeight(ChatHeadUtils.dpToPx(context, 100));
-        setInitialPosition(new Point(xPosition,yPosition));
-        setCloseButtonHeight(ChatHeadUtils.dpToPx(context,50));
-        setCloseButtonWidth(ChatHeadUtils.dpToPx(context,50));
-        setCloseButtonBottomMargin(ChatHeadUtils.dpToPx(context,100));
-        setCircularRingWidth(ChatHeadUtils.dpToPx(context,105));
-        setCircularRingHeight(ChatHeadUtils.dpToPx(context,105));
-        setMaxChatHeads(4);
+        setHeadWidth(ChatHeadUtils.dpToPx(context, 50));
+        setHeadHeight(ChatHeadUtils.dpToPx(context, 50));
+        setInitialPosition(new Point(xPosition, yPosition));
+        setCloseButtonHeight(ChatHeadUtils.dpToPx(context, 50));
+        setCloseButtonWidth(ChatHeadUtils.dpToPx(context, 50));
+        setCloseButtonBottomMargin(ChatHeadUtils.dpToPx(context, 100));
+        setCircularRingWidth(ChatHeadUtils.dpToPx(context, 53));
+        setCircularRingHeight(ChatHeadUtils.dpToPx(context, 53));
+    }
+
+    @Override
+    public int getMaxChatHeads(int maxWidth, int maxHeight) {
+        return (int) Math.floor(maxWidth / (getHeadWidth() + getHeadHorizontalSpacing(maxWidth, maxHeight))) - 1;
     }
 }

@@ -191,7 +191,7 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
             chatHead.setKey(key);
             chatHeads.add(chatHead);
             addView(chatHead);
-            if (chatHeads.size() > config.getMaxChatHeads(maxWidth, maxHeight)) {
+            if (chatHeads.size() > config.getMaxChatHeads(maxWidth, maxHeight) && activeArrangement!=null) {
                 activeArrangement.removeOldestChatHead();
             }
             reloadDrawable(key);
@@ -441,60 +441,77 @@ public class ChatHeadContainer<T extends Serializable> extends FrameLayout imple
     }
 
     Fragment addFragment(ChatHead<T> activeChatHead, ViewGroup parent) {
+        try {
+            FragmentManager manager = getFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
 
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
+            Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
 
-        Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
-
-        if (fragment == null) {
-            fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
-            transaction.add(parent.getId(), fragment, activeChatHead.getKey().toString());
-        } else {
-            if (fragment.isDetached()) {
-                transaction.attach(fragment);
+            if (fragment == null) {
+                fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
+                transaction.add(parent.getId(), fragment, activeChatHead.getKey().toString());
+            } else {
+                if (fragment.isDetached()) {
+                    transaction.attach(fragment);
+                }
             }
+            if (fragment != currentFragment && currentFragment != null) {
+                transaction.detach(currentFragment);
+            }
+            currentFragment = fragment;
+            transaction.commitAllowingStateLoss();
+            manager.executePendingTransactions();
+            return fragment;
+        } catch (IllegalStateException ex) {
+            //raised when activity has been destroyed
+            ex.printStackTrace();
         }
-        if (fragment != currentFragment && currentFragment != null) {
-            transaction.detach(currentFragment);
-        }
-        currentFragment = fragment;
-        transaction.commitAllowingStateLoss();
-        manager.executePendingTransactions();
-        return fragment;
+        return null;
     }
 
     Fragment removeFragment(ChatHead chatHead) {
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        Fragment fragment = getFragment(chatHead, false);
-        if (fragment == null) {
-            //we dont have it in our cache. So we create it and add it
-        } else {
-            //we have added it already sometime earlier. So re-attach it.
-            transaction.remove(fragment);
+        try {
+            FragmentManager manager = getFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+            Fragment fragment = getFragment(chatHead, false);
+            if (fragment == null) {
+                //we dont have it in our cache. So we create it and add it
+            } else {
+                //we have added it already sometime earlier. So re-attach it.
+                transaction.remove(fragment);
 
+            }
+            if (fragment == currentFragment) {
+                currentFragment = null;
+            }
+            transaction.commitAllowingStateLoss();
+            manager.executePendingTransactions();
+            return fragment;
+        } catch (IllegalStateException ex) {
+            //raised when activity has been destroyed
+            ex.printStackTrace();
         }
-        if (fragment == currentFragment) {
-            currentFragment = null;
-        }
-        transaction.commitAllowingStateLoss();
-        manager.executePendingTransactions();
-        return fragment;
+        return null;
     }
 
     Fragment detachFragment(ChatHead chatHead) {
-        FragmentManager fragmentManager = getFragmentManager();
-        Fragment fragment = getFragment(chatHead, false);
-        if (fragment != null) {
+        try {
+            FragmentManager fragmentManager = getFragmentManager();
+            Fragment fragment = getFragment(chatHead, false);
+            if (fragment != null) {
 
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            if (!fragment.isDetached()) {
-                fragmentTransaction.detach(fragment);
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                if (!fragment.isDetached()) {
+                    fragmentTransaction.detach(fragment);
+                }
+                fragmentTransaction.commitAllowingStateLoss();
             }
-            fragmentTransaction.commitAllowingStateLoss();
+            return fragment;
+        } catch (IllegalStateException ex) {
+            //raised when activity has been destroyed
+            ex.printStackTrace();
         }
-        return fragment;
+        return null;
     }
 
 
