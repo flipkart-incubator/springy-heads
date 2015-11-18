@@ -60,8 +60,19 @@ public class MainActivity extends ActionBarActivity {
                     chatContainer.setArrangement(MinimizedArrangement.class, new Bundle());
                 }
                 break;
-            case R.id.select_random:
+            case R.id.remove_head:
                 List chatHeads = chatContainer.getChatHeads();
+                if (chatHeads.size() > 0) {
+                    double rand = Math.random() * (float) chatHeads.size();
+                    ChatHead chatHead = (ChatHead) chatHeads.get((int) rand);
+                    chatContainer.removeChatHead(chatHead.getKey(),false);
+                }
+                break;
+            case R.id.remove_all_heads:
+                chatContainer.removeAllChatHeads(false);
+                break;
+            case R.id.select_random:
+                chatHeads = chatContainer.getChatHeads();
                 if (chatHeads.size() > 0) {
                     double rand = Math.random() * (float) chatHeads.size();
                     ChatHead chatHead = (ChatHead) chatHeads.get((int) rand);

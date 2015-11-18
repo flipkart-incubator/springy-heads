@@ -3,8 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/add_head" android:title="Add head"
         android:orderInCategory="1" app:showAsAction="never" />
-    <item android:id="@+id/toggle" android:title="Toggle arrangement"
-        android:orderInCategory="2" app:showAsAction="never" />
-    <item android:id="@+id/select_random" android:title="Select random"
+    <item android:id="@+id/remove_head" android:title="Remove head"
+    android:orderInCategory="2" app:showAsAction="never" />
+    <item android:id="@+id/remove_all_heads" android:title="Remove all heads"
         android:orderInCategory="3" app:showAsAction="never" />
+    <item android:id="@+id/toggle" android:title="Toggle arrangement"
+        android:orderInCategory="4" app:showAsAction="never" />
+    <item android:id="@+id/select_random" android:title="Select random"
+        android:orderInCategory="5" app:showAsAction="never" />
 </menu>
