@@ -1,7 +1,8 @@
 # android-chat-heads
 A facebook like chat heads library for android apps. This includes all the UI physics and spring animations which drive multi user chat behaviour and toggling between maximized and minimized modes.
 
-
+# Demo
+![alt tag](https://raw.githubusercontent.com/Flipkart/android-chat-heads/master/demo/demo.gif?token=AB-1ys5hXY3_zvq03zV2E7SPb1L8IUuAks5WZYcHwA%3D%3D)
 
 # Integration
 
