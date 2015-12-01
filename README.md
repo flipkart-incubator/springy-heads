@@ -53,5 +53,5 @@ Then define the view adapter.
         
 
 The view adapter is invoked when someone selects a chat head.
-In this example I have attached a (String) object to each chat head using generics. You can attach any custom object, for e.g (Conversation) object to denote each chat head.
+In this example a String object ("head0") is attached to each chat head. You can attach any custom object, for e.g a Conversation object to denote each chat head.
 This object will represent a chat head uniquely and will be passed back in all callbacks.
