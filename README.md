@@ -2,7 +2,7 @@
 A facebook like chat heads library for android apps. This includes all the UI physics and spring animations which drive multi user chat behaviour and toggling between maximized, minimized and circular arrangements.
 
 # Demo
-![alt tag](https://raw.githubusercontent.com/Flipkart/android-chat-heads/master/demo/demo.gif?token=AB-1ys5hXY3_zvq03zV2E7SPb1L8IUuAks5WZYcHwA%3D%3D)
+![springy chat heads demo](/demo/demo.gif?raw=true)
 
 # How to use
 
@@ -55,19 +55,3 @@ Then define the view adapter.
 The view adapter is invoked when someone selects a chat head.
 In this example I have attached a (String) object to each chat head using generics. You can attach any custom object, for e.g (Conversation) object to denote each chat head.
 This object will represent a chat head uniquely and will be passed back in all callbacks.
-
-# Showing circular arrangement
-                <any view>.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if (event.getAction() == MotionEvent.ACTION_UP) {
-                            Bundle bundle = new Bundle();
-                            bundle.putInt(CircularArrangement.BUNDLE_KEY_X, (int) event.getX());
-                            bundle.putInt(CircularArrangement.BUNDLE_KEY_Y, (int) event.getY());
-                            chatContainer.setArrangement(CircularArrangement.class, bundle);
-                        }
-                        return true;
-                    }
-                });
-# Reload a fragment after its shown
-                chatContainer.reloadFragment(T key);
