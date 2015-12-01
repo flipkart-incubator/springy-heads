@@ -1,5 +1,5 @@
 # Springy heads
-A facebook like chat heads library for android apps. This includes all the UI physics and spring animations which drive multi user chat behaviour and toggling between maximized, minimized and circular arrangements.
+A chat head library for use within your apps. This includes all the UI physics and spring animations which drive multi user chat behaviour and toggling between maximized, minimized and circular arrangements. The library was written for use with Flipkart app's ping feature.
 
 # Demo
 ![springy chat heads demo](/demo/demo.gif?raw=true)
