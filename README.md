@@ -1,4 +1,4 @@
-# android-chat-heads
+# Springy heads
 A facebook like chat heads library for android apps. This includes all the UI physics and spring animations which drive multi user chat behaviour and toggling between maximized, minimized and circular arrangements.
 
 # Demo
