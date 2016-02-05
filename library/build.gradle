@@ -1,12 +1,15 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion '23.0.2'
+    resourcePrefix "chatheads_"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 21
+        targetSdkVersion 23
     }
     buildTypes {
         release {
@@ -17,8 +20,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.0.0'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.0.0'
     compile 'com.facebook.rebound:rebound:0.3.7'
 }
 
@@ -26,14 +29,16 @@ dependencies {
 buildscript {
     repositories {
         jcenter()
+        maven { url 'https://plugins.gradle.org/m2/' }
         maven { url 'http://repo1.maven.org/maven2' }
         maven { url 'http://artifactory.nm.flipkart.com:8081/artifactory/libs-release-local' }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.0.1'
+        classpath 'com.android.tools.build:gradle:2.0.0-alpha1'
         classpath 'com.github.dcendents:android-maven-plugin:1.+'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.5'
     }
 }
 
@@ -98,5 +103,66 @@ artifactory {
             //username = artifactory_user //Optional resolver user name (leave out to use anonymous resolution), property taken from gradle.properties
             //password = artifactory_password //The resolver password, property taken from gradle.properties
         }
+    }
+}
+
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+
+                // Add your description here
+                name 'A chat head library for use within your apps. '
+                url LIBRARY_URL
+
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'kiran.kumar'
+                        name 'Kiran Kumar'
+                        email 'kiran.kumar@flipkart.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "Springy-heads"
+        websiteUrl = LIBRARY_URL
+        vcsUrl = GIT_URL
+        licenses = ["Apache-2.0"]
+        publish = true
     }
 }
