@@ -15,7 +15,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+import com.flipkart.chatheads.ChatHeadUtils;
 
 public class ChatHeadOverlayView extends View {
     private static final long ANIMATION_DURATION = 600;

@@ -17,7 +17,7 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+import com.flipkart.chatheads.ChatHeadUtils;
 
 import java.io.Serializable;
 

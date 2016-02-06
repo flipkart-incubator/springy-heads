@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.reboundextensions;
+package com.flipkart.chatheads;
 
 import android.content.Context;
 import android.util.DisplayMetrics;

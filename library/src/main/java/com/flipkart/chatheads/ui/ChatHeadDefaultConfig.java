@@ -3,7 +3,7 @@ package com.flipkart.chatheads.ui;
 import android.content.Context;
 import android.graphics.Point;
 
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+import com.flipkart.chatheads.ChatHeadUtils;
 
 /**
  * Created by kiran.kumar on 06/05/15.

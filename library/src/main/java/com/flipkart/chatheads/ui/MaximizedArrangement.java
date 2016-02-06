@@ -9,7 +9,7 @@ import android.view.View;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.R;
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+import com.flipkart.chatheads.ChatHeadUtils;
 
 import java.io.Serializable;
 import java.util.List;
