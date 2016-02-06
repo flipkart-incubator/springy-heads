@@ -21,7 +21,7 @@ android:layout_width="match_parent"
 android:layout_height="match_parent"/>  
 ```
 
-Then define the view adapter.
+Then define the view adapter in your activity
 ```java
 final ChatHeadContainer chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
 chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
