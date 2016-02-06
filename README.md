@@ -45,7 +45,8 @@ chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
 
     @Override
     public Drawable getChatHeadDrawable(Object key) {
-        // this is where you return a drawable for the chat head itself. Typically you return a circular shape
+        // this is where you return a drawable for the chat head itself based on the key. Typically you return a circular shape
+        // you may want to checkout circular image library https://github.com/flipkart-incubator/circular-image
         return getResources().getDrawable(R.drawable.circular_view);
     }
 });
