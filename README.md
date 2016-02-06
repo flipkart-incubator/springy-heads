@@ -4,18 +4,25 @@ A chat head library for use within your apps. This includes all the UI physics a
 # Demo
 ![springy chat heads demo](/demo/demo.gif?raw=true)
 
+# Installation
+Gradle:
+```groovy
+compile 'com.squareup.okhttp3:okhttp:3.0.1'
+```
+
+
 # How to use
 
 Define the view group in your layout file
-
+```xml
         <com.flipkart.chatheads.ui.ChatHeadContainer
         android:id="@+id/chat_head_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-        
+```
 
 Then define the view adapter.
-
+```java
         final ChatHeadContainer chatContainer = (ChatHeadContainer) findViewById(R.id.chat_container);
         chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
             @Override
@@ -50,7 +57,7 @@ Then define the view adapter.
         });
         chatContainer.addChatHead("head0", false); // you can even pass a custom object instead of "head0"
         chatContainer.addChatHead("head1", false); // a sticky chat head cannot be closed and will remain when all other chat heads are closed.
-        
+```        
 
 The view adapter is invoked when someone selects a chat head.
 In this example a String object ("head0") is attached to each chat head. You can attach any custom object, for e.g a Conversation object to denote each chat head.
