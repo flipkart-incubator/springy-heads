@@ -57,11 +57,11 @@ This object will represent a chat head uniquely and will be passed back in all c
 # Toggle arrangements
 You can toggle between the Minimized and Maximized arrangement like this
 ```java
-            chatContainer.setArrangement(MinimizedArrangement.class, null);
+chatContainer.setArrangement(MinimizedArrangement.class, null);
             
-            /** OR **/
+/** OR **/
              
-            chatContainer.setArrangement(MaximizedArrangement.class, null);
+chatContainer.setArrangement(MaximizedArrangement.class, null);
 
 ```
 # Callbacks
