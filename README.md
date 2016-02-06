@@ -48,12 +48,22 @@ chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
 Then add the chat heads
 ```java
 chatContainer.addChatHead("head0", false); // you can even pass a custom object instead of "head0"
-chatContainer.addChatHead("head1", false); // a sticky chat head cannot be closed and will remain when all other chat heads are closed.
+chatContainer.addChatHead("head1", true); // a sticky chat head (passed as 'true') cannot be closed and will remain when all other chat heads are closed.
 ```
 The view adapter is invoked when someone selects a chat head.
 In this example a String object ("head0") is attached to each chat head. You can attach any custom object, for e.g a Conversation object to denote each chat head.
 This object will represent a chat head uniquely and will be passed back in all callbacks.
 
+# Toggle arrangements
+You can toggle between the Minimized and Maximized arrangement like this
+```java
+            chatContainer.setArrangement(MinimizedArrangement.class, null);
+            
+            /** OR **/
+             
+            chatContainer.setArrangement(MaximizedArrangement.class, null);
+
+```
 # Callbacks
 ```java
 chatContainer.setListener(new ChatHeadListener() {
