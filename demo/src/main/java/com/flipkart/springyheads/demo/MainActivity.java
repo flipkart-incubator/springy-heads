@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.demo;
+package com.flipkart.springyheads.demo;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -27,6 +27,7 @@ import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.CircularArrangement;
 import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
+import com.flipkart.springyheads.demo.R;
 
 import java.util.List;
 

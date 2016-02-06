@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.demo;
+package com.flipkart.springyheads.demo;
 
 import android.content.Context;
 import android.graphics.Point;
