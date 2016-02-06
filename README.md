@@ -4,6 +4,11 @@ A chat head library for use within your apps. This includes all the UI physics a
 # Demo
 ![springy chat heads demo](/demo/demo.gif?raw=true)
 
+You can also download the demo app
+
+[![Get it on Google Play](http://www.android.com/images/brand/get_it_on_play_logo_small.png)](http://play.google.com/store/apps/details?id=com.flipkart.springyheads.demo)
+
+
 # Installation
 Gradle:
 ```groovy
@@ -138,3 +143,4 @@ chatContainer.setConfig(new CustomChatHeadConfig(this, 0, 100);
 ```
 # More info
 You can find a working example in MainActivity of demo module included in the source. 
+If you want to add a feature or fix a bug, please issue a pull request. 
