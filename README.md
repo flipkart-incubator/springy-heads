@@ -7,7 +7,7 @@ A chat head library for use within your apps. This includes all the UI physics a
 # Installation
 Gradle:
 ```groovy
-compile 'com.squareup.okhttp3:okhttp:3.0.1'
+compile 'com.flipkart.springyheads:library:0.9.6'
 ```
 
 
