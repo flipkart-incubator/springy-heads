@@ -56,8 +56,12 @@ Then add the chat heads
 chatContainer.addChatHead("head0", false); // you can even pass a custom object instead of "head0"
 chatContainer.addChatHead("head1", true); // a sticky chat head (passed as 'true') cannot be closed and will remain when all other chat heads are closed.
 ```
+And finally set the arrangement
+```java
+chatContainer.setArrangement(MinimizedArrangement.class, null);
+```
 The view adapter is invoked when someone selects a chat head.
-In this example a String object ("head0") is attached to each chat head. You can attach any custom object, for e.g a Conversation object to denote each chat head.
+In this example a String object ("head0") is attached to each chat head. You can instead attach any custom object, for e.g a Conversation object to denote each chat head.
 This object will represent a chat head uniquely and will be passed back in all callbacks.
 
 # Toggle arrangements
@@ -159,3 +163,4 @@ chatContainer.setConfig(new CustomChatHeadConfig(this, 0, 100);
 # More info
 You can find a working example in MainActivity of demo module included in the source. 
 If you want to add a feature or fix a bug, please issue a pull request. 
+This implementation of chat heads is meant to be used within the activity context and cannot be used inside a service.
