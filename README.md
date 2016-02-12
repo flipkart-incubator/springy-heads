@@ -4,6 +4,11 @@ A chat head library for use within your apps. This includes all the UI physics a
 # Demo
 ![springy chat heads demo](/demo/demo.gif?raw=true)
 
+You can also download the demo app
+
+[![Get it on Google Play](http://www.android.com/images/brand/get_it_on_play_logo_small.png)](http://play.google.com/store/apps/details?id=com.flipkart.springyheads.demo)
+
+
 # Installation
 Gradle:
 ```groovy
@@ -40,7 +45,8 @@ chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
 
     @Override
     public Drawable getChatHeadDrawable(Object key) {
-        // this is where you return a drawable for the chat head itself. Typically you return a circular shape
+        // this is where you return a drawable for the chat head itself based on the key. Typically you return a circular shape
+        // you may want to checkout circular image library https://github.com/flipkart-incubator/circular-image
         return getResources().getDrawable(R.drawable.circular_view);
     }
 });
@@ -50,8 +56,12 @@ Then add the chat heads
 chatContainer.addChatHead("head0", false); // you can even pass a custom object instead of "head0"
 chatContainer.addChatHead("head1", true); // a sticky chat head (passed as 'true') cannot be closed and will remain when all other chat heads are closed.
 ```
+And finally set the arrangement
+```java
+chatContainer.setArrangement(MinimizedArrangement.class, null);
+```
 The view adapter is invoked when someone selects a chat head.
-In this example a String object ("head0") is attached to each chat head. You can attach any custom object, for e.g a Conversation object to denote each chat head.
+In this example a String object ("head0") is attached to each chat head. You can instead attach any custom object, for e.g a Conversation object to denote each chat head.
 This object will represent a chat head uniquely and will be passed back in all callbacks.
 
 # Toggle arrangements
@@ -136,5 +146,21 @@ Once this config class is defined, you can set it to the container
 ```java
 chatContainer.setConfig(new CustomChatHeadConfig(this, 0, 100);
 ```
+
+# License
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+        http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
 # More info
 You can find a working example in MainActivity of demo module included in the source. 
+If you want to add a feature or fix a bug, please issue a pull request. 
+This implementation of chat heads is meant to be used within the activity context and cannot be used inside a service.
