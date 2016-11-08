@@ -16,12 +16,22 @@ public abstract class FrameChatHeadContainer implements ChatHeadContainer {
     private final FrameLayout frameLayout;
     private final Context context;
     DisplayMetrics displayMetrics = new DisplayMetrics();
+    private ChatHeadManager manager;
 
     public FrameChatHeadContainer(Context context) {
         this.context = context;
         FrameLayout frameLayout = new FrameLayout(context);
         this.frameLayout = frameLayout;
         addContainer(frameLayout, false);
+    }
+
+    public ChatHeadManager getManager() {
+        return manager;
+    }
+
+    @Override
+    public void onInitialized(ChatHeadManager manager) {
+        this.manager = manager;
     }
 
     public Context getContext() {

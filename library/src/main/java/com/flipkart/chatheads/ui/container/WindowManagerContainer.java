@@ -1,8 +1,13 @@
 package com.flipkart.chatheads.ui.container;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -37,8 +42,20 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     public WindowManagerContainer(Context context) {
         super(context);
         motionCaptureView = new View(context);
-        motionCaptureView.setOnTouchListener(new MotionCapturingTouchListener());
+        MotionCapturingTouchListener listener = new MotionCapturingTouchListener();
+        motionCaptureView.setOnTouchListener(listener);
+        motionCaptureView.setOnKeyListener(listener);
         addContainer(motionCaptureView, true);
+        registerReceiver(context);
+    }
+
+    public void registerReceiver(Context context) {
+        context.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                minimize();
+            }
+        }, new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
     }
 
     public WindowManager getWindowManager() {
@@ -165,12 +182,26 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         }
     }
 
-    protected class MotionCapturingTouchListener implements View.OnTouchListener {
+    protected class MotionCapturingTouchListener implements View.OnTouchListener, View.OnKeyListener {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             event.offsetLocation(getContainerX(v), getContainerY(v));
             getFrameLayout().dispatchTouchEvent(event);
             return false;
+        }
+
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK) {
+                minimize();
+            }
+            return true;
+        }
+    }
+
+    private void minimize() {
+        if (!(getManager().getActiveArrangement() instanceof MinimizedArrangement)) {
+            getManager().setArrangement(MinimizedArrangement.class, null, true);
         }
     }
 }
