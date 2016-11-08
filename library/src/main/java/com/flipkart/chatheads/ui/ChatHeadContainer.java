@@ -15,6 +15,9 @@ import java.io.Serializable;
  * Created by kiran.kumar on 27/10/16.
  */
 public interface ChatHeadContainer {
+
+    void onInitialized(ChatHeadManager manager);
+
     DisplayMetrics getDisplayMetrics();
 
     ViewGroup.LayoutParams createLayoutParams(int height, int width, int gravity, int bottomMargin);

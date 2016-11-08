@@ -18,6 +18,15 @@ public class ChatHeadConfig {
     private int circularRingWidth;
     private int circularRingHeight;
     private int circularFanOutRadius;
+    private boolean closeButtonHidden;
+
+    public boolean isCloseButtonHidden() {
+        return closeButtonHidden;
+    }
+
+    public void setCloseButtonHidden(boolean closeButtonHidden) {
+        this.closeButtonHidden = closeButtonHidden;
+    }
 
     public void setCircularFanOutRadius(int circularFanOutRadius) {
         this.circularFanOutRadius = circularFanOutRadius;

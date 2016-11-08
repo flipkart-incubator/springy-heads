@@ -272,15 +272,15 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         windowManager.getDefaultDisplay().getMetrics(metrics);
         this.displayMetrics = metrics;
-        setConfig(chatHeadDefaultConfig);
+        this.config = chatHeadDefaultConfig; //TODO : needs cleanup
         chatHeads = new ArrayList<>(5);
         arrowLayout = new UpArrowLayout(context);
         arrowLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        chatHeadContainer.addView(arrowLayout,arrowLayout.getLayoutParams());
+        chatHeadContainer.addView(arrowLayout, arrowLayout.getLayoutParams());
         arrowLayout.setVisibility(View.GONE);
         springSystem = SpringSystem.create();
         closeButton = new ChatHeadCloseButton(context, this, maxHeight, maxWidth);
-        ViewGroup.LayoutParams layoutParams = chatHeadContainer.createLayoutParams(getConfig().getCloseButtonHeight(), getConfig().getCloseButtonWidth(), Gravity.TOP | Gravity.LEFT, 0);
+        ViewGroup.LayoutParams layoutParams = chatHeadContainer.createLayoutParams(chatHeadDefaultConfig.getCloseButtonHeight(), chatHeadDefaultConfig.getCloseButtonWidth(), Gravity.TOP | Gravity.LEFT, 0);
         closeButton.setListener(this);
         chatHeadContainer.addView(closeButton, layoutParams);
         closeButtonShadow = new ImageView(getContext());
@@ -292,8 +292,10 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         arrangements.put(MaximizedArrangement.class, new MaximizedArrangement<T>(this));
         arrangements.put(CircularArrangement.class, new CircularArrangement(this));
         setupOverlay(context);
+        setConfig(chatHeadDefaultConfig);
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.DRAGGING, "dragging mode");
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.NOT_DRAGGING, "not dragging mode");
+        chatHeadContainer.onInitialized(this);
     }
 
     private void setupOverlay(Context context) {
@@ -433,7 +435,9 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
 
     @Override
     public void onCloseButtonAppear() {
-        closeButtonShadow.setVisibility(View.VISIBLE);
+        if(!getConfig().isCloseButtonHidden()) {
+            closeButtonShadow.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -487,6 +491,13 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
 //            params.height = config.getCloseButtonHeight();
 //            params.bottomMargin = config.getCloseButtonBottomMargin();
 //            closeButton.setLayoutParams(params);
+            if (config.isCloseButtonHidden()) {
+                closeButton.setVisibility(View.GONE);
+                closeButtonShadow.setVisibility(View.GONE);
+            } else {
+                closeButton.setVisibility(View.VISIBLE);
+                closeButtonShadow.setVisibility(View.VISIBLE);
+            }
         }
         for (Map.Entry<Class<? extends ChatHeadArrangement>, ChatHeadArrangement> arrangementEntry : arrangements.entrySet()) {
             arrangementEntry.getValue().onConfigChanged(config);
