@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
+import android.view.ViewGroup;
 
 import java.io.Serializable;
 
@@ -13,14 +14,9 @@ import java.io.Serializable;
 public interface ChatHeadViewAdapter<T> {
 
     /**
-     * Return the fragment manager. This manager will be asked once and used throughout chat heads library.
+     * Based on the key, this should instantiate and return a View. This View will be removed when the chathead is removed.
      */
-    public FragmentManager getFragmentManager();
-
-    /**
-     * Based on the key, this should instantiate and return a fragment. This fragment will be removed when the chathead is removed.
-     */
-    public Fragment instantiateFragment(T key, ChatHead<? extends Serializable> chatHead);
+    public View createView(T key, ChatHead<? extends Serializable> chatHead, ViewGroup parent);
 
     /**
      * Should return the view used to represent a chat "head". Typically a rounded imageview.

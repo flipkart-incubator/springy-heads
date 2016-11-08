@@ -106,7 +106,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                manager.getChatHeadContainer().setViewX(ChatHead.this, (int)spring.getCurrentValue(), isHero);
+                manager.getChatHeadContainer().setViewX(ChatHead.this, (int)spring.getCurrentValue());
             }
 
             @Override
@@ -122,7 +122,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                manager.getChatHeadContainer().setViewY(ChatHead.this, (int)spring.getCurrentValue(), isHero);
+                manager.getChatHeadContainer().setViewY(ChatHead.this, (int)spring.getCurrentValue());
             }
 
             @Override

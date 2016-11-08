@@ -1,15 +1,11 @@
 package com.flipkart.chatheads.ui;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.DisplayMetrics;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-
-import com.facebook.rebound.Spring;
 
 /**
  * Created by kiran.kumar on 02/11/16.
@@ -55,12 +51,12 @@ public abstract class FrameChatHeadContainer implements ChatHeadContainer {
     }
 
     @Override
-    public void setViewX(View view, int xPosition, boolean isHero) {
+    public void setViewX(View view, int xPosition) {
         view.setTranslationX(xPosition);
     }
 
     @Override
-    public void setViewY(View view, int yPosition, boolean isHero) {
+    public void setViewY(View view, int yPosition) {
         view.setTranslationY(yPosition);
     }
 

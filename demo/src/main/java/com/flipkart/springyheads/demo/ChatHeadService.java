@@ -1,35 +1,27 @@
 package com.flipkart.springyheads.demo;
 
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NotificationCompat;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.flipkart.chatheads.ui.ChatHead;
-import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
-import com.flipkart.chatheads.ui.FrameChatHeadContainer;
-import com.flipkart.chatheads.ui.MinimizedArrangement;
 import com.flipkart.chatheads.ui.ChatHeadContainer;
+import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
+import com.flipkart.chatheads.ui.MinimizedArrangement;
 import com.flipkart.chatheads.ui.container.DefaultChatHeadManager;
 import com.flipkart.chatheads.ui.container.WindowManagerContainer;
-
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
-import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 
 public class ChatHeadService extends Service {
 
     private DefaultChatHeadManager<String> chatContainer;
+    private int chatHeadIdentifier = 0;
 
 
     @Override
@@ -42,24 +34,21 @@ public class ChatHeadService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        final WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         ChatHeadContainer chatHeadContainer = new WindowManagerContainer(this);
-
         chatContainer = new DefaultChatHeadManager<String>(this, chatHeadContainer);
+        chatContainer.setViewAdapter(new ChatHeadViewAdapter<String>() {
 
-        chatContainer.setViewAdapter(new ChatHeadViewAdapter() {
             @Override
-            public FragmentManager getFragmentManager() {
-                return null;
+            public View createView(String key, ChatHead chatHead, ViewGroup parent) {
+                LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+                View view = inflater.inflate(R.layout.fragment_test, parent, false);
+                TextView identifier = (TextView) view.findViewById(R.id.identifier);
+                identifier.setText(key);
+                return view;
             }
 
             @Override
-            public Fragment instantiateFragment(Object key, ChatHead chatHead) {
-                return TestFragment.newInstance(0);
-            }
-
-            @Override
-            public Drawable getChatHeadDrawable(Object key) {
+            public Drawable getChatHeadDrawable(String key) {
                 return getResources().getDrawable(R.drawable.head);
             }
 
@@ -69,11 +58,10 @@ public class ChatHeadService extends Service {
             }
 
             @Override
-            public View getTitleView(Object key, ChatHead chatHead) {
+            public View getTitleView(String key, ChatHead chatHead) {
                 return null;
             }
         });
-
 
         addChatHead();
         addChatHead();
@@ -96,7 +84,8 @@ public class ChatHeadService extends Service {
     }
 
     private void addChatHead() {
-        chatContainer.addChatHead("head" + Math.random(), false, true);
+        chatHeadIdentifier++;
+        chatContainer.addChatHead(String.valueOf(chatHeadIdentifier), false, true);
     }
 
     @Override

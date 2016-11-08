@@ -10,7 +10,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
@@ -71,6 +70,7 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
     private ArrangementChangeRequest requestedArrangement;
     private DisplayMetrics displayMetrics;
     private UpArrowLayout arrowLayout;
+
     public DefaultChatHeadManager(Context context, ChatHeadContainer chatHeadContainer) {
         this.context = context;
         this.chatHeadContainer = chatHeadContainer;
@@ -163,11 +163,6 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         if (chatHead != null) {
             selectChatHead(chatHead);
         }
-    }
-
-    @Override
-    public Fragment getFragment(T key, boolean createIfRequired) {
-        return getFragment(findChatHeadByKey(key), createIfRequired);
     }
 
 
@@ -281,10 +276,11 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         chatHeads = new ArrayList<>(5);
         arrowLayout = new UpArrowLayout(context);
         arrowLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        chatHeadContainer.addView(arrowLayout,arrowLayout.getLayoutParams());
         arrowLayout.setVisibility(View.GONE);
         springSystem = SpringSystem.create();
         closeButton = new ChatHeadCloseButton(context, this, maxHeight, maxWidth);
-        ViewGroup.LayoutParams layoutParams = chatHeadContainer.createLayoutParams(getConfig().getCloseButtonHeight(), getConfig().getCloseButtonWidth(), Gravity.TOP|Gravity.LEFT, 0);
+        ViewGroup.LayoutParams layoutParams = chatHeadContainer.createLayoutParams(getConfig().getCloseButtonHeight(), getConfig().getCloseButtonWidth(), Gravity.TOP | Gravity.LEFT, 0);
         closeButton.setListener(this);
         chatHeadContainer.addView(closeButton, layoutParams);
         closeButtonShadow = new ImageView(getContext());
@@ -301,9 +297,10 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
     }
 
     private void setupOverlay(Context context) {
-        //overlayView = new ChatHeadOverlayView(context);
-        //overlayView.setBackgroundResource(R.drawable.overlay_transition);
-        //viewManager.addView(overlayView, overlayView.getLayoutParams());
+        overlayView = new ChatHeadOverlayView(context);
+        overlayView.setBackgroundResource(R.drawable.overlay_transition);
+        ViewGroup.LayoutParams layoutParams = getChatHeadContainer().createLayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT, Gravity.NO_GRAVITY, 0);
+        getChatHeadContainer().addView(overlayView, layoutParams);
     }
 
     public double getDistanceCloseButtonFromHead(float touchX, float touchY) {
@@ -366,7 +363,9 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         activeArrangement = chatHeadArrangement;
         activeArrangementBundle = extras;
         chatHeadArrangement.onActivate(this, extras, maxWidth, maxHeight, requestedArrangement.isAnimated());
+        chatHeadContainer.onArrangementChanged(oldArrangement, newArrangement);
         if (listener != null) listener.onChatHeadArrangementChanged(oldArrangement, newArrangement);
+
     }
 
     @Override
@@ -444,8 +443,8 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
 
 
     @Override
-    public void reloadFragment(T key) {
-        removeFragment(findChatHeadByKey(key));
+    public void recreateView(T key) {
+        removeView(findChatHeadByKey(key));
         if (activeArrangement != null) {
             activeArrangement.onReloadFragment(findChatHeadByKey(key));
         }
@@ -457,107 +456,22 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
     }
 
     @Override
-    public Fragment addFragment(ChatHead<T> activeChatHead, ViewGroup parent) {
-        try {
-            FragmentManager manager = getFragmentManager();
-            FragmentTransaction transaction = manager.beginTransaction();
+    public View addView(ChatHead<T> activeChatHead, ViewGroup parent) {
+        View view = viewAdapter.createView(activeChatHead.getKey(), activeChatHead, parent);
+        parent.addView(view);
+        return view;
+    }
 
-            Fragment fragment = getFragmentManager().findFragmentByTag(activeChatHead.getKey().toString());
-
-            if (fragment == null) {
-                fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
-                transaction.add(parent.getId(), fragment, activeChatHead.getKey().toString());
-            } else {
-                if (fragment.isDetached()) {
-                    transaction.attach(fragment);
-                }
-            }
-            if (fragment != currentFragment && currentFragment != null) {
-                transaction.detach(currentFragment);
-            }
-            currentFragment = fragment;
-            transaction.commitAllowingStateLoss();
-            manager.executePendingTransactions();
-            return fragment;
-        } catch (IllegalStateException ex) {
-            //raised when activity has been destroyed
-            ex.printStackTrace();
-        }
+    @Override
+    public View removeView(ChatHead chatHead) {
         return null;
     }
 
     @Override
-    public Fragment removeFragment(ChatHead chatHead) {
-        try {
-            FragmentManager manager = getFragmentManager();
-            FragmentTransaction transaction = manager.beginTransaction();
-            Fragment fragment = getFragment(chatHead, false);
-            if (fragment == null) {
-                //we dont have it in our cache. So we create it and add it
-            } else {
-                //we have added it already sometime earlier. So re-attach it.
-                transaction.remove(fragment);
-
-            }
-            if (fragment == currentFragment) {
-                currentFragment = null;
-            }
-            transaction.commitAllowingStateLoss();
-            manager.executePendingTransactions();
-            return fragment;
-        } catch (IllegalStateException ex) {
-            //raised when activity has been destroyed
-            ex.printStackTrace();
-        }
+    public View detachView(ChatHead chatHead) {
         return null;
     }
 
-    @Override
-    public Fragment detachFragment(ChatHead chatHead) {
-        try {
-            FragmentManager fragmentManager = getFragmentManager();
-            Fragment fragment = getFragment(chatHead, false);
-            if (fragment != null) {
-
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                if (!fragment.isDetached()) {
-                    fragmentTransaction.detach(fragment);
-                }
-                fragmentTransaction.commitAllowingStateLoss();
-            }
-            return fragment;
-        } catch (IllegalStateException ex) {
-            //raised when activity has been destroyed
-            ex.printStackTrace();
-        }
-        return null;
-    }
-
-
-    Fragment getFragment(ChatHead<T> activeChatHead, boolean createIfRequired) {
-        String tag = "";
-        if (activeChatHead != null) {
-            tag = activeChatHead.getKey().toString();
-        }
-        Fragment fragment = getFragmentManager().findFragmentByTag(tag);
-        if (fragment == null && createIfRequired) {
-            fragment = getViewAdapter().instantiateFragment(activeChatHead.getKey(), activeChatHead);
-        }
-        return fragment;
-    }
-
-
-    @Override
-    public FragmentManager getFragmentManager() {
-        if (fragmentManager == null) {
-            if (getViewAdapter() == null)
-                throw new IllegalStateException(ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
-            fragmentManager = getViewAdapter().getFragmentManager();
-            if (fragmentManager == null)
-                throw new IllegalStateException(FragmentManager.class.getSimpleName() + " returned from " + ChatHeadViewAdapter.class.getSimpleName() + " should not be null");
-        }
-        return fragmentManager;
-    }
 
     @Override
     public ChatHeadConfig getConfig() {

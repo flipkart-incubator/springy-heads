@@ -171,7 +171,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        manager.removeFragment(removed);
+        manager.removeView(removed);
         if (removed == hero) {
             hero = null;
         }

@@ -102,7 +102,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     @Override
     public void onDeactivate(int maxWidth, int maxHeight) {
         if (currentChatHead != null) {
-            manager.detachFragment(currentChatHead);
+            manager.detachView(currentChatHead);
         }
         hideView();
         manager.hideOverlayView(true);
@@ -288,7 +288,8 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     private void pointTo(ChatHead<T> activeChatHead) {
         UpArrowLayout arrowLayout = getArrowLayout();
-        manager.addFragment(activeChatHead, arrowLayout);
+        manager.addView(activeChatHead, arrowLayout);
+        arrowLayout.bringToFront();
         Point point = positions.get(activeChatHead);
         if (point != null) {
             int padding = manager.getConfig().getHeadVerticalSpacing(maxWidth, maxHeight);
@@ -310,7 +311,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        manager.removeFragment(removed);
+        manager.removeView(removed);
         positions.remove(removed);
         boolean isEmpty = false;
         if (currentChatHead == removed) {
@@ -421,7 +422,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     @Override
     public void onReloadFragment(ChatHead chatHead) {
         if (currentChatHead != null && chatHead == currentChatHead) {
-            manager.addFragment(chatHead, getArrowLayout());
+            manager.addView(chatHead, getArrowLayout());
         }
     }
 

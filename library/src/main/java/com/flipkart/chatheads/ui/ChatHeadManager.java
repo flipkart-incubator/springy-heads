@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.facebook.rebound.SpringSystem;
@@ -42,16 +43,6 @@ public interface ChatHeadManager<T extends Serializable> {
     void selectChatHead(ChatHead chatHead);
 
     void selectChatHead(T key);
-
-    /**
-     * Returns the fragment for the key if its already present. If createIfRequired is set to true, it will create and return it.
-     *
-     * @param key
-     * @param createIfRequired
-     * @return
-     */
-    Fragment getFragment(T key, boolean createIfRequired);
-
     /**
      * Should be called when measuring of the container is done.
      * Typically called from onMeasure or onLayout
@@ -108,17 +99,15 @@ public interface ChatHeadManager<T extends Serializable> {
 
     void onCloseButtonDisappear();
 
-    void reloadFragment(T key);
+    void recreateView(T key);
 
     SpringSystem getSpringSystem();
 
-    Fragment addFragment(ChatHead<T> activeChatHead, ViewGroup parent);
+    View addView(ChatHead<T> activeChatHead, ViewGroup parent);
 
-    Fragment removeFragment(ChatHead chatHead);
+    View removeView(ChatHead chatHead);
 
-    Fragment detachFragment(ChatHead chatHead);
-
-    FragmentManager getFragmentManager();
+    View detachView(ChatHead chatHead);
 
     ChatHeadConfig getConfig();
 

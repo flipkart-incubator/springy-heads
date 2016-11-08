@@ -2,17 +2,19 @@ package com.flipkart.chatheads.ui.container;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.flipkart.chatheads.ui.ChatHead;
+import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.FrameChatHeadContainer;
+import com.flipkart.chatheads.ui.MaximizedArrangement;
+import com.flipkart.chatheads.ui.MinimizedArrangement;
 
 import static android.content.Context.WINDOW_SERVICE;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 
 /**
@@ -20,10 +22,17 @@ import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
  */
 
 public class WindowManagerContainer extends FrameChatHeadContainer {
+    /**
+     * A transparent view of the size of chat head which capture motion events and delegates them to the real view (frame layout)
+     * This view is required since window managers will delegate the touch events to the window beneath it only if they are outside the bounds.
+     * {@link android.view.WindowManager.LayoutParams#FLAG_NOT_TOUCH_MODAL}
+     */
     private final View motionCaptureView;
+
     private int cachedHeight;
     private int cachedWidth;
     private WindowManager windowManager;
+    private ChatHeadArrangement currentArrangement;
 
     public WindowManagerContainer(Context context) {
         super(context);
@@ -38,8 +47,6 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         }
         return windowManager;
     }
-
-
 
     @Override
     public int getContainerHeight() {
@@ -57,19 +64,19 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         return cachedWidth;
     }
 
-    private void setContainerHeight(View container, int height) {
+    protected void setContainerHeight(View container, int height) {
         WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(container);
         layoutParams.height = height;
         getWindowManager().updateViewLayout(container, layoutParams);
     }
 
-    private void setContainerWidth(View container, int width) {
+    protected void setContainerWidth(View container, int width) {
         WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(container);
         layoutParams.width = width;
         getWindowManager().updateViewLayout(container, layoutParams);
     }
 
-    private WindowManager.LayoutParams getOrCreateLayoutParamsForContainer(View container) {
+    protected WindowManager.LayoutParams getOrCreateLayoutParamsForContainer(View container) {
         WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) container.getLayoutParams();
         if (layoutParams == null) {
             layoutParams = createContainerLayoutParams(false);
@@ -101,14 +108,14 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         return layoutParams.y;
     }
 
-    private WindowManager.LayoutParams createContainerLayoutParams(boolean focusable) {
+    protected WindowManager.LayoutParams createContainerLayoutParams(boolean focusable) {
         int focusableFlag = FLAG_NOT_TOUCH_MODAL;
         if (!focusable) {
             focusableFlag |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         }
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(MATCH_PARENT, MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                focusableFlag | FLAG_LAYOUT_NO_LIMITS,
+                focusableFlag,
                 PixelFormat.TRANSLUCENT);
         layoutParams.x = 0;
         layoutParams.y = 0;
@@ -124,24 +131,41 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     }
 
     @Override
-    public void setViewX(View view, int xPosition, boolean isHero) {
-        super.setViewX(view, xPosition, isHero);
-        if (isHero) {
-            setContainerX(motionCaptureView, xPosition);
-            setContainerWidth(motionCaptureView, view.getMeasuredWidth());
+    public void setViewX(View view, int xPosition) {
+        super.setViewX(view, xPosition);
+        if (view instanceof ChatHead) {
+            boolean hero = ((ChatHead) view).isHero();
+            if (hero && currentArrangement instanceof MinimizedArrangement) {
+                setContainerX(motionCaptureView, xPosition);
+                setContainerWidth(motionCaptureView, view.getMeasuredWidth());
+            }
         }
     }
 
     @Override
-    public void setViewY(View view, int yPosition, boolean isHero) {
-        super.setViewY(view, yPosition, isHero);
-        if (isHero) {
-            setContainerY(motionCaptureView, yPosition);
-            setContainerHeight(motionCaptureView, view.getMeasuredHeight());
+    public void setViewY(View view, int yPosition) {
+        super.setViewY(view, yPosition);
+        if (view instanceof ChatHead && currentArrangement instanceof MinimizedArrangement) {
+            boolean hero = ((ChatHead) view).isHero();
+            if (hero) {
+                setContainerY(motionCaptureView, yPosition);
+                setContainerHeight(motionCaptureView, view.getMeasuredHeight());
+            }
         }
     }
 
-    private class MotionCapturingTouchListener implements View.OnTouchListener {
+    @Override
+    public void onArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
+        currentArrangement = newArrangement;
+        if (oldArrangement instanceof MinimizedArrangement && newArrangement instanceof MaximizedArrangement) {
+            setContainerX(motionCaptureView, 0);
+            setContainerY(motionCaptureView, 0);
+            setContainerWidth(motionCaptureView, getContainerWidth());
+            setContainerHeight(motionCaptureView, getContainerHeight());
+        }
+    }
+
+    protected class MotionCapturingTouchListener implements View.OnTouchListener {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             event.offsetLocation(getContainerX(v), getContainerY(v));

@@ -51,7 +51,7 @@ public class ChatHeadCloseButton extends ImageView {
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
                 int x = centerX + (int) spring.getCurrentValue() - getMeasuredWidth()/2;
-                manager.getChatHeadContainer().setViewX(ChatHeadCloseButton.this, x, false);
+                manager.getChatHeadContainer().setViewX(ChatHeadCloseButton.this, x);
 //                System.out.println("spring x = [" + x + "] center "+centerX);
 
             }
@@ -62,7 +62,7 @@ public class ChatHeadCloseButton extends ImageView {
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
                 int y = centerY + (int) spring.getCurrentValue() - getMeasuredHeight()/2;
-                manager.getChatHeadContainer().setViewY(ChatHeadCloseButton.this, y, false);
+                manager.getChatHeadContainer().setViewY(ChatHeadCloseButton.this, y);
 //                System.out.println("spring y = [" + y + "] center "+centerY);
             }
         });
