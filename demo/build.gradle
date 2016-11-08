@@ -21,5 +21,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.flipkart.springyheads:library:0.9.6'
+    //    compile 'com.flipkart.springyheads:library:0.9.6'
+    compile project(':library')
 }

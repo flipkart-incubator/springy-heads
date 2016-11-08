@@ -33,7 +33,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
     private final ImageView pointerViewStatic;
     private int RADIUS;
     private boolean isActive = false;
-    private ChatHeadContainer<T> container;
+    private ChatHeadManager<T> manager;
     private ChatHead<T> currentChatHead;
     private int maxWidth;
     private int maxHeight;
@@ -42,16 +42,16 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
     private Bundle retainBundle;
 
 
-    public CircularArrangement(ChatHeadContainer container) {
-        this.container = container;
-        this.pointerViewMovable = new ImageView(container.getContext());
-        this.pointerViewStatic = new ImageView(container.getContext());
+    public CircularArrangement(ChatHeadManager manager) {
+        this.manager = manager;
+        this.pointerViewMovable = new ImageView(manager.getContext());
+        this.pointerViewStatic = new ImageView(manager.getContext());
 
-        container.addView(pointerViewMovable);
-        container.addView(pointerViewStatic);
-        this.pointerXSpring = container.getSpringSystem().createSpring();
-        this.pointerYSpring = container.getSpringSystem().createSpring();
-        this.pointerScaleSpring = container.getSpringSystem().createSpring();
+        //manager.getViewManager().addView(pointerViewMovable,pointerViewMovable.getLayoutParams());
+        //manager.getViewManager().addView(pointerViewStatic,pointerViewStatic.getLayoutParams());
+        this.pointerXSpring = manager.getSpringSystem().createSpring();
+        this.pointerYSpring = manager.getSpringSystem().createSpring();
+        this.pointerScaleSpring = manager.getSpringSystem().createSpring();
         this.pointerXSpring.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
@@ -75,7 +75,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
             }
         });
 
-        onConfigChanged(container.getConfig());
+        onConfigChanged(manager.getConfig());
 
     }
 
@@ -98,21 +98,21 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
 
     @Override
     public void removeOldestChatHead() {
-        for (ChatHead<T> chatHead : container.getChatHeads()) {
+        for (ChatHead<T> chatHead : manager.getChatHeads()) {
             if (!chatHead.isSticky()) {
-                container.removeChatHead(chatHead.getKey(), false);
+                manager.removeChatHead(chatHead.getKey(), false);
                 break;
             }
         }
     }
 
     @Override
-    public void setContainer(ChatHeadContainer container) {
-        this.container = container;
+    public void setContainer(ChatHeadManager container) {
+        this.manager = container;
     }
 
     @Override
-    public void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
+    public void onActivate(ChatHeadManager container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
         List<ChatHead> chatHeads = container.getChatHeads();
         RADIUS = container.getConfig().getCircularFanOutRadius(maxWidth, maxHeight);
         int headHeight = container.getConfig().getHeadHeight();
@@ -158,7 +158,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
             }
 
             isActive = true;
-            this.container = container;
+            this.manager = container;
             container.showOverlayView(true);
             container.getOverlayView().setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -193,7 +193,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
         super.handleRawTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
             boolean foundSpring = false;
-            List<ChatHead<T>> chatHeads = container.getChatHeads();
+            List<ChatHead<T>> chatHeads = manager.getChatHeads();
             for (ChatHead chatHead : chatHeads) {
                 double distance = Math.hypot(event.getX() - pointerViewMovable.getMeasuredWidth() / 2 - chatHead.getTranslationX(), event.getY() - pointerViewMovable.getMeasuredHeight() / 2 - chatHead.getTranslationY());
                 if (distance < CLOSE_ATTRACTION_THRESHOLD) {
@@ -204,11 +204,11 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
                     pointerYSpring.setEndValue(chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
                     pointerScaleSpring.setEndValue(1f);
                     if (currentChatHead != chatHead) {
-                        container.getOverlayView().drawPath(pointerViewStatic.getTranslationX() + pointerViewStatic.getMeasuredWidth() / 2, pointerViewStatic.getTranslationY() + pointerViewStatic.getMeasuredHeight() / 2, chatHead.getTranslationX() + chatHead.getMeasuredHeight() / 2, chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
+                        manager.getOverlayView().drawPath(pointerViewStatic.getTranslationX() + pointerViewStatic.getMeasuredWidth() / 2, pointerViewStatic.getTranslationY() + pointerViewStatic.getMeasuredHeight() / 2, chatHead.getTranslationX() + chatHead.getMeasuredHeight() / 2, chatHead.getTranslationY() + chatHead.getMeasuredHeight() / 2);
                     }
                     currentChatHead = chatHead;
                     if (rollOverChatHead != chatHead && isActive) {
-                        container.onItemRollOver(chatHead);
+                        manager.onItemRollOver(chatHead);
                         rollOverChatHead = chatHead;
                     }
                     rollOverState = RollState.OVER;
@@ -222,15 +222,15 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
                 pointerXSpring.setEndValue(event.getX());
                 pointerYSpring.setEndValue(event.getY());
                 pointerScaleSpring.setEndValue(0.5f);
-                container.getOverlayView().clearPath();
+                manager.getOverlayView().clearPath();
                 onRollOut();
                 currentChatHead = null;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            container.getOverlayView().clearPath();
+            manager.getOverlayView().clearPath();
             onRollOut();
             if (currentChatHead != null) {
-                boolean handled = container.onItemSelected(currentChatHead);
+                boolean handled = manager.onItemSelected(currentChatHead);
                 if (!handled) {
                     deactivate();
                 }
@@ -246,7 +246,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
 
     private void onRollOut() {
         if (rollOverState != RollState.OUT && rollOverChatHead != null) {
-            container.onItemRollOut(rollOverChatHead);
+            manager.onItemRollOut(rollOverChatHead);
             rollOverChatHead = null;
         }
         rollOverState = RollState.OUT;
@@ -312,13 +312,13 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
     }
 
     private void deactivate() {
-        container.setArrangement(MinimizedArrangement.class, null);
+        manager.setArrangement(MinimizedArrangement.class, null);
     }
 
     @Override
     public Integer getHeroIndex() {
         int heroIndex = 0;
-        List<ChatHead<T>> chatHeads = container.getChatHeads();
+        List<ChatHead<T>> chatHeads = manager.getChatHeads();
         int i = 0;
         for (ChatHead chatHead : chatHeads) {
             if (currentChatHead == chatHead) {
@@ -336,7 +336,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
         isActive = false;
         pointerViewMovable.setVisibility(View.GONE);
         pointerViewStatic.setVisibility(View.GONE);
-        this.container.hideOverlayView(true);
+        this.manager.hideOverlayView(true);
         currentChatHead = null;
     }
 
@@ -348,7 +348,7 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
     @Override
     public boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging) {
         if (isActive) {
-            boolean handled = container.onItemSelected(activeChatHead);
+            boolean handled = manager.onItemSelected(activeChatHead);
             if (!handled) {
                 deactivate();
             }
@@ -361,16 +361,16 @@ public class CircularArrangement<T extends Serializable> extends ChatHeadArrange
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead, boolean animated) {
-        onActivate(container, retainBundle, maxWidth, maxHeight, true);
+        onActivate(manager, retainBundle, maxWidth, maxHeight, true);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        onActivate(container, retainBundle, maxWidth, maxHeight, true);
+        onActivate(manager, retainBundle, maxWidth, maxHeight, true);
     }
 
     @Override
-    public void onCapture(ChatHeadContainer container, ChatHead activeChatHead) {
+    public void onCapture(ChatHeadManager container, ChatHead activeChatHead) {
 
     }
 

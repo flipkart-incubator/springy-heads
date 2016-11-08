@@ -142,7 +142,7 @@ public class CustomChatHeadConfig extends ChatHeadDefaultConfig {
     }
 }
 ```
-Once this config class is defined, you can set it to the container
+Once this config class is defined, you can set it to the manager
 ```java
 chatContainer.setConfig(new CustomChatHeadConfig(this, 0, 100);
 ```

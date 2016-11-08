@@ -3,7 +3,7 @@ package com.flipkart.springyheads.demo;
 import android.content.Context;
 import android.graphics.Point;
 
-import com.flipkart.chatheads.reboundextensions.ChatHeadUtils;
+import com.flipkart.chatheads.ChatHeadUtils;
 import com.flipkart.chatheads.ui.ChatHeadDefaultConfig;
 
 /**
