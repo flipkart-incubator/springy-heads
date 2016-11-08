@@ -23,9 +23,9 @@ public interface ChatHeadContainer {
 
     int getContainerWidth();
 
-    void setViewX(View view, int xPosition, boolean isHero);
+    void setViewX(View view, int xPosition);
 
-    void setViewY(View view, int yPosition, boolean isHero);
+    void setViewY(View view, int yPosition);
 
     int getViewX(View view);
 
@@ -36,4 +36,6 @@ public interface ChatHeadContainer {
     void addView(View view, ViewGroup.LayoutParams layoutParams);
 
     void removeView(View view);
+
+    void onArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement);
 }

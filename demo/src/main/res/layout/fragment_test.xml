@@ -3,13 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/rounded_white"
-    android:orientation="vertical"
-    tools:context="com.flipkart.chatheads.demo.TestFragment">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/identifier"
         android:textSize="50sp"
         android:text="id"
+        android:textColor="@android:color/background_dark"
         android:layout_gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
