@@ -3,9 +3,6 @@ package com.flipkart.chatheads.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.view.Gravity;
-import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -26,11 +23,13 @@ public class ChatHeadCloseButton extends ImageView {
     private Spring ySpring;
     private boolean disappeared;
     private CloseButtonListener listener;
-    private ChatHeadContainer chatHeadContainer;
+    private ChatHeadManager chatHeadManager;
+    private int centerX;
+    private int centerY;
 
-    public ChatHeadCloseButton(Context context, ChatHeadContainer container) {
+    public ChatHeadCloseButton(Context context, ChatHeadManager manager, int maxHeight, int maxWidth) {
         super(context);
-        init(container);
+        init(manager, maxHeight, maxWidth);
     }
 
     public void setListener(CloseButtonListener listener) {
@@ -41,20 +40,20 @@ public class ChatHeadCloseButton extends ImageView {
         return disappeared;
     }
 
-    private void init(ChatHeadContainer container) {
-        this.chatHeadContainer = container;
+    private void init(final ChatHeadManager manager, int maxHeight, int maxWidth) {
+        this.chatHeadManager = manager;
+
         setImageResource(R.drawable.dismiss_big);
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(chatHeadContainer.getConfig().getCloseButtonWidth(), chatHeadContainer.getConfig().getCloseButtonHeight());
-        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-        layoutParams.bottomMargin = chatHeadContainer.getConfig().getCloseButtonBottomMargin();
-        setLayoutParams(layoutParams);
         SpringSystem springSystem = SpringSystem.create();
         xSpring = springSystem.createSpring();
         xSpring.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                setTranslationX((float) spring.getCurrentValue());
+                int x = centerX + (int) spring.getCurrentValue() - getMeasuredWidth()/2;
+                manager.getChatHeadContainer().setViewX(ChatHeadCloseButton.this, x, false);
+//                System.out.println("spring x = [" + x + "] center "+centerX);
+
             }
         });
         ySpring = springSystem.createSpring();
@@ -62,7 +61,9 @@ public class ChatHeadCloseButton extends ImageView {
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                setTranslationY((float) spring.getCurrentValue());
+                int y = centerY + (int) spring.getCurrentValue() - getMeasuredHeight()/2;
+                manager.getChatHeadContainer().setViewY(ChatHeadCloseButton.this, y, false);
+//                System.out.println("spring y = [" + y + "] center "+centerY);
             }
         });
         scaleSpring = springSystem.createSpring();
@@ -77,7 +78,7 @@ public class ChatHeadCloseButton extends ImageView {
     }
 
     public void appear() {
-        if(isEnabled()) {
+        if (isEnabled()) {
             ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             xSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             scaleSpring.setEndValue(.8f);
@@ -96,16 +97,16 @@ public class ChatHeadCloseButton extends ImageView {
     }
 
     public void disappear(boolean immediate, boolean animate) {
-        ySpring.setEndValue(mParentHeight - getTop());
+        ySpring.setEndValue(mParentHeight);
         ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
         xSpring.setEndValue(0);
         scaleSpring.setEndValue(0.1f);
         if (!animate) {
-            ySpring.setCurrentValue(mParentHeight-getTop(), true);
+            ySpring.setCurrentValue(mParentHeight, true);
             xSpring.setCurrentValue(0, true);
         }
         disappeared = true;
-        if(listener!=null) listener.onCloseButtonDisappear();
+        if (listener != null) listener.onCloseButtonDisappear();
 
     }
 
@@ -117,18 +118,21 @@ public class ChatHeadCloseButton extends ImageView {
     }
 
     public void onParentHeightRefreshed() {
-        mParentWidth = ((View) getParent()).getMeasuredWidth();
-        mParentHeight = ((View) getParent()).getMeasuredHeight();
+        mParentWidth = chatHeadManager.getMaxWidth();
+        mParentHeight = chatHeadManager.getMaxHeight();
+        this.centerX = (int) ((float)mParentWidth * 0.5f);
+        this.centerY = (int) ((float)mParentHeight * 0.9f);
     }
 
     public void pointTo(float x, float y) {
-        if(isEnabled()) {
+        if (isEnabled()) {
             double translationX = getTranslationFromSpring(x, PERC_PARENT_WIDTH, mParentWidth);
             double translationY = getTranslationFromSpring(y, PERC_PARENT_HEIGHT, mParentHeight);
+//            System.out.println("translationY = " + translationY);
             if (!disappeared) {
                 xSpring.setEndValue(translationX);
                 ySpring.setEndValue(translationY);
-                if(listener!=null) listener.onCloseButtonAppear();
+                if (listener != null) listener.onCloseButtonAppear();
             }
         }
     }
@@ -152,6 +156,7 @@ public class ChatHeadCloseButton extends ImageView {
 
     public interface CloseButtonListener {
         void onCloseButtonAppear();
+
         void onCloseButtonDisappear();
     }
 }

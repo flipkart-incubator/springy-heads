@@ -1,6 +1,5 @@
 package com.flipkart.chatheads.ui;
 
-import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.MotionEvent;
 
@@ -10,9 +9,9 @@ import com.facebook.rebound.Spring;
  * Created by kirankumar on 13/02/15.
  */
 public abstract class ChatHeadArrangement {
-    public abstract void setContainer(ChatHeadContainer container);
+    public abstract void setContainer(ChatHeadManager container);
 
-    public abstract void onActivate(ChatHeadContainer container, Bundle extras, int maxWidth, int maxHeight, boolean animated);
+    public abstract void onActivate(ChatHeadManager container, Bundle extras, int maxWidth, int maxHeight, boolean animated);
 
     public abstract void onDeactivate(int maxWidth, int maxHeight);
 
@@ -22,15 +21,13 @@ public abstract class ChatHeadArrangement {
         return false;
     }
 
-    public void onDraw(Canvas canvas) {};
-
     public abstract boolean handleTouchUp(ChatHead activeChatHead, int xVelocity, int yVelocity, Spring activeHorizontalSpring, Spring activeVerticalSpring, boolean wasDragging);
 
     public abstract void onChatHeadAdded(ChatHead chatHead, boolean animated);
 
     public abstract void onChatHeadRemoved(ChatHead removed);
 
-    public abstract void onCapture(ChatHeadContainer container, ChatHead activeChatHead);
+    public abstract void onCapture(ChatHeadManager container, ChatHead activeChatHead);
 
     public abstract void selectChatHead(ChatHead chatHead);
 

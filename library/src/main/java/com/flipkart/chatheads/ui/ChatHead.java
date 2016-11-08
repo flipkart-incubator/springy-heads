@@ -10,7 +10,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -30,9 +29,9 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
     final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
+    private ChatHeadManager manager;
     private SpringSystem springSystem;
     private boolean isSticky = false;
-    private ChatHeadContainer container;
     private State state;
     private T key;
     private float downX = -1;
@@ -49,28 +48,37 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
     private Spring yPositionSpring;
     private Bundle extras;
     private ImageView imageView;
+    private boolean isHero;
 
     public ChatHead(Context context) {
         super(context);
-        init();
+        throw new IllegalArgumentException("This constructor cannot be used");
     }
 
     public ChatHead(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        throw new IllegalArgumentException("This constructor cannot be used");
     }
 
     public ChatHead(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        throw new IllegalArgumentException("This constructor cannot be used");
     }
 
-    public ChatHead(ChatHeadContainer container, SpringSystem springsHolder, Context context, boolean isSticky) {
+    public ChatHead(ChatHeadManager manager, SpringSystem springsHolder, Context context, boolean isSticky) {
         super(context);
-        this.container = container;
+        this.manager = manager;
         this.springSystem = springsHolder;
         this.isSticky = isSticky;
         init();
+    }
+
+    public boolean isHero() {
+        return isHero;
+    }
+
+    public void setHero(boolean hero) {
+        isHero = hero;
     }
 
     public Bundle getExtras() {
@@ -94,12 +102,16 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
     }
 
     private void init() {
-        setLayoutParams(new ViewGroup.LayoutParams(container.getConfig().getHeadWidth(), container.getConfig().getHeadHeight()));
         xPositionListener = new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                setTranslationX((float) spring.getCurrentValue());
+                manager.getChatHeadContainer().setViewX(ChatHead.this, (int)spring.getCurrentValue(), isHero);
+            }
+
+            @Override
+            public void onSpringAtRest(Spring spring) {
+                super.onSpringAtRest(spring);
             }
         };
         xPositionSpring = springSystem.createSpring();
@@ -110,7 +122,12 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                setTranslationY((float) spring.getCurrentValue());
+                manager.getChatHeadContainer().setViewY(ChatHead.this, (int)spring.getCurrentValue(), isHero);
+            }
+
+            @Override
+            public void onSpringAtRest(Spring spring) {
+                super.onSpringAtRest(spring);
             }
         };
         yPositionSpring = springSystem.createSpring();
@@ -136,7 +153,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
 
     public void setUnreadCount(int unreadCount) {
         if (unreadCount != this.unreadCount) {
-            container.reloadDrawable(key);
+            manager.reloadDrawable(key);
         }
         this.unreadCount = unreadCount;
     }
@@ -165,21 +182,21 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
             if (spring != activeHorizontalSpring && spring != activeVerticalSpring)
                 return;
             int totalVelocity = (int) Math.hypot(activeHorizontalSpring.getVelocity(), activeVerticalSpring.getVelocity());
-            if (container.getActiveArrangement() != null)
-                container.getActiveArrangement().onSpringUpdate(this, isDragging, container.getMaxWidth(), container.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
+            if (manager.getActiveArrangement() != null)
+                manager.getActiveArrangement().onSpringUpdate(this, isDragging, manager.getMaxWidth(), manager.getMaxHeight(), spring, activeHorizontalSpring, activeVerticalSpring, totalVelocity);
         }
     }
 
     @Override
     public void onSpringAtRest(Spring spring) {
-        if (container.getListener() != null)
-            container.getListener().onChatHeadAnimateEnd(this);
+        if (manager.getListener() != null)
+            manager.getListener().onChatHeadAnimateEnd(this);
     }
 
     @Override
     public void onSpringActivate(Spring spring) {
-        if (container.getListener() != null)
-            container.getListener().onChatHeadAnimateStart(this);
+        if (manager.getListener() != null)
+            manager.getListener().onChatHeadAnimateStart(this);
     }
 
     @Override
@@ -209,8 +226,8 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
         float rawY = event.getRawY();
         float offsetX = rawX - downX;
         float offsetY = rawY - downY;
-        boolean showCloseButton = container.getActiveArrangement().shouldShowCloseButton(this);
-        event.offsetLocation(getTranslationX(), getTranslationY());
+        boolean showCloseButton = manager.getActiveArrangement().shouldShowCloseButton(this);
+        event.offsetLocation(manager.getChatHeadContainer().getViewX(this), manager.getChatHeadContainer().getViewY(this));
         if (action == MotionEvent.ACTION_DOWN) {
             if (velocityTracker == null) {
                 velocityTracker = VelocityTracker.obtain();
@@ -235,23 +252,23 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
             if (Math.hypot(offsetX, offsetY) > touchSlop) {
                 isDragging = true;
                 if (showCloseButton) {
-                    container.getCloseButton().appear();
+                    manager.getCloseButton().appear();
                 }
             }
             velocityTracker.addMovement(event);
 
             if (isDragging) {
-                container.getCloseButton().pointTo(rawX, rawY);
-                if (container.getActiveArrangement().canDrag(this)) {
-                    double distanceCloseButtonFromHead = container.getDistanceCloseButtonFromHead(rawX, rawY);
+                manager.getCloseButton().pointTo(rawX, rawY);
+                if (manager.getActiveArrangement().canDrag(this)) {
+                    double distanceCloseButtonFromHead = manager.getDistanceCloseButtonFromHead(rawX, rawY);
                     if (distanceCloseButtonFromHead < CLOSE_ATTRACTION_THRESHOLD && showCloseButton) {
                         setState(ChatHead.State.CAPTURED);
                         activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
                         activeVerticalSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
-                        int[] coords = container.getChatHeadCoordsForCloseButton(this);
+                        int[] coords = manager.getChatHeadCoordsForCloseButton(this);
                         activeHorizontalSpring.setEndValue(coords[0]);
                         activeVerticalSpring.setEndValue(coords[1]);
-                        container.getCloseButton().onCapture();
+                        manager.getCloseButton().onCapture();
 
                     } else {
                         setState(ChatHead.State.FREE);
@@ -259,7 +276,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
                         activeVerticalSpring.setSpringConfig(SpringConfigsHolder.DRAGGING);
                         activeHorizontalSpring.setCurrentValue(downTranslationX + offsetX);
                         activeVerticalSpring.setCurrentValue(downTranslationY + offsetY);
-                        container.getCloseButton().onRelease();
+                        manager.getCloseButton().onRelease();
                     }
 
                     velocityTracker.computeCurrentVelocity(1000);
@@ -279,7 +296,7 @@ public class ChatHead<T extends Serializable> extends ImageView implements Sprin
                 velocityTracker.recycle();
                 velocityTracker = null;
                 if(xPositionSpring!=null && yPositionSpring!=null) {
-                    boolean touchUpHandled = container.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
+                    boolean touchUpHandled = manager.getActiveArrangement().handleTouchUp(this, xVelocity, yVelocity, activeHorizontalSpring, activeVerticalSpring, wasDragging);
                 }
             }
         }
