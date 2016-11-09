@@ -147,6 +147,10 @@ Once this config class is defined, you can set it to the container
 chatContainer.setConfig(new CustomChatHeadConfig(this, 0, 100);
 ```
 
+# Setting badge count
+
+Do check out our library circular-image (https://github.com/flipkart-incubator/circular-image) for generating a circular drawable containing upto 4 smaller bitmaps as well as a badge count.
+
 # License
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
