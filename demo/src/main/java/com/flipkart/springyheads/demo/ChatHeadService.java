@@ -3,6 +3,7 @@ package com.flipkart.springyheads.demo;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -17,6 +18,12 @@ import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 import com.flipkart.chatheads.ui.container.DefaultChatHeadManager;
 import com.flipkart.chatheads.ui.container.WindowManagerContainer;
+import com.flipkart.circularImageView.CircularDrawable;
+import com.flipkart.circularImageView.OverlayArcDrawer;
+import com.flipkart.circularImageView.TextDrawer;
+import com.flipkart.circularImageView.notification.CircularNotificationDrawer;
+
+import java.util.Random;
 
 public class ChatHeadService extends Service {
 
@@ -49,7 +56,7 @@ public class ChatHeadService extends Service {
 
             @Override
             public Drawable getChatHeadDrawable(String key) {
-                return getResources().getDrawable(R.drawable.head);
+                return ChatHeadService.this.getChatHeadDrawable(key);
             }
 
             @Override
@@ -71,6 +78,18 @@ public class ChatHeadService extends Service {
         chatContainer.onMeasure();
 
         moveToForeground();
+
+    }
+
+    private Drawable getChatHeadDrawable(String key) {
+        Random rnd = new Random();
+        int randomColor = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+        CircularDrawable circularDrawable = new CircularDrawable();
+        circularDrawable.setBitmapOrTextOrIcon(new TextDrawer().setText("C"+key).setBackgroundColor(randomColor));
+        int badgeCount = (int) (Math.random() * 10f);
+        circularDrawable.setNotificationDrawer(new CircularNotificationDrawer().setNotificationText(String.valueOf(badgeCount)).setNotificationAngle(135).setNotificationColor(Color.WHITE, Color.RED));
+        circularDrawable.setBorder(Color.WHITE, 3);
+        return circularDrawable;
 
     }
 

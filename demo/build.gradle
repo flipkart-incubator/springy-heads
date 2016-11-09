@@ -22,5 +22,6 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     //    compile 'com.flipkart.springyheads:library:0.9.6'
+    compile 'com.github.flipkart-incubator:circular-image:1.0'
     compile project(':library')
 }

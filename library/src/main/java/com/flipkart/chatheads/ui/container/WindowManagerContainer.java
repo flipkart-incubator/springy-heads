@@ -20,6 +20,8 @@ import com.flipkart.chatheads.ui.MinimizedArrangement;
 
 import static android.content.Context.WINDOW_SERVICE;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
+import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 
 /**
@@ -126,9 +128,9 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     }
 
     protected WindowManager.LayoutParams createContainerLayoutParams(boolean focusable) {
-        int focusableFlag = FLAG_NOT_TOUCH_MODAL;
+        int focusableFlag = FLAG_NOT_TOUCH_MODAL | FLAG_ALT_FOCUSABLE_IM;
         if (!focusable) {
-            focusableFlag |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+            focusableFlag |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE;
         }
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(MATCH_PARENT, MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
@@ -143,6 +145,10 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     @Override
     public void addContainer(View container, boolean focusable) {
         WindowManager.LayoutParams containerLayoutParams = createContainerLayoutParams(focusable);
+        addContainer(container, containerLayoutParams);
+    }
+
+    public void addContainer(View container, WindowManager.LayoutParams containerLayoutParams) {
         container.setLayoutParams(containerLayoutParams);
         getWindowManager().addView(container, containerLayoutParams);
     }
@@ -175,27 +181,40 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     public void onArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
         currentArrangement = newArrangement;
         if (oldArrangement instanceof MinimizedArrangement && newArrangement instanceof MaximizedArrangement) {
+            WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
+            layoutParams.flags |= FLAG_ALT_FOCUSABLE_IM;
+            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+
             setContainerX(motionCaptureView, 0);
             setContainerY(motionCaptureView, 0);
             setContainerWidth(motionCaptureView, getContainerWidth());
             setContainerHeight(motionCaptureView, getContainerHeight());
+        } else {
+            WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
+            layoutParams.flags |= FLAG_NOT_FOCUSABLE;
+            windowManager.updateViewLayout(motionCaptureView,layoutParams);
         }
     }
+
+    private void removeContainer(View motionCaptureView) {
+        windowManager.removeView(motionCaptureView);
+    }
+
 
     protected class MotionCapturingTouchListener implements View.OnTouchListener, View.OnKeyListener {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             event.offsetLocation(getContainerX(v), getContainerY(v));
-            getFrameLayout().dispatchTouchEvent(event);
-            return false;
+            return getFrameLayout().dispatchTouchEvent(event);
         }
 
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
             if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK) {
                 minimize();
+                return true;
             }
-            return true;
+            return false;
         }
     }
 
