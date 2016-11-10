@@ -22,7 +22,10 @@ import static android.content.Context.WINDOW_SERVICE;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+import static android.view.WindowManager.LayoutParams.TYPE_PHONE;
+import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
 
 /**
  * Created by kiran.kumar on 08/11/16.
@@ -43,7 +46,7 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
 
     public WindowManagerContainer(Context context) {
         super(context);
-        motionCaptureView = new View(context);
+        motionCaptureView = new MotionCaptureView(context);
         MotionCapturingTouchListener listener = new MotionCapturingTouchListener();
         motionCaptureView.setOnTouchListener(listener);
         motionCaptureView.setOnKeyListener(listener);
@@ -70,7 +73,7 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     @Override
     public int getContainerHeight() {
         if (cachedHeight <= 0) {
-            cachedHeight = windowManager.getDefaultDisplay().getHeight();
+            cachedHeight = getWindowManager().getDefaultDisplay().getHeight();
         }
         return cachedHeight;
     }
@@ -78,7 +81,7 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     @Override
     public int getContainerWidth() {
         if (cachedWidth <= 0) {
-            cachedWidth = windowManager.getDefaultDisplay().getWidth();
+            cachedWidth = getWindowManager().getDefaultDisplay().getWidth();
         }
         return cachedWidth;
     }
@@ -128,12 +131,14 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     }
 
     protected WindowManager.LayoutParams createContainerLayoutParams(boolean focusable) {
-        int focusableFlag = FLAG_NOT_TOUCH_MODAL | FLAG_ALT_FOCUSABLE_IM;
-        if (!focusable) {
-            focusableFlag |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE;
+        int focusableFlag;
+        if (focusable) {
+            focusableFlag = FLAG_NOT_TOUCH_MODAL;
+        } else {
+            focusableFlag = FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE;
         }
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(MATCH_PARENT, MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                TYPE_PHONE,
                 focusableFlag,
                 PixelFormat.TRANSLUCENT);
         layoutParams.x = 0;
@@ -182,17 +187,16 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         currentArrangement = newArrangement;
         if (oldArrangement instanceof MinimizedArrangement && newArrangement instanceof MaximizedArrangement) {
             WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
-            layoutParams.flags |= FLAG_ALT_FOCUSABLE_IM;
-            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+            layoutParams.flags &= ~FLAG_NOT_FOCUSABLE; //remove focusability
 
             setContainerX(motionCaptureView, 0);
             setContainerY(motionCaptureView, 0);
             setContainerWidth(motionCaptureView, getContainerWidth());
             setContainerHeight(motionCaptureView, getContainerHeight());
+
         } else {
             WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
-            layoutParams.flags |= FLAG_NOT_FOCUSABLE;
-            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+            layoutParams.flags |= FLAG_NOT_FOCUSABLE; //add focusability
         }
     }
 
@@ -210,7 +214,7 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
 
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
-            if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK) {
+            if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK && currentArrangement instanceof MaximizedArrangement) {
                 minimize();
                 return true;
             }
@@ -222,5 +226,12 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         if (!(getManager().getActiveArrangement() instanceof MinimizedArrangement)) {
             getManager().setArrangement(MinimizedArrangement.class, null, true);
         }
+    }
+
+    private class MotionCaptureView extends View {
+        public MotionCaptureView(Context context) {
+            super(context);
+        }
+
     }
 }
