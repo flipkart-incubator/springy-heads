@@ -211,5 +211,10 @@ public class UpArrowLayout extends ViewGroup {
         return new FrameLayout.LayoutParams(getContext(), attrs);
     }
 
+    @Override
+    public void removeAllViews() {
+        super.removeAllViews();
+        addView(arrowView);
+    }
 }
 

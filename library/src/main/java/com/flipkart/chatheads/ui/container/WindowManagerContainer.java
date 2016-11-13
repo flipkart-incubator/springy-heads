@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
@@ -11,9 +12,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
+import com.flipkart.chatheads.ui.ChatHeadManager;
 import com.flipkart.chatheads.ui.FrameChatHeadContainer;
 import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
@@ -37,7 +40,7 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
      * This view is required since window managers will delegate the touch events to the window beneath it only if they are outside the bounds.
      * {@link android.view.WindowManager.LayoutParams#FLAG_NOT_TOUCH_MODAL}
      */
-    private final View motionCaptureView;
+    private View motionCaptureView;
 
     private int cachedHeight;
     private int cachedWidth;
@@ -46,19 +49,23 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
 
     public WindowManagerContainer(Context context) {
         super(context);
-        motionCaptureView = new MotionCaptureView(context);
+    }
+
+    @Override
+    public void onInitialized(ChatHeadManager manager) {
+        super.onInitialized(manager);
+        motionCaptureView = new MotionCaptureView(getContext());
         MotionCapturingTouchListener listener = new MotionCapturingTouchListener();
         motionCaptureView.setOnTouchListener(listener);
-        motionCaptureView.setOnKeyListener(listener);
         addContainer(motionCaptureView, true);
-        registerReceiver(context);
+        registerReceiver(getContext());
     }
 
     public void registerReceiver(Context context) {
         context.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                minimize();
+                getFrameLayout().minimize();
             }
         }, new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
     }
@@ -68,22 +75,6 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
             windowManager = (WindowManager) getContext().getSystemService(WINDOW_SERVICE);
         }
         return windowManager;
-    }
-
-    @Override
-    public int getContainerHeight() {
-        if (cachedHeight <= 0) {
-            cachedHeight = getWindowManager().getDefaultDisplay().getHeight();
-        }
-        return cachedHeight;
-    }
-
-    @Override
-    public int getContainerWidth() {
-        if (cachedWidth <= 0) {
-            cachedWidth = getWindowManager().getDefaultDisplay().getWidth();
-        }
-        return cachedWidth;
     }
 
     protected void setContainerHeight(View container, int height) {
@@ -186,47 +177,54 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     public void onArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
         currentArrangement = newArrangement;
         if (oldArrangement instanceof MinimizedArrangement && newArrangement instanceof MaximizedArrangement) {
+            // about to be maximized
             WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
-            layoutParams.flags &= ~FLAG_NOT_FOCUSABLE; //remove focusability
+            layoutParams.flags |= FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE;
+            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+
+            layoutParams = getOrCreateLayoutParamsForContainer(getFrameLayout());
+            layoutParams.flags &= ~FLAG_NOT_FOCUSABLE; //add focusability
+            layoutParams.flags &= ~FLAG_NOT_TOUCHABLE; //add focusability
+            layoutParams.flags |= FLAG_NOT_TOUCH_MODAL;
+
+            windowManager.updateViewLayout(getFrameLayout(),layoutParams);
 
             setContainerX(motionCaptureView, 0);
             setContainerY(motionCaptureView, 0);
-            setContainerWidth(motionCaptureView, getContainerWidth());
-            setContainerHeight(motionCaptureView, getContainerHeight());
+            setContainerWidth(motionCaptureView, getFrameLayout().getMeasuredWidth());
+            setContainerHeight(motionCaptureView, getFrameLayout().getMeasuredHeight());
 
         } else {
+            // about to be minimized
             WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
-            layoutParams.flags |= FLAG_NOT_FOCUSABLE; //add focusability
+            layoutParams.flags |= FLAG_NOT_FOCUSABLE; //remove focusability
+            layoutParams.flags &= ~FLAG_NOT_TOUCHABLE; //add touch
+            layoutParams.flags |= FLAG_NOT_TOUCH_MODAL; //add touch
+            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+
+            layoutParams = getOrCreateLayoutParamsForContainer(getFrameLayout());
+            layoutParams.flags |= FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE;
+            windowManager.updateViewLayout(getFrameLayout(),layoutParams);
         }
     }
+
+
 
     private void removeContainer(View motionCaptureView) {
         windowManager.removeView(motionCaptureView);
     }
 
 
-    protected class MotionCapturingTouchListener implements View.OnTouchListener, View.OnKeyListener {
+    protected class MotionCapturingTouchListener implements View.OnTouchListener{
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             event.offsetLocation(getContainerX(v), getContainerY(v));
             return getFrameLayout().dispatchTouchEvent(event);
         }
 
-        @Override
-        public boolean onKey(View v, int keyCode, KeyEvent event) {
-            if (event.getAction() == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK && currentArrangement instanceof MaximizedArrangement) {
-                minimize();
-                return true;
-            }
-            return false;
-        }
     }
 
-    private void minimize() {
-        if (!(getManager().getActiveArrangement() instanceof MinimizedArrangement)) {
-            getManager().setArrangement(MinimizedArrangement.class, null, true);
-        }
-    }
+
 
     private class MotionCaptureView extends View {
         public MotionCaptureView(Context context) {

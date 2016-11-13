@@ -110,7 +110,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
                     });
                     currentSpring = verticalSpringChain.getAllSprings().get(verticalSpringChain.getAllSprings().size() - 1);
                     currentSpring.setCurrentValue(chatHead.getVerticalSpring().getCurrentValue());
-                    manager.getChatHeadContainer().setZOrder(chatHead,zIndex);
+                    manager.getChatHeadContainer().bringToFront(chatHead);
                     zIndex++;
                 }
             }
@@ -121,7 +121,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
                 idleStateX = container.getConfig().getInitialPosition().x;
             }
             if (hero != null && hero.getHorizontalSpring()!=null && hero.getVerticalSpring()!=null  ) {
-                manager.getChatHeadContainer().setZOrder(hero,zIndex);
+                manager.getChatHeadContainer().bringToFront(hero);
                 horizontalSpringChain.addSpring(new SimpleSpringListener() {
                 });
                 verticalSpringChain.addSpring(new SimpleSpringListener() {

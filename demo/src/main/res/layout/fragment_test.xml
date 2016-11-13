@@ -5,7 +5,7 @@
     android:background="@drawable/rounded_white"
     android:orientation="vertical">
 
-    <TextView
+    <EditText
         android:id="@+id/identifier"
         android:textSize="50sp"
         android:text="id"

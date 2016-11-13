@@ -13,17 +13,15 @@ import android.widget.FrameLayout;
 
 public abstract class FrameChatHeadContainer implements ChatHeadContainer {
 
-    private final FrameLayout frameLayout;
+    private HostFrameLayout frameLayout;
     private final Context context;
     DisplayMetrics displayMetrics = new DisplayMetrics();
     private ChatHeadManager manager;
 
     public FrameChatHeadContainer(Context context) {
         this.context = context;
-        FrameLayout frameLayout = new FrameLayout(context);
-        this.frameLayout = frameLayout;
-        addContainer(frameLayout, false);
     }
+
 
     public ChatHeadManager getManager() {
         return manager;
@@ -32,19 +30,29 @@ public abstract class FrameChatHeadContainer implements ChatHeadContainer {
     @Override
     public void onInitialized(ChatHeadManager manager) {
         this.manager = manager;
+        HostFrameLayout frameLayout = new HostFrameLayout(context, this, manager);
+        frameLayout.setFocusable(true);
+        frameLayout.setFocusableInTouchMode(true);
+        this.frameLayout = frameLayout;
+        addContainer(frameLayout, false);
     }
 
     public Context getContext() {
         return context;
     }
 
-    public FrameLayout getFrameLayout() {
+    public HostFrameLayout getFrameLayout() {
         return frameLayout;
     }
 
     @Override
     public void addView(View view, ViewGroup.LayoutParams layoutParams) {
         frameLayout.addView(view, layoutParams);
+    }
+
+    @Override
+    public void requestLayout() {
+        frameLayout.requestLayout();
     }
 
     @Override
@@ -88,10 +96,9 @@ public abstract class FrameChatHeadContainer implements ChatHeadContainer {
     }
 
     @Override
-    public void setZOrder(View view, int zIndex) {
+    public void bringToFront(View view) {
         view.bringToFront();
     }
 
     public abstract void addContainer(View container, boolean focusable);
-
 }
