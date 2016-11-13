@@ -3,6 +3,9 @@ package com.flipkart.chatheads.ui;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -50,7 +53,7 @@ public class ChatHeadCloseButton extends ImageView {
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                int x = centerX + (int) spring.getCurrentValue() - getMeasuredWidth()/2;
+                int x = getXFromSpring(spring);
                 manager.getChatHeadContainer().setViewX(ChatHeadCloseButton.this, x);
 //                System.out.println("spring x = [" + x + "] center "+centerX);
 
@@ -61,7 +64,7 @@ public class ChatHeadCloseButton extends ImageView {
             @Override
             public void onSpringUpdate(Spring spring) {
                 super.onSpringUpdate(spring);
-                int y = centerY + (int) spring.getCurrentValue() - getMeasuredHeight()/2;
+                int y = getYFromSpring(spring);
                 manager.getChatHeadContainer().setViewY(ChatHeadCloseButton.this, y);
 //                System.out.println("spring y = [" + y + "] center "+centerY);
             }
@@ -77,12 +80,26 @@ public class ChatHeadCloseButton extends ImageView {
         });
     }
 
+    private int getYFromSpring(Spring spring) {
+        return centerY + (int) spring.getCurrentValue() - getMeasuredHeight() / 2;
+    }
+
+    private int getXFromSpring(Spring spring) {
+        return centerX + (int) spring.getCurrentValue() - getMeasuredWidth() / 2;
+    }
+
     public void appear() {
         if (isEnabled()) {
             ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             xSpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
             scaleSpring.setEndValue(.8f);
-            bringToFront();
+            ViewParent parent = getParent();
+            if (parent instanceof ViewGroup) {
+                int i = ((ViewGroup) parent).indexOfChild(this);
+                if (i != ((ViewGroup) parent).getChildCount() - 1) {
+                    bringToFront();
+                }
+            }
             disappeared = false;
 
         }
@@ -113,15 +130,19 @@ public class ChatHeadCloseButton extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        onParentHeightRefreshed();
         disappear(true, false);
     }
 
     public void onParentHeightRefreshed() {
         mParentWidth = chatHeadManager.getMaxWidth();
         mParentHeight = chatHeadManager.getMaxHeight();
-        this.centerX = (int) ((float)mParentWidth * 0.5f);
-        this.centerY = (int) ((float)mParentHeight * 0.9f);
+    }
+
+    public void setCenter(int x, int y) {
+        this.centerX = x;
+        this.centerY = y;
+        xSpring.setCurrentValue(0);
+        ySpring.setCurrentValue(0);
     }
 
     public void pointTo(float x, float y) {
@@ -147,11 +168,11 @@ public class ChatHeadCloseButton extends ImageView {
     }
 
     public int getEndValueX() {
-        return (int) xSpring.getEndValue();
+        return getXFromSpring(xSpring);
     }
 
     public int getEndValueY() {
-        return (int) ySpring.getEndValue();
+        return getYFromSpring(ySpring);
     }
 
     public interface CloseButtonListener {

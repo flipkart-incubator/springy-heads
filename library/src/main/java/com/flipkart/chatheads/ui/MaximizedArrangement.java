@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.util.ArrayMap;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.ChatHeadUtils;
@@ -286,10 +287,18 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         arrowLayout.setAlpha(1f - ((float) distanceFromOriginal / (float) maxDistanceFromOriginal));
     }
 
+    public static void sendViewToBack(final View child) {
+        final ViewGroup parent = (ViewGroup)child.getParent();
+        if (null != parent && parent.indexOfChild(child)!=0) {
+            parent.removeView(child);
+            parent.addView(child, 0);
+        }
+    }
     private void pointTo(ChatHead<T> activeChatHead) {
         UpArrowLayout arrowLayout = getArrowLayout();
+        getArrowLayout().removeAllViews();
         manager.addView(activeChatHead, arrowLayout);
-        arrowLayout.bringToFront();
+        sendViewToBack(manager.getOverlayView());
         Point point = positions.get(activeChatHead);
         if (point != null) {
             int padding = manager.getConfig().getHeadVerticalSpacing(maxWidth, maxHeight);
