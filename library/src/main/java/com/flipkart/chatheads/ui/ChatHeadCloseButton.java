@@ -55,8 +55,6 @@ public class ChatHeadCloseButton extends ImageView {
                 super.onSpringUpdate(spring);
                 int x = getXFromSpring(spring);
                 manager.getChatHeadContainer().setViewX(ChatHeadCloseButton.this, x);
-//                System.out.println("spring x = [" + x + "] center "+centerX);
-
             }
         });
         ySpring = springSystem.createSpring();
@@ -66,7 +64,6 @@ public class ChatHeadCloseButton extends ImageView {
                 super.onSpringUpdate(spring);
                 int y = getYFromSpring(spring);
                 manager.getChatHeadContainer().setViewY(ChatHeadCloseButton.this, y);
-//                System.out.println("spring y = [" + y + "] center "+centerY);
             }
         });
         scaleSpring = springSystem.createSpring();
@@ -114,9 +111,17 @@ public class ChatHeadCloseButton extends ImageView {
     }
 
     public void disappear(boolean immediate, boolean animate) {
-        ySpring.setEndValue(mParentHeight);
+        ySpring.setEndValue(mParentHeight - centerY + chatHeadManager.getConfig().getCloseButtonHeight());
         ySpring.setSpringConfig(SpringConfigsHolder.NOT_DRAGGING);
         xSpring.setEndValue(0);
+        ySpring.addListener(new SimpleSpringListener() {
+            @Override
+            public void onSpringAtRest(Spring spring) {
+                super.onSpringAtRest(spring);
+
+                ySpring.removeListener(this);
+            }
+        });
         scaleSpring.setEndValue(0.1f);
         if (!animate) {
             ySpring.setCurrentValue(mParentHeight, true);
@@ -139,10 +144,16 @@ public class ChatHeadCloseButton extends ImageView {
     }
 
     public void setCenter(int x, int y) {
-        this.centerX = x;
-        this.centerY = y;
-        xSpring.setCurrentValue(0);
-        ySpring.setCurrentValue(0);
+        boolean changed = false;
+        if (x != centerX || y != centerY) {
+            changed = true;
+        }
+        if(changed) {
+            this.centerX = x;
+            this.centerY = y;
+            xSpring.setCurrentValue(0);
+            ySpring.setCurrentValue(0);
+        }
     }
 
     public void pointTo(float x, float y) {

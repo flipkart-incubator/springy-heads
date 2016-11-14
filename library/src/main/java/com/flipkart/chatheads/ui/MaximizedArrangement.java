@@ -8,6 +8,7 @@ import android.support.v4.util.ArrayMap;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.flipkart.chatheads.ChatHeadUtils;
 
@@ -29,6 +30,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     private int maxDistanceFromOriginal;
     private int topPadding;
     private boolean isActive = false;
+    private boolean isTransitioning = false;
 
 
     public MaximizedArrangement(ChatHeadManager<T> manager) {
@@ -43,6 +45,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onActivate(ChatHeadManager container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
+        isTransitioning = true;
         this.manager = container;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -96,6 +99,28 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
             });
             container.showOverlayView(animated);
             selectChatHead(currentChatHead);
+            currentChatHead.getVerticalSpring().addListener(new SimpleSpringListener()
+            {
+                @Override
+                public void onSpringAtRest(Spring spring) {
+                    super.onSpringAtRest(spring);
+                    if (isTransitioning) {
+                        isTransitioning = false;
+                    }
+                    currentChatHead.getVerticalSpring().removeListener(this);
+                }
+            });
+            currentChatHead.getHorizontalSpring().addListener(new SimpleSpringListener()
+            {
+                @Override
+                public void onSpringAtRest(Spring spring) {
+                    super.onSpringAtRest(spring);
+                    if (isTransitioning) {
+                        isTransitioning = false;
+                    }
+                    currentChatHead.getHorizontalSpring().removeListener(this);
+                }
+            });
         }
     }
 
@@ -235,7 +260,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
                 manager.getCloseButton().disappear(false, true);
                 manager.captureChatHeads(activeChatHead);
             }
-            if (!activeVerticalSpring.isAtRest()) {
+            if (!activeVerticalSpring.isAtRest() && !isTransitioning) {
                 manager.getCloseButton().appear();
             } else {
                 manager.getCloseButton().disappear(true, true);

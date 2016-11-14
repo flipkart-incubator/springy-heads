@@ -36,6 +36,14 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
             if (horizontalSpringChain != null)
                 horizontalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
         }
+
+        @Override
+        public void onSpringAtRest(Spring spring) {
+            super.onSpringAtRest(spring);
+            if (isTransitioning) {
+                isTransitioning = false;
+            }
+        }
     };
     private SpringListener verticalHeroListener = new SimpleSpringListener() {
         @Override
@@ -43,7 +51,16 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
             if (verticalSpringChain != null)
                 verticalSpringChain.getControlSpring().setCurrentValue(spring.getCurrentValue());
         }
+
+        @Override
+        public void onSpringAtRest(Spring spring) {
+            super.onSpringAtRest(spring);
+            if (isTransitioning) {
+                isTransitioning = false;
+            }
+        }
     };
+    private boolean isTransitioning;
 
     public MinimizedArrangement(ChatHeadManager manager) {
         this.manager = manager;
@@ -69,6 +86,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onActivate(ChatHeadManager container, Bundle extras, int maxWidth, int maxHeight, boolean animated) {
+        isTransitioning = true;
         if (horizontalSpringChain != null || verticalSpringChain != null) {
             onDeactivate(maxWidth, maxHeight);
         }
@@ -120,7 +138,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
             if (idleStateX == Integer.MIN_VALUE) {
                 idleStateX = container.getConfig().getInitialPosition().x;
             }
-            if (hero != null && hero.getHorizontalSpring()!=null && hero.getVerticalSpring()!=null  ) {
+            if (hero != null && hero.getHorizontalSpring() != null && hero.getVerticalSpring() != null) {
                 manager.getChatHeadContainer().bringToFront(hero);
                 horizontalSpringChain.addSpring(new SimpleSpringListener() {
                 });
@@ -161,7 +179,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
 
     @Override
     public void onChatHeadAdded(ChatHead chatHead, boolean animated) {
-        if (hero != null && hero.getHorizontalSpring()!=null && hero.getVerticalSpring()!=null) {
+        if (hero != null && hero.getHorizontalSpring() != null && hero.getVerticalSpring() != null) {
             chatHead.getHorizontalSpring().setCurrentValue(hero.getHorizontalSpring().getCurrentValue() - currentDelta);
             chatHead.getVerticalSpring().setCurrentValue(hero.getVerticalSpring().getCurrentValue());
         }
@@ -392,7 +410,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
                 activeChatHead.setState(ChatHead.State.CAPTURED);
 
             }
-            if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeHorizontalSpring.getSpringConfig()!= SpringConfigsHolder.CAPTURING) {
+            if (activeChatHead.getState() == ChatHead.State.CAPTURED && activeHorizontalSpring.getSpringConfig() != SpringConfigsHolder.CAPTURING) {
                 activeHorizontalSpring.setAtRest();
                 activeVerticalSpring.setAtRest();
                 activeHorizontalSpring.setSpringConfig(SpringConfigsHolder.CAPTURING);
@@ -405,7 +423,7 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
                 manager.getCloseButton().disappear(false, true);
                 manager.captureChatHeads(activeChatHead);
             }
-            if (!activeVerticalSpring.isAtRest()) {
+            if (!activeVerticalSpring.isAtRest() && !isTransitioning) {
                 manager.getCloseButton().appear();
             } else {
                 manager.getCloseButton().disappear(true, true);
