@@ -1,29 +1,39 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:gravity="center_horizontal">
 
     <LinearLayout
         android:id="@+id/circular_click_area"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal" />
+        android:gravity="center"
+        android:orientation="vertical">
 
-    <com.flipkart.chatheads.ui.ChatHeadContainer
-        android:id="@+id/chat_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/add_head"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add head" />
 
-    </com.flipkart.chatheads.ui.ChatHeadContainer>
+        <Button
+            android:id="@+id/remove_head"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remove head" />
 
-    <TextView
-        android:id="@+id/chat_head_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/black_bg"
-        android:text="Chat head label"
-        android:textColor="@android:color/white"
-        android:visibility="gone" />
+        <Button
+            android:id="@+id/remove_all_heads"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remove all heads" />
+
+        <Button
+            android:id="@+id/toggle_arrangement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Toggle arrangement" />
+    </LinearLayout>
+
 
 </RelativeLayout>

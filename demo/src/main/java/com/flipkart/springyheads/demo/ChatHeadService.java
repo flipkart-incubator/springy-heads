@@ -1,11 +1,13 @@
 package com.flipkart.springyheads.demo;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import android.widget.TextView;
 
 import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
+import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 import com.flipkart.chatheads.ui.container.DefaultChatHeadManager;
 import com.flipkart.chatheads.ui.container.WindowManagerContainer;
@@ -32,12 +35,24 @@ public class ChatHeadService extends Service {
     private int chatHeadIdentifier = 0;
     private WindowManagerContainer windowManagerContainer;
     private Map<String, View> viewCache = new HashMap<>();
+    // Binder given to clients
+    private final IBinder mBinder = new LocalBinder();
 
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        ChatHeadService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return ChatHeadService.this;
+        }
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // Not used
-        return null;
+        return mBinder;
     }
 
     @Override
@@ -66,16 +81,6 @@ public class ChatHeadService extends Service {
             public Drawable getChatHeadDrawable(String key) {
                 return ChatHeadService.this.getChatHeadDrawable(key);
             }
-
-            @Override
-            public Drawable getPointerDrawable() {
-                return getResources().getDrawable(R.drawable.circular_ring);
-            }
-
-            @Override
-            public View getTitleView(String key, ChatHead chatHead) {
-                return null;
-            }
         });
 
         addChatHead();
@@ -83,7 +88,6 @@ public class ChatHeadService extends Service {
         addChatHead();
         addChatHead();
         chatHeadManager.setArrangement(MinimizedArrangement.class, null);
-
         moveToForeground();
 
     }
@@ -104,19 +108,41 @@ public class ChatHeadService extends Service {
     private void moveToForeground() {
         Notification notification = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.notification_template_icon_bg)
-                .setContentText("Chat heads is active")
+                .setContentTitle("Springy heads")
+                .setContentText("Click to configure.")
+                .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, FloatingActivity.class), 0))
                 .build();
 
         startForeground(1, notification);
     }
 
-    private void addChatHead() {
+    public void addChatHead() {
         chatHeadIdentifier++;
         chatHeadManager.addChatHead(String.valueOf(chatHeadIdentifier), false, true);
+    }
+
+    public void removeChatHead() {
+        chatHeadIdentifier--;
+        chatHeadManager.removeChatHead(String.valueOf(chatHeadIdentifier), true);
+    }
+
+
+    public void removeAllChatHeads() {
+        chatHeadIdentifier = 0;
+        chatHeadManager.removeAllChatHeads(true);
+    }
+
+    public void toggleArrangement() {
+        if (chatHeadManager.getActiveArrangement() instanceof MinimizedArrangement) {
+            chatHeadManager.setArrangement(MaximizedArrangement.class, null);
+        } else {
+            chatHeadManager.setArrangement(MinimizedArrangement.class, null);
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        windowManagerContainer.destroy();
     }
 }

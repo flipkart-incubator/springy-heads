@@ -180,14 +180,14 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
             // about to be maximized
             WindowManager.LayoutParams layoutParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
             layoutParams.flags |= FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE;
-            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+            windowManager.updateViewLayout(motionCaptureView, layoutParams);
 
             layoutParams = getOrCreateLayoutParamsForContainer(getFrameLayout());
             layoutParams.flags &= ~FLAG_NOT_FOCUSABLE; //add focusability
             layoutParams.flags &= ~FLAG_NOT_TOUCHABLE; //add focusability
             layoutParams.flags |= FLAG_NOT_TOUCH_MODAL;
 
-            windowManager.updateViewLayout(getFrameLayout(),layoutParams);
+            windowManager.updateViewLayout(getFrameLayout(), layoutParams);
 
             setContainerX(motionCaptureView, 0);
             setContainerY(motionCaptureView, 0);
@@ -200,22 +200,26 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
             layoutParams.flags |= FLAG_NOT_FOCUSABLE; //remove focusability
             layoutParams.flags &= ~FLAG_NOT_TOUCHABLE; //add touch
             layoutParams.flags |= FLAG_NOT_TOUCH_MODAL; //add touch
-            windowManager.updateViewLayout(motionCaptureView,layoutParams);
+            windowManager.updateViewLayout(motionCaptureView, layoutParams);
 
             layoutParams = getOrCreateLayoutParamsForContainer(getFrameLayout());
             layoutParams.flags |= FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE;
-            windowManager.updateViewLayout(getFrameLayout(),layoutParams);
+            windowManager.updateViewLayout(getFrameLayout(), layoutParams);
         }
     }
-
 
 
     private void removeContainer(View motionCaptureView) {
         windowManager.removeView(motionCaptureView);
     }
 
+    public void destroy() {
+        windowManager.removeViewImmediate(motionCaptureView);
+        windowManager.removeViewImmediate(getFrameLayout());
+    }
 
-    protected class MotionCapturingTouchListener implements View.OnTouchListener{
+
+    protected class MotionCapturingTouchListener implements View.OnTouchListener {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             event.offsetLocation(getContainerX(v), getContainerY(v));
@@ -223,7 +227,6 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         }
 
     }
-
 
 
     private class MotionCaptureView extends View {
