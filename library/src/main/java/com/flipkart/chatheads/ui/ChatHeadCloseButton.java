@@ -118,7 +118,6 @@ public class ChatHeadCloseButton extends ImageView {
             @Override
             public void onSpringAtRest(Spring spring) {
                 super.onSpringAtRest(spring);
-
                 ySpring.removeListener(this);
             }
         });
@@ -160,7 +159,6 @@ public class ChatHeadCloseButton extends ImageView {
         if (isEnabled()) {
             double translationX = getTranslationFromSpring(x, PERC_PARENT_WIDTH, mParentWidth);
             double translationY = getTranslationFromSpring(y, PERC_PARENT_HEIGHT, mParentHeight);
-//            System.out.println("translationY = " + translationY);
             if (!disappeared) {
                 xSpring.setEndValue(translationX);
                 ySpring.setEndValue(translationY);

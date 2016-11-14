@@ -29,7 +29,6 @@ import com.flipkart.chatheads.ui.ChatHeadListener;
 import com.flipkart.chatheads.ui.ChatHeadManager;
 import com.flipkart.chatheads.ui.ChatHeadOverlayView;
 import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
-import com.flipkart.chatheads.ui.CircularArrangement;
 import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 import com.flipkart.chatheads.ui.SpringConfigsHolder;
@@ -311,7 +310,6 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         chatHeadContainer.addView(closeButtonShadow, shadowLayoutParams);
         arrangements.put(MinimizedArrangement.class, new MinimizedArrangement(this));
         arrangements.put(MaximizedArrangement.class, new MaximizedArrangement<T>(this));
-        arrangements.put(CircularArrangement.class, new CircularArrangement(this));
         setupOverlay(context);
         setConfig(chatHeadDefaultConfig);
         SpringConfigRegistry.getInstance().addSpringConfig(SpringConfigsHolder.DRAGGING, "dragging mode");
