@@ -25,11 +25,5 @@ public interface ChatHeadViewAdapter<T> {
      */
     public Drawable getChatHeadDrawable(T key);
 
-    /**
-     * Used for circular arrangement where a view is drawn under the touch point
-     * @return
-     */
-    public Drawable getPointerDrawable();
 
-    public View getTitleView(T key, ChatHead chatHead);
 }
