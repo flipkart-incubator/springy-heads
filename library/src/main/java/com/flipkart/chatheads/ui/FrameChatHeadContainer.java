@@ -47,17 +47,23 @@ public abstract class FrameChatHeadContainer implements ChatHeadContainer {
 
     @Override
     public void addView(View view, ViewGroup.LayoutParams layoutParams) {
-        frameLayout.addView(view, layoutParams);
+        if(frameLayout!=null) {
+            frameLayout.addView(view, layoutParams);
+        }
     }
 
     @Override
     public void requestLayout() {
-        frameLayout.requestLayout();
+        if(frameLayout!=null) {
+            frameLayout.requestLayout();
+        }
     }
 
     @Override
     public void removeView(View view) {
-        frameLayout.removeView(view);
+        if (frameLayout!=null) {
+            frameLayout.removeView(view);
+        }
     }
 
     @Override
