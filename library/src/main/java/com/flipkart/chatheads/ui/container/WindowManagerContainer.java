@@ -18,6 +18,7 @@ import com.flipkart.chatheads.ui.ChatHead;
 import com.flipkart.chatheads.ui.ChatHeadArrangement;
 import com.flipkart.chatheads.ui.ChatHeadManager;
 import com.flipkart.chatheads.ui.FrameChatHeadContainer;
+import com.flipkart.chatheads.ui.HostFrameLayout;
 import com.flipkart.chatheads.ui.MaximizedArrangement;
 import com.flipkart.chatheads.ui.MinimizedArrangement;
 
@@ -55,9 +56,13 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     public void onInitialized(ChatHeadManager manager) {
         super.onInitialized(manager);
         motionCaptureView = new MotionCaptureView(getContext());
+        WindowManager.LayoutParams motionCaptureParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
+        motionCaptureParams.width = 0;
+        motionCaptureParams.height = 0;
         MotionCapturingTouchListener listener = new MotionCapturingTouchListener();
         motionCaptureView.setOnTouchListener(listener);
         addContainer(motionCaptureView, true);
+        windowManager.updateViewLayout(motionCaptureView,motionCaptureParams);
         registerReceiver(getContext());
     }
 
@@ -65,7 +70,10 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         context.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                getFrameLayout().minimize();
+                HostFrameLayout frameLayout = getFrameLayout();
+                if (frameLayout != null) {
+                    frameLayout.minimize();
+                }
             }
         }, new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
     }
@@ -223,7 +231,12 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             event.offsetLocation(getContainerX(v), getContainerY(v));
-            return getFrameLayout().dispatchTouchEvent(event);
+            HostFrameLayout frameLayout = getFrameLayout();
+            if (frameLayout != null) {
+                return frameLayout.dispatchTouchEvent(event);
+            } else {
+                return false;
+            }
         }
 
     }
