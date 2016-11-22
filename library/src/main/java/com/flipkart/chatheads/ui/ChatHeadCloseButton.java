@@ -150,8 +150,8 @@ public class ChatHeadCloseButton extends ImageView {
         if(changed) {
             this.centerX = x;
             this.centerY = y;
-            xSpring.setCurrentValue(0);
-            ySpring.setCurrentValue(0);
+            xSpring.setCurrentValue(0,false);
+            ySpring.setCurrentValue(0,false);
         }
     }
 

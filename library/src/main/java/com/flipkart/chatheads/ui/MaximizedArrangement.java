@@ -31,7 +31,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     private int topPadding;
     private boolean isActive = false;
     private boolean isTransitioning = false;
-
+    private Bundle extras;
 
     public MaximizedArrangement(ChatHeadManager<T> manager) {
         this.manager = manager;
@@ -54,6 +54,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
         isActive = true;
         List<ChatHead> chatHeads = container.getChatHeads();
         int heroIndex = 0;
+        this.extras = extras;
         if (extras != null)
             heroIndex = extras.getInt(BUNDLE_HERO_INDEX_KEY, -1);
         if (heroIndex < 0 && currentChatHead != null) {
@@ -392,7 +393,7 @@ public class MaximizedArrangement<T extends Serializable> extends ChatHeadArrang
     }
 
     private Bundle getBundleWithHero() {
-        Bundle bundle = new Bundle();
+        Bundle bundle = extras;
         bundle.putInt(MinimizedArrangement.BUNDLE_HERO_INDEX_KEY, getHeroIndex());
         return bundle;
     }
