@@ -43,10 +43,12 @@ public interface ChatHeadManager<T extends Serializable> {
     void selectChatHead(ChatHead chatHead);
 
     void selectChatHead(T key);
+
     /**
      * Should be called when measuring of the container is done.
      * Typically called from onMeasure or onLayout
      * Only when {@link ChatHeadContainer#getContainerHeight()} && {@link ChatHeadContainer#getContainerWidth()} returns a positive value will arrangements start working
+     *
      * @param height
      * @param width
      */
@@ -105,11 +107,11 @@ public interface ChatHeadManager<T extends Serializable> {
 
     SpringSystem getSpringSystem();
 
-    View addView(ChatHead<T> activeChatHead, ViewGroup parent);
+    View attachView(ChatHead<T> activeChatHead, ViewGroup parent);
 
-    View removeView(ChatHead chatHead);
+    void detachView(ChatHead<T> chatHead, ViewGroup parent);
 
-    View detachView(ChatHead chatHead);
+    void removeView(ChatHead<T> chatHead, ViewGroup parent);
 
     ChatHeadConfig getConfig();
 
