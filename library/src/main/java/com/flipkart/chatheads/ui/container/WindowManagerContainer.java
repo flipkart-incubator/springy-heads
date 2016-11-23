@@ -11,6 +11,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
@@ -47,6 +48,7 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     private int cachedWidth;
     private WindowManager windowManager;
     private ChatHeadArrangement currentArrangement;
+    private boolean motionCaptureViewAdded;
 
     public WindowManagerContainer(Context context) {
         super(context);
@@ -56,13 +58,9 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
     public void onInitialized(ChatHeadManager manager) {
         super.onInitialized(manager);
         motionCaptureView = new MotionCaptureView(getContext());
-        WindowManager.LayoutParams motionCaptureParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
-        motionCaptureParams.width = 0;
-        motionCaptureParams.height = 0;
+
         MotionCapturingTouchListener listener = new MotionCapturingTouchListener();
         motionCaptureView.setOnTouchListener(listener);
-        addContainer(motionCaptureView, true);
-        windowManager.updateViewLayout(motionCaptureView,motionCaptureParams);
         registerReceiver(getContext());
     }
 
@@ -216,6 +214,27 @@ public class WindowManagerContainer extends FrameChatHeadContainer {
         }
     }
 
+    @Override
+    public void addView(View view, ViewGroup.LayoutParams layoutParams) {
+        super.addView(view, layoutParams);
+        if (!motionCaptureViewAdded && getManager().getChatHeads().size() > 0) {
+            addContainer(motionCaptureView, true);
+            WindowManager.LayoutParams motionCaptureParams = getOrCreateLayoutParamsForContainer(motionCaptureView);
+            motionCaptureParams.width = 0;
+            motionCaptureParams.height = 0;
+            windowManager.updateViewLayout(motionCaptureView,motionCaptureParams);
+            motionCaptureViewAdded = true;
+        }
+    }
+
+    @Override
+    public void removeView(View view) {
+        super.removeView(view);
+        if (getManager().getChatHeads().size() == 0) {
+            windowManager.removeViewImmediate(motionCaptureView);
+            motionCaptureViewAdded = false;
+        }
+    }
 
     private void removeContainer(View motionCaptureView) {
         windowManager.removeView(motionCaptureView);

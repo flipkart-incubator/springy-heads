@@ -20,6 +20,7 @@ public class FloatingActivity extends Activity implements View.OnClickListener {
     private Button removeButton;
     private Button removeAllButtons;
     private Button toggleButton;
+    private Button updateBadgeCount;
 
     private ChatHeadService chatHeadService;
     private boolean bound;
@@ -35,6 +36,7 @@ public class FloatingActivity extends Activity implements View.OnClickListener {
             ChatHeadService.LocalBinder binder = (ChatHeadService.LocalBinder) service;
             chatHeadService = binder.getService();
             bound = true;
+            chatHeadService.minimize();
         }
 
         @Override
@@ -59,11 +61,13 @@ public class FloatingActivity extends Activity implements View.OnClickListener {
         removeButton = (Button) findViewById(R.id.remove_head);
         removeAllButtons = (Button) findViewById(R.id.remove_all_heads);
         toggleButton = (Button) findViewById(R.id.toggle_arrangement);
+        updateBadgeCount = (Button) findViewById(R.id.update_badge_count);
 
         addButton.setOnClickListener(this);
         removeButton.setOnClickListener(this);
         removeAllButtons.setOnClickListener(this);
         toggleButton.setOnClickListener(this);
+        updateBadgeCount.setOnClickListener(this);
     }
 
 
@@ -72,17 +76,18 @@ public class FloatingActivity extends Activity implements View.OnClickListener {
         if (bound) {
             if (v == addButton) {
                 chatHeadService.addChatHead();
-
             } else if (v == removeButton) {
                 chatHeadService.removeChatHead();
-
             } else if (v == removeAllButtons) {
                 chatHeadService.removeAllChatHeads();
             } else if (v == toggleButton) {
                 chatHeadService.toggleArrangement();
+            } else if (v == updateBadgeCount) {
+                chatHeadService.updateBadgeCount();
             }
         } else {
             Toast.makeText(this, "Service not bound", Toast.LENGTH_SHORT).show();
         }
     }
+
 }

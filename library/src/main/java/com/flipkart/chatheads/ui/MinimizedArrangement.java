@@ -218,12 +218,13 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
             chatHead.getVerticalSpring().setCurrentValue(hero.getVerticalSpring().getCurrentValue());
         }
 
-        onActivate(manager, null, maxWidth, maxHeight, animated);
+        onActivate(manager, getRetainBundle(), maxWidth, maxHeight, animated);
     }
 
     @Override
     public void onChatHeadRemoved(ChatHead removed) {
-        manager.removeView(removed);
+        manager.detachView(removed,manager.getArrowLayout());
+        manager.removeView(removed, manager.getArrowLayout());
         if (removed == hero) {
             hero = null;
         }
@@ -333,10 +334,15 @@ public class MinimizedArrangement<T extends Serializable> extends ChatHeadArrang
     }
 
     private Bundle getBundle(int heroIndex) {
-        relativeXPosition = idleStateX * 1.0 / maxWidth;
-        relativeYPosition = idleStateY * 1.0 / maxHeight;
+        if(hero!=null) {
+            relativeXPosition = hero.getHorizontalSpring().getCurrentValue() * 1.0 / maxWidth;
+            relativeYPosition = hero.getVerticalSpring().getCurrentValue() * 1.0 / maxHeight;
+        }
 
         Bundle bundle = extras;
+        if (bundle == null) {
+            bundle = new Bundle();
+        }
         bundle.putInt(MaximizedArrangement.BUNDLE_HERO_INDEX_KEY, heroIndex);
         bundle.putDouble(MinimizedArrangement.BUNDLE_HERO_RELATIVE_X_KEY, relativeXPosition);
         bundle.putDouble(MinimizedArrangement.BUNDLE_HERO_RELATIVE_Y_KEY, relativeYPosition);

@@ -25,30 +25,20 @@ import com.flipkart.circularImageView.CircularDrawable;
 import com.flipkart.circularImageView.TextDrawer;
 import com.flipkart.circularImageView.notification.CircularNotificationDrawer;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 public class ChatHeadService extends Service {
 
+    // Binder given to clients
+    private final IBinder mBinder = new LocalBinder();
     private DefaultChatHeadManager<String> chatHeadManager;
     private int chatHeadIdentifier = 0;
     private WindowManagerContainer windowManagerContainer;
     private Map<String, View> viewCache = new HashMap<>();
-    // Binder given to clients
-    private final IBinder mBinder = new LocalBinder();
 
-
-    /**
-     * Class used for the client Binder.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
-     */
-    public class LocalBinder extends Binder {
-        ChatHeadService getService() {
-            // Return this instance of LocalService so clients can call public methods
-            return ChatHeadService.this;
-        }
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -64,7 +54,7 @@ public class ChatHeadService extends Service {
         chatHeadManager.setViewAdapter(new ChatHeadViewAdapter<String>() {
 
             @Override
-            public View createView(String key, ChatHead chatHead, ViewGroup parent) {
+            public View attachView(String key, ChatHead chatHead, ViewGroup parent) {
                 View cachedView = viewCache.get(key);
                 if (cachedView == null) {
                     LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -74,7 +64,25 @@ public class ChatHeadService extends Service {
                     cachedView = view;
                     viewCache.put(key, view);
                 }
+                parent.addView(cachedView);
                 return cachedView;
+            }
+
+            @Override
+            public void detachView(String key, ChatHead<? extends Serializable> chatHead, ViewGroup parent) {
+                View cachedView = viewCache.get(key);
+                if(cachedView!=null) {
+                    parent.removeView(cachedView);
+                }
+            }
+
+            @Override
+            public void removeView(String key, ChatHead<? extends Serializable> chatHead, ViewGroup parent) {
+                View cachedView = viewCache.get(key);
+                if(cachedView!=null) {
+                    viewCache.remove(key);
+                    parent.removeView(cachedView);
+                }
             }
 
             @Override
@@ -91,7 +99,6 @@ public class ChatHeadService extends Service {
         moveToForeground();
 
     }
-
 
     private Drawable getChatHeadDrawable(String key) {
         Random rnd = new Random();
@@ -119,13 +126,13 @@ public class ChatHeadService extends Service {
     public void addChatHead() {
         chatHeadIdentifier++;
         chatHeadManager.addChatHead(String.valueOf(chatHeadIdentifier), false, true);
+        chatHeadManager.bringToFront(chatHeadManager.findChatHeadByKey(String.valueOf(chatHeadIdentifier)));
     }
 
     public void removeChatHead() {
-        chatHeadIdentifier--;
         chatHeadManager.removeChatHead(String.valueOf(chatHeadIdentifier), true);
+        chatHeadIdentifier--;
     }
-
 
     public void removeAllChatHeads() {
         chatHeadIdentifier = 0;
@@ -140,9 +147,28 @@ public class ChatHeadService extends Service {
         }
     }
 
+    public void updateBadgeCount() {
+        chatHeadManager.reloadDrawable(String.valueOf(chatHeadIdentifier));
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         windowManagerContainer.destroy();
+    }
+
+    public void minimize() {
+        chatHeadManager.setArrangement(MinimizedArrangement.class,null);
+    }
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        ChatHeadService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return ChatHeadService.this;
+        }
     }
 }

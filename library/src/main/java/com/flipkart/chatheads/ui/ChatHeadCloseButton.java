@@ -14,6 +14,8 @@ import com.facebook.rebound.SpringSystem;
 import com.facebook.rebound.SpringUtil;
 import com.flipkart.chatheads.R;
 
+import java.io.Serializable;
+
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadCloseButton extends ImageView {
 

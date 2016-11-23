@@ -329,7 +329,7 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         } else {
             int left = closeButton.getLeft();
             int top = closeButton.getTop();
-            double xDiff = touchX - left -getChatHeadContainer().getViewX(closeButton) - closeButton.getMeasuredWidth() / 2;
+            double xDiff = touchX - left - getChatHeadContainer().getViewX(closeButton) - closeButton.getMeasuredWidth() / 2;
             double yDiff = touchY - top - getChatHeadContainer().getViewY(closeButton) - closeButton.getMeasuredHeight() / 2;
             double distance = Math.hypot(xDiff, yDiff);
             return distance;
@@ -374,7 +374,7 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         ChatHeadArrangement oldArrangement = null;
         ChatHeadArrangement newArrangement = requestedArrangement;
         Bundle extras = requestedArrangementParam.getExtras();
-        if(activeArrangement!=requestedArrangement) hasChanged = true;
+        if (activeArrangement != requestedArrangement) hasChanged = true;
         if (extras == null) extras = new Bundle();
 
         if (activeArrangement != null) {
@@ -385,7 +385,7 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
         activeArrangement = requestedArrangement;
         activeArrangementBundle = extras;
         requestedArrangement.onActivate(this, extras, maxWidth, maxHeight, requestedArrangementParam.isAnimated());
-        if(hasChanged) {
+        if (hasChanged) {
             chatHeadContainer.onArrangementChanged(oldArrangement, newArrangement);
             if (listener != null)
                 listener.onChatHeadArrangementChanged(oldArrangement, newArrangement);
@@ -469,9 +469,11 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
     }
 
 
+
     @Override
     public void recreateView(T key) {
-        removeView(findChatHeadByKey(key));
+        detachView(findChatHeadByKey(key),getArrowLayout());
+        removeView(findChatHeadByKey(key), getArrowLayout());
         if (activeArrangement != null) {
             activeArrangement.onReloadFragment(findChatHeadByKey(key));
         }
@@ -483,20 +485,20 @@ public class DefaultChatHeadManager<T extends Serializable> implements ChatHeadC
     }
 
     @Override
-    public View addView(ChatHead<T> activeChatHead, ViewGroup parent) {
-        View view = viewAdapter.createView(activeChatHead.getKey(), activeChatHead, parent);
-        parent.addView(view);
+    public View attachView(ChatHead<T> activeChatHead, ViewGroup parent) {
+        View view = viewAdapter.attachView(activeChatHead.getKey(), activeChatHead, parent);
         return view;
     }
 
     @Override
-    public View removeView(ChatHead chatHead) {
-        return null;
+    public void removeView(ChatHead<T> chatHead, ViewGroup parent) {
+        viewAdapter.removeView(chatHead.getKey(), chatHead, parent);
     }
 
+
     @Override
-    public View detachView(ChatHead chatHead) {
-        return null;
+    public void detachView(ChatHead<T> chatHead, ViewGroup parent) {
+        viewAdapter.detachView(chatHead.getKey(), chatHead, parent);
     }
 
 
