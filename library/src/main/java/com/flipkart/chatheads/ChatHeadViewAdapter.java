@@ -1,8 +1,10 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads;
 
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.flipkart.chatheads.arrangement.MaximizedArrangement;
 
 import java.io.Serializable;
 

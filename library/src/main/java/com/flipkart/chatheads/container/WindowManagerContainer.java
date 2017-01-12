@@ -1,36 +1,28 @@
-package com.flipkart.chatheads.ui.container;
+package com.flipkart.chatheads.container;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 
-import com.flipkart.chatheads.ui.ChatHead;
-import com.flipkart.chatheads.ui.ChatHeadArrangement;
-import com.flipkart.chatheads.ui.ChatHeadManager;
-import com.flipkart.chatheads.ui.FrameChatHeadContainer;
-import com.flipkart.chatheads.ui.HostFrameLayout;
-import com.flipkart.chatheads.ui.MaximizedArrangement;
-import com.flipkart.chatheads.ui.MinimizedArrangement;
+import com.flipkart.chatheads.ChatHead;
+import com.flipkart.chatheads.arrangement.ChatHeadArrangement;
+import com.flipkart.chatheads.ChatHeadManager;
+import com.flipkart.chatheads.arrangement.MaximizedArrangement;
+import com.flipkart.chatheads.arrangement.MinimizedArrangement;
 
 import static android.content.Context.WINDOW_SERVICE;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 import static android.view.WindowManager.LayoutParams.TYPE_PHONE;
-import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
 
 /**
  * Created by kiran.kumar on 08/11/16.

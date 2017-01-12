@@ -20,7 +20,7 @@ compile 'com.flipkart.springyheads:library:0.9.6'
 
 Define the view group in your layout file
 ```xml
-<com.flipkart.chatheads.ui.ChatHeadContainer
+<com.flipkart.chatheads.ChatHeadContainer
 android:id="@+id/chat_head_container"
 android:layout_width="match_parent"
 android:layout_height="match_parent"/>  

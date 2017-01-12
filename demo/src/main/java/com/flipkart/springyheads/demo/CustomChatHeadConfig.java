@@ -3,8 +3,8 @@ package com.flipkart.springyheads.demo;
 import android.content.Context;
 import android.graphics.Point;
 
-import com.flipkart.chatheads.ChatHeadUtils;
-import com.flipkart.chatheads.ui.ChatHeadDefaultConfig;
+import com.flipkart.chatheads.utils.ChatHeadUtils;
+import com.flipkart.chatheads.config.ChatHeadDefaultConfig;
 
 /**
  * Created by kiran.kumar on 06/05/15.

@@ -1,15 +1,18 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.facebook.rebound.SpringSystem;
+import com.flipkart.chatheads.arrangement.ChatHeadArrangement;
+import com.flipkart.chatheads.config.ChatHeadConfig;
+import com.flipkart.chatheads.container.ChatHeadOverlayView;
+import com.flipkart.chatheads.custom.ChatHeadCloseButton;
+import com.flipkart.chatheads.custom.UpArrowLayout;
 
 import java.io.Serializable;
 import java.util.List;

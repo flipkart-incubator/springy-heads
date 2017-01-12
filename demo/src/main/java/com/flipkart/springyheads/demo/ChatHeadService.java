@@ -4,23 +4,27 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.flipkart.chatheads.ui.ChatHead;
-import com.flipkart.chatheads.ui.ChatHeadViewAdapter;
-import com.flipkart.chatheads.ui.MaximizedArrangement;
-import com.flipkart.chatheads.ui.MinimizedArrangement;
-import com.flipkart.chatheads.ui.container.DefaultChatHeadManager;
-import com.flipkart.chatheads.ui.container.WindowManagerContainer;
+import com.flipkart.chatheads.ChatHead;
+import com.flipkart.chatheads.ChatHeadContainer;
+import com.flipkart.chatheads.ChatHeadListener;
+import com.flipkart.chatheads.ChatHeadManager;
+import com.flipkart.chatheads.ChatHeadViewAdapter;
+import com.flipkart.chatheads.arrangement.ChatHeadArrangement;
+import com.flipkart.chatheads.arrangement.MaximizedArrangement;
+import com.flipkart.chatheads.arrangement.MinimizedArrangement;
+import com.flipkart.chatheads.container.DefaultChatHeadManager;
+import com.flipkart.chatheads.container.WindowManagerContainer;
 import com.flipkart.circularImageView.CircularDrawable;
 import com.flipkart.circularImageView.TextDrawer;
 import com.flipkart.circularImageView.notification.CircularNotificationDrawer;
@@ -32,7 +36,7 @@ import java.util.Random;
 
 public class ChatHeadService extends Service {
 
-    // Binder given to clients
+    private static final String TAG = "ChatHeadService";
     private final IBinder mBinder = new LocalBinder();
     private DefaultChatHeadManager<String> chatHeadManager;
     private int chatHeadIdentifier = 0;
@@ -51,10 +55,15 @@ public class ChatHeadService extends Service {
 
         windowManagerContainer = new WindowManagerContainer(this);
         chatHeadManager = new DefaultChatHeadManager<String>(this, windowManagerContainer);
+
+        // The view adapter is invoked when someone clicks a chat head.
         chatHeadManager.setViewAdapter(new ChatHeadViewAdapter<String>() {
 
             @Override
             public View attachView(String key, ChatHead chatHead, ViewGroup parent) {
+                // You can return the view which is shown when the arrangement changes to maximized.
+                // The passed "key" param is the same key which was used when adding the chat head.
+
                 View cachedView = viewCache.get(key);
                 if (cachedView == null) {
                     LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -71,7 +80,7 @@ public class ChatHeadService extends Service {
             @Override
             public void detachView(String key, ChatHead<? extends Serializable> chatHead, ViewGroup parent) {
                 View cachedView = viewCache.get(key);
-                if(cachedView!=null) {
+                if (cachedView != null) {
                     parent.removeView(cachedView);
                 }
             }
@@ -79,7 +88,7 @@ public class ChatHeadService extends Service {
             @Override
             public void removeView(String key, ChatHead<? extends Serializable> chatHead, ViewGroup parent) {
                 View cachedView = viewCache.get(key);
-                if(cachedView!=null) {
+                if (cachedView != null) {
                     viewCache.remove(key);
                     parent.removeView(cachedView);
                 }
@@ -87,10 +96,64 @@ public class ChatHeadService extends Service {
 
             @Override
             public Drawable getChatHeadDrawable(String key) {
+                // this is where you return a drawable for the chat head itself based on the key. Typically you return a circular shape
+                // you may want to checkout circular image library https://github.com/flipkart-incubator/circular-image
                 return ChatHeadService.this.getChatHeadDrawable(key);
             }
         });
 
+        chatHeadManager.setListener(new ChatHeadListener() {
+            @Override
+            public void onChatHeadAdded(Object key) {
+                //called whenever a new chat head with the specified 'key' has been added
+                Log.d(TAG, "onChatHeadAdded() called with: key = [" + key + "]");
+            }
+
+            @Override
+            public void onChatHeadRemoved(Object key, boolean userTriggered) {
+                //called whenever a new chat head with the specified 'key' has been removed.
+                // userTriggered: 'true' says whether the user removed the chat head, 'false' says that the code triggered it
+                Log.d(TAG, "onChatHeadRemoved() called with: key = [" + key + "], userTriggered = [" + userTriggered + "]");
+            }
+
+            @Override
+            public void onChatHeadArrangementChanged(ChatHeadArrangement oldArrangement, ChatHeadArrangement newArrangement) {
+                //called whenever the chat head arrangement changed. For e.g minimized to maximized or vice versa.
+                Log.d(TAG, "onChatHeadArrangementChanged() called with: oldArrangement = [" + oldArrangement + "], newArrangement = [" + newArrangement + "]");
+            }
+
+            @Override
+            public void onChatHeadAnimateStart(ChatHead chatHead) {
+                //called when the chat head has started moving (
+                Log.d(TAG, "onChatHeadAnimateStart() called with: chatHead = [" + chatHead + "]");
+            }
+
+            @Override
+            public void onChatHeadAnimateEnd(ChatHead chatHead) {
+                //called when the chat head has settled after moving
+                Log.d(TAG, "onChatHeadAnimateEnd() called with: chatHead = [" + chatHead + "]");
+            }
+        });
+
+        chatHeadManager.setOnItemSelectedListener(new ChatHeadManager.OnItemSelectedListener<String>() {
+            @Override
+            public boolean onChatHeadSelected(String key, ChatHead chatHead) {
+                if (chatHeadManager.getArrangementType() == MaximizedArrangement.class) {
+                    Log.d(TAG, "chat head got selected in maximized arrangement");
+                }
+                return false; //returning true will mean that you have handled the behaviour and the default behaviour will be skipped
+            }
+
+            @Override
+            public void onChatHeadRollOver(String key, ChatHead chatHead) {
+                Log.d(TAG, "onChatHeadRollOver() called with: key = [" + key + "], chatHead = [" + chatHead + "]");
+            }
+
+            @Override
+            public void onChatHeadRollOut(String key, ChatHead chatHead) {
+                Log.d(TAG, "onChatHeadRollOut() called with: key = [" + key + "], chatHead = [" + chatHead + "]");
+            }
+        });
         addChatHead();
         addChatHead();
         addChatHead();
@@ -125,6 +188,13 @@ public class ChatHeadService extends Service {
 
     public void addChatHead() {
         chatHeadIdentifier++;
+        // you can even pass a custom object instead of "head0"
+        // a sticky chat head (passed as 'true') cannot be closed and will remain when all other chat heads are closed.
+        /**
+         * In this example a String object (identified by chatHeadIdentifier) is attached to each chat head.
+         * You can instead attach any custom object, for e.g a Conversation object to denote each chat head.
+         * This object will represent a chat head uniquely and will be passed back in all callbacks.
+         */
         chatHeadManager.addChatHead(String.valueOf(chatHeadIdentifier), false, true);
         chatHeadManager.bringToFront(chatHeadManager.findChatHeadByKey(String.valueOf(chatHeadIdentifier)));
     }
@@ -158,7 +228,7 @@ public class ChatHeadService extends Service {
     }
 
     public void minimize() {
-        chatHeadManager.setArrangement(MinimizedArrangement.class,null);
+        chatHeadManager.setArrangement(MinimizedArrangement.class, null);
     }
 
     /**

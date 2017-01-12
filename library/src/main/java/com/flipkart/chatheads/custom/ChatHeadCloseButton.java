@@ -1,9 +1,8 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.custom;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.ImageView;
@@ -13,8 +12,8 @@ import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringSystem;
 import com.facebook.rebound.SpringUtil;
 import com.flipkart.chatheads.R;
-
-import java.io.Serializable;
+import com.flipkart.chatheads.ChatHeadManager;
+import com.flipkart.chatheads.utils.SpringConfigsHolder;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHeadCloseButton extends ImageView {

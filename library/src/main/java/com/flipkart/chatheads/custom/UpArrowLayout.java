@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.custom;
 
 import android.content.Context;
 import android.graphics.Point;

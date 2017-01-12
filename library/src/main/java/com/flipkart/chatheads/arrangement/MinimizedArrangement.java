@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.arrangement;
 
 import android.graphics.Point;
 import android.os.Bundle;
@@ -8,7 +8,11 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
 import com.facebook.rebound.SpringListener;
-import com.flipkart.chatheads.ChatHeadUtils;
+import com.flipkart.chatheads.ChatHead;
+import com.flipkart.chatheads.config.ChatHeadConfig;
+import com.flipkart.chatheads.ChatHeadManager;
+import com.flipkart.chatheads.utils.ChatHeadUtils;
+import com.flipkart.chatheads.utils.SpringConfigsHolder;
 
 import java.io.Serializable;
 import java.util.List;

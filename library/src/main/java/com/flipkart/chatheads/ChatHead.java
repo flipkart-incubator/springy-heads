@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -16,7 +16,8 @@ import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
-import com.flipkart.chatheads.ChatHeadUtils;
+import com.flipkart.chatheads.utils.ChatHeadUtils;
+import com.flipkart.chatheads.utils.SpringConfigsHolder;
 
 import java.io.Serializable;
 
@@ -26,7 +27,7 @@ import java.io.Serializable;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class ChatHead<T extends Serializable> extends ImageView implements SpringListener {
 
-    final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
+    public final int CLOSE_ATTRACTION_THRESHOLD = ChatHeadUtils.dpToPx(getContext(), 110);
     private final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
     private final float DELTA = ChatHeadUtils.dpToPx(getContext(), 10);
     private ChatHeadManager manager;

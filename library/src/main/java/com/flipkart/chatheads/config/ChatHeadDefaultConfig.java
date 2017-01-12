@@ -1,9 +1,9 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.config;
 
 import android.content.Context;
 import android.graphics.Point;
 
-import com.flipkart.chatheads.ChatHeadUtils;
+import com.flipkart.chatheads.utils.ChatHeadUtils;
 
 /**
  * Created by kiran.kumar on 06/05/15.

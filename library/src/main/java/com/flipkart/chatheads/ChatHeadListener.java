@@ -1,4 +1,6 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads;
+
+import com.flipkart.chatheads.arrangement.ChatHeadArrangement;
 
 import java.io.Serializable;
 

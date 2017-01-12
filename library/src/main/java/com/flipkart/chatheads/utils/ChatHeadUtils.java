@@ -1,4 +1,4 @@
-package com.flipkart.chatheads;
+package com.flipkart.chatheads.utils;
 
 import android.content.Context;
 import android.util.DisplayMetrics;

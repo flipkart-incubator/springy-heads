@@ -1,9 +1,12 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.arrangement;
 
 import android.os.Bundle;
 import android.view.MotionEvent;
 
 import com.facebook.rebound.Spring;
+import com.flipkart.chatheads.ChatHead;
+import com.flipkart.chatheads.config.ChatHeadConfig;
+import com.flipkart.chatheads.ChatHeadManager;
 
 /**
  * Created by kirankumar on 13/02/15.

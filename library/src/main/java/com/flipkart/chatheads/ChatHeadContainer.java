@@ -1,16 +1,10 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads;
 
-import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewManager;
-import android.view.WindowManager;
 
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-
-import java.io.Serializable;
+import com.flipkart.chatheads.arrangement.ChatHeadArrangement;
 
 /**
  * Created by kiran.kumar on 27/10/16.

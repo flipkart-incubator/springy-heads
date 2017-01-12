@@ -1,4 +1,4 @@
-package com.flipkart.chatheads.ui;
+package com.flipkart.chatheads.utils;
 
 import com.facebook.rebound.SpringConfig;
 
