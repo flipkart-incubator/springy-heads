@@ -1,3 +1,4 @@
+# THIS PROJECT IS NO MORE MAINTAINED. A good alternative is at https://github.com/google/hover
 # Springy heads
 A chat head library for use within your apps. This includes all the UI physics and spring animations which drive multi user chat behaviour and toggling between maximized, minimized and circular arrangements. 
 
